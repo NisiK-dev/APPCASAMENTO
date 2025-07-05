@@ -64,7 +64,7 @@
                         <i class="fas fa-arrow-left me-2"></i>
                         Voltar à Busca
                     </button>
-                    <button type="submit" class="btn btn-success btn-lg">
+                    <button type="button" class="btn btn-success btn-lg" onclick="submitRSVP()">
                         <i class="fas fa-check me-2"></i>
                         Confirmar Presenças
                     </button>
@@ -203,6 +203,9 @@ function showConfirmStep() {
     });
     
     guestsList.innerHTML = html;
+    
+    // Re-attach form submission event after content is updated
+    setupFormSubmission();
 }
 
 function goBackToSearch() {
@@ -211,13 +214,8 @@ function goBackToSearch() {
     selectedGuests = [];
 }
 
-// Form submission
-document.getElementById('rsvpForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const button = this.querySelector('button[type="submit"]');
-    const originalText = button.innerHTML;
-    
+// Function to submit RSVP
+function submitRSVP() {
     // Verificar se pelo menos um convidado foi selecionado
     let hasSelection = false;
     selectedGuests.forEach(guest => {
@@ -235,12 +233,16 @@ document.getElementById('rsvpForm').addEventListener('submit', function(e) {
         return;
     }
     
-    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvando...';
-    button.disabled = true;
+    // Encontrar o botão e mostrar loading
+    const button = document.querySelector('button[onclick="submitRSVP()"]');
+    if (button) {
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvando...';
+        button.disabled = true;
+    }
     
-    // Submeter o formulário normalmente
-    this.submit();
-});
+    // Submeter o formulário
+    document.getElementById('rsvpForm').submit();
+}
 
 // Enter key on search
 document.getElementById('guestSearch').addEventListener('keypress', function(e) {
