@@ -72,7 +72,20 @@ def admin_guests():
     
     guests = Guest.query.all()
     groups = GuestGroup.query.all()
-    return render_template('admin_guests.html', guests=guests, groups=groups)
+    
+    # Estatísticas
+    total_guests = len(guests)
+    confirmed_guests = len([g for g in guests if g.rsvp_status == 'confirmado'])
+    declined_guests = len([g for g in guests if g.rsvp_status == 'nao_confirmado'])
+    pending_guests = len([g for g in guests if g.rsvp_status == 'pendente'])
+    
+    return render_template('admin_guests.html', 
+                         guests=guests, 
+                         groups=groups,
+                         total_guests=total_guests,
+                         confirmed_guests=confirmed_guests,
+                         declined_guests=declined_guests,
+                         pending_guests=pending_guests)
 
 @app.route('/admin/add_guest', methods=['POST'])
 def add_guest():
@@ -344,11 +357,31 @@ def add_gift():
         flash('Nome do presente é obrigatório!', 'danger')
         return redirect(url_for('admin_gifts'))
     
+    # Lidar com upload de imagem
+    image_filename = None
+    if 'image' in request.files:
+        file = request.files['image']
+        if file and file.filename != '':
+            import os
+            import uuid
+            from werkzeug.utils import secure_filename
+            
+            # Gerar nome único para o arquivo
+            file_ext = os.path.splitext(secure_filename(file.filename))[1].lower()
+            if file_ext in ['.jpg', '.jpeg', '.png', '.gif']:
+                image_filename = f"{uuid.uuid4().hex}{file_ext}"
+                file_path = os.path.join('static/uploads/gifts', image_filename)
+                
+                # Criar diretório se não existir
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                file.save(file_path)
+    
     gift = GiftRegistry(
         item_name=item_name,
         description=description,
         price=price,
-        store_link=store_link
+        store_link=store_link,
+        image_filename=image_filename
     )
     
     db.session.add(gift)

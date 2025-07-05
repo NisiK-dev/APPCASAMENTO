@@ -3,98 +3,67 @@
 {% block title %}Confirmação Realizada{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="text-center mb-4">
-            <i class="fas fa-check-circle fa-5x text-success mb-3"></i>
-            <h2 class="text-success">Confirmações Registradas!</h2>
-        </div>
-        
-        <div class="card border-0 shadow">
-            <div class="card-body p-5">
-                <h4 class="text-center mb-4">Obrigado, {{ main_guest.name }}!</h4>
-                
-                <p class="lead text-center mb-4">
-                    Registramos as confirmações para os seguintes convidados:
-                </p>
-                
-                <div class="row">
-                    {% for guest in guests %}
-                    <div class="col-md-6 mb-3">
-                        <div class="card {% if guest.rsvp_status == 'confirmado' %}border-success{% else %}border-danger{% endif %}">
-                            <div class="card-body text-center">
-                                <h6 class="card-title">{{ guest.name }}</h6>
-                                {% if guest.rsvp_status == 'confirmado' %}
-                                    <div class="text-success">
-                                        <i class="fas fa-check-circle fa-2x mb-2"></i>
-                                        <p class="mb-0"><strong>Presença Confirmada</strong></p>
-                                    </div>
-                                {% else %}
-                                    <div class="text-danger">
-                                        <i class="fas fa-times-circle fa-2x mb-2"></i>
-                                        <p class="mb-0"><strong>Não Comparecerá</strong></p>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
+<div class="text-center">
+    <div class="mb-4">
+        <i class="fas fa-check-circle fa-4x text-success"></i>
+    </div>
+    
+    <h2 class="mb-3">Confirmação Realizada com Sucesso!</h2>
+    
+    <p class="lead">Obrigado por confirmar sua presença em nosso casamento.</p>
+    
+    <div class="card mx-auto" style="max-width: 500px;">
+        <div class="card-body">
+            <h5 class="card-title">Detalhes da Confirmação</h5>
+            
+            {% if confirmed_guests %}
+            <div class="mb-3">
+                <strong>Convidados Confirmados:</strong>
+                <ul class="list-unstyled mt-2">
+                    {% for guest in confirmed_guests %}
+                    <li class="mb-1">
+                        <i class="fas fa-check text-success me-2"></i>
+                        {{ guest.name }}
+                    </li>
                     {% endfor %}
-                </div>
-                
-                {% set confirmed_count = guests|selectattr('rsvp_status', 'equalto', 'confirmado')|list|length %}
-                {% if confirmed_count > 0 %}
-                <div class="mt-4 p-3 bg-success bg-opacity-10 rounded">
-                    <h6 class="text-success">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Informações Importantes
-                    </h6>
-                    <p class="mb-0 small">
-                        Estamos muito felizes em saber que {{ confirmed_count }} {% if confirmed_count == 1 %}pessoa estará{% else %}pessoas estarão{% endif %} conosco neste dia especial!
-                        Em breve você receberá mais detalhes sobre o local, horário e outras informações importantes.
-                    </p>
-                </div>
-                {% endif %}
-                
-                {% set declined_count = guests|selectattr('rsvp_status', 'equalto', 'nao_confirmado')|list|length %}
-                {% if declined_count > 0 %}
-                <div class="mt-4 p-3 bg-danger bg-opacity-10 rounded">
-                    <h6 class="text-danger">
-                        <i class="fas fa-heart me-2"></i>
-                        Mensagem Especial
-                    </h6>
-                    <p class="mb-0 small">
-                        Sentiremos a falta {% if declined_count == 1 %}desta pessoa{% else %}destas pessoas{% endif %} neste dia especial, mas compreendemos a situação.
-                        {% if declined_count == 1 %}Ela estará{% else %}Elas estarão{% endif %} em nossos corações.
-                    </p>
-                </div>
-                {% endif %}
+                </ul>
             </div>
-        </div>
-        
-        <div class="text-center mt-4">
-            <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
-                <i class="fas fa-home me-2"></i>
-                Voltar ao Início
-            </a>
+            {% endif %}
+            
+            {% if declined_guests %}
+            <div class="mb-3">
+                <strong>Não Poderão Comparecer:</strong>
+                <ul class="list-unstyled mt-2">
+                    {% for guest in declined_guests %}
+                    <li class="mb-1">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        {{ guest.name }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <hr>
+            
+            <div class="text-muted">
+                <small>
+                    <i class="fas fa-info-circle me-1"></i>
+                    Se precisar fazer alguma alteração, entre em contato conosco.
+                </small>
+            </div>
         </div>
     </div>
-</div>
-
-<div class="row justify-content-center mt-5">
-    <div class="col-md-8">
-        <div class="card bg-gradient text-center">
-            <div class="card-body">
-                <h5>
-                    <i class="fas fa-heart text-danger me-2"></i>
-                    Muito Obrigado!
-                    <i class="fas fa-heart text-danger ms-2"></i>
-                </h5>
-                <p class="mb-0">
-                    Agradecemos por tomar o tempo para responder ao nosso convite.
-                    Significa muito para nós ter você em nossa vida!
-                </p>
-            </div>
-        </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('index') }}" class="btn btn-primary me-3">
+            <i class="fas fa-home me-2"></i>
+            Voltar ao Início
+        </a>
+        <a href="{{ url_for('gifts') }}" class="btn btn-outline-warning">
+            <i class="fas fa-gift me-2"></i>
+            Ver Lista de Presentes
+        </a>
     </div>
 </div>
 {% endblock %}

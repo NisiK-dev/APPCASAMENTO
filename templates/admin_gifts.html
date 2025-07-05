@@ -35,6 +35,7 @@
                         <table class="table table-hover">
                             <thead>
                                 <tr>
+                                    <th>Imagem</th>
                                     <th>Nome do Presente</th>
                                     <th>Descrição</th>
                                     <th>Preço</th>
@@ -46,6 +47,19 @@
                             <tbody>
                                 {% for gift in gifts %}
                                 <tr>
+                                    <td>
+                                        {% if gift.image_filename %}
+                                            <img src="{{ url_for('static', filename='uploads/gifts/' + gift.image_filename) }}" 
+                                                 alt="{{ gift.item_name }}" 
+                                                 class="img-thumbnail" 
+                                                 style="width: 60px; height: 60px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-light d-flex align-items-center justify-content-center" 
+                                                 style="width: 60px; height: 60px; border-radius: 4px;">
+                                                <i class="fas fa-image text-muted"></i>
+                                            </div>
+                                        {% endif %}
+                                    </td>
                                     <td><strong>{{ gift.item_name }}</strong></td>
                                     <td>{{ gift.description[:50] + '...' if gift.description and gift.description|length > 50 else gift.description or '-' }}</td>
                                     <td>{{ gift.price or '-' }}</td>
@@ -100,7 +114,7 @@
                 <h5 class="modal-title">Adicionar Presente</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{{ url_for('add_gift') }}">
+            <form method="POST" action="{{ url_for('add_gift') }}" enctype="multipart/form-data">
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -119,6 +133,11 @@
                     <div class="mb-3">
                         <label for="store_link" class="form-label">Link da Loja (Opcional)</label>
                         <input type="url" class="form-control" id="store_link" name="store_link" placeholder="https://exemplo.com/produto">
+                    </div>
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Imagem do Presente (Opcional)</label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                        <div class="form-text">Formatos aceitos: JPG, PNG, GIF (máx. 5MB)</div>
                     </div>
                 </div>
                 <div class="modal-footer">
