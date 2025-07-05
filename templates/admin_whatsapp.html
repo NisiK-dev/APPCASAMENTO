@@ -1,0 +1,500 @@
+{% extends "base.html" %}
+
+{% block title %}Mensagens WhatsApp{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fab fa-whatsapp me-2"></i>
+                Enviar Mensagens WhatsApp
+            </h2>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Voltar ao Dashboard
+            </a>
+        </div>
+
+        <div class="row">
+            <!-- Message Composer -->
+            <div class="col-lg-8 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-compose me-2"></i>
+                            Compor Mensagem
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="whatsappForm">
+                            <!-- Recipients -->
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="fas fa-users me-2"></i>
+                                    Destinatários
+                                </label>
+                                <div class="row">
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="recipient_type" id="individual" value="individual">
+                                            <label class="form-check-label" for="individual">
+                                                Convidado Individual
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="recipient_type" id="group" value="group">
+                                            <label class="form-check-label" for="group">
+                                                Grupo de Convidados
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="recipient_type" id="status" value="status">
+                                            <label class="form-check-label" for="status">
+                                                Por Status RSVP
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="recipient_type" id="all" value="all">
+                                            <label class="form-check-label" for="all">
+                                                Todos os Convidados
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Individual Guest Selection -->
+                            <div class="mb-3" id="individualSection" style="display: none;">
+                                <label for="guestSelect" class="form-label">Selecionar Convidado</label>
+                                <select class="form-select" id="guestSelect" name="guest_id">
+                                    <option value="">Escolha um convidado</option>
+                                    {% for guest in guests %}
+                                        <option value="{{ guest.id }}">{{ guest.name }} ({{ guest.phone }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Group Selection -->
+                            <div class="mb-3" id="groupSection" style="display: none;">
+                                <label for="groupSelect" class="form-label">Selecionar Grupo</label>
+                                <select class="form-select" id="groupSelect" name="group_id">
+                                    <option value="">Escolha um grupo</option>
+                                    {% for group in groups %}
+                                        <option value="{{ group.id }}">{{ group.name }} ({{ group.guests|length }} convidados)</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Status Selection -->
+                            <div class="mb-3" id="statusSection" style="display: none;">
+                                <label for="statusSelect" class="form-label">Selecionar Status</label>
+                                <select class="form-select" id="statusSelect" name="status">
+                                    <option value="">Escolha um status</option>
+                                    <option value="pendente">Pendentes</option>
+                                    <option value="confirmado">Confirmados</option>
+                                    <option value="nao_confirmado">Não Confirmados</option>
+                                </select>
+                            </div>
+
+                            <!-- Message Type -->
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-message me-2"></i>
+                                    Tipo de Mensagem
+                                </label>
+                                <div class="row">
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="message_type" id="custom" value="custom" checked>
+                                            <label class="form-check-label" for="custom">
+                                                Mensagem Personalizada
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="message_type" id="reminder" value="confirmation_reminder">
+                                            <label class="form-check-label" for="reminder">
+                                                Lembrete de Confirmação
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="message_type" id="thankyou" value="thank_you">
+                                            <label class="form-check-label" for="thankyou">
+                                                Agradecimento
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="message_type" id="venue" value="venue_update">
+                                            <label class="form-check-label" for="venue">
+                                                Informações do Local
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Message Content -->
+                            <div class="mb-3">
+                                <label for="messageContent" class="form-label">
+                                    <i class="fas fa-edit me-2"></i>
+                                    Mensagem
+                                </label>
+                                <textarea class="form-control" id="messageContent" name="message" rows="6" 
+                                          placeholder="Digite sua mensagem personalizada..."></textarea>
+                                <div class="form-text">
+                                    Máximo 1600 caracteres. Emojis são permitidos.
+                                </div>
+                            </div>
+
+                            <!-- Preview -->
+                            <div class="mb-3" id="messagePreview" style="display: none;">
+                                <label class="form-label">
+                                    <i class="fas fa-eye me-2"></i>
+                                    Prévia da Mensagem
+                                </label>
+                                <div class="card">
+                                    <div class="card-body bg-success text-white">
+                                        <div id="previewContent"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Send Button -->
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fab fa-whatsapp me-2"></i>
+                                    Enviar Mensagem
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Templates and Info -->
+            <div class="col-lg-4">
+                <!-- Message Templates -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-templates me-2"></i>
+                            Modelos Rápidos
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="loadTemplate('reminder')">
+                                Lembrete de Confirmação
+                            </button>
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="loadTemplate('thanks')">
+                                Agradecimento
+                            </button>
+                            <button type="button" class="btn btn-outline-info btn-sm" onclick="loadTemplate('venue')">
+                                Informações do Local
+                            </button>
+                            <button type="button" class="btn btn-outline-warning btn-sm" onclick="loadTemplate('gift')">
+                                Lista de Presentes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Info -->
+                {% if venue %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Informações do Evento
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Local:</strong> {{ venue.name }}</p>
+                        <p><strong>Data:</strong> {{ venue.date }}</p>
+                        <p><strong>Horário:</strong> {{ venue.time }}</p>
+                        <p><strong>Endereço:</strong> {{ venue.address }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Statistics -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Estatísticas WhatsApp
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Convidados com WhatsApp:</strong> {{ guests|length }}</p>
+                        <p><strong>Total de Grupos:</strong> {{ groups|length }}</p>
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="fas fa-info-circle me-1"></i>
+                                Configure as credenciais do Twilio nas variáveis de ambiente para enviar mensagens.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Modal -->
+<div class="modal fade" id="resultsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Resultado do Envio
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="resultsContent">
+                <!-- Results will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Message templates
+const templates = {
+    reminder: `🤍 Olá! Este é um lembrete gentil sobre nosso casamento.
+
+📅 Data: ${venue?.date || '[DATA]'}
+⏰ Horário: ${venue?.time || '[HORÁRIO]'}
+📍 Local: ${venue?.name || '[LOCAL]'}
+
+Por favor, confirme sua presença através do link: ${window.location.origin}/rsvp
+
+Aguardamos você! 💕`,
+    
+    thanks: `🤍 Muito obrigado(a) por confirmar sua presença em nosso casamento!
+
+📅 Data: ${venue?.date || '[DATA]'}
+⏰ Horário: ${venue?.time || '[HORÁRIO]'}
+📍 Local: ${venue?.name || '[LOCAL]'}
+
+Estamos ansiosos para celebrar este momento especial com você! 💕`,
+    
+    venue: `🤍 Informações importantes sobre nosso casamento:
+
+📅 Data: ${venue?.date || '[DATA]'}
+⏰ Horário: ${venue?.time || '[HORÁRIO]'}
+📍 Local: ${venue?.name || '[LOCAL]'}
+🗺️ Endereço: ${venue?.address || '[ENDEREÇO]'}
+
+Não esqueça de confirmar sua presença! 💕`,
+    
+    gift: `🤍 Nosso casamento está chegando!
+
+🎁 Criamos uma lista de presentes para facilitar. Confira em: ${window.location.origin}/gifts
+
+📅 Data: ${venue?.date || '[DATA]'}
+⏰ Horário: ${venue?.time || '[HORÁRIO]'}
+
+Sua presença já é nosso maior presente! 💕`
+};
+
+// Event listeners for recipient type
+document.querySelectorAll('input[name="recipient_type"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        document.getElementById('individualSection').style.display = this.value === 'individual' ? 'block' : 'none';
+        document.getElementById('groupSection').style.display = this.value === 'group' ? 'block' : 'none';
+        document.getElementById('statusSection').style.display = this.value === 'status' ? 'block' : 'none';
+    });
+});
+
+// Event listeners for message type
+document.querySelectorAll('input[name="message_type"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        if (this.value !== 'custom') {
+            const template = templates[this.value === 'confirmation_reminder' ? 'reminder' : 
+                                    this.value === 'thank_you' ? 'thanks' : 
+                                    this.value === 'venue_update' ? 'venue' : 'reminder'];
+            document.getElementById('messageContent').value = template;
+            showPreview(template);
+        } else {
+            document.getElementById('messagePreview').style.display = 'none';
+        }
+    });
+});
+
+// Message content change listener
+document.getElementById('messageContent').addEventListener('input', function() {
+    if (this.value.trim()) {
+        showPreview(this.value);
+    } else {
+        document.getElementById('messagePreview').style.display = 'none';
+    }
+});
+
+function loadTemplate(type) {
+    const template = templates[type];
+    document.getElementById('messageContent').value = template;
+    document.querySelector('input[value="custom"]').checked = true;
+    showPreview(template);
+}
+
+function showPreview(message) {
+    document.getElementById('previewContent').innerHTML = message.replace(/\n/g, '<br>');
+    document.getElementById('messagePreview').style.display = 'block';
+}
+
+// Form submission
+document.getElementById('whatsappForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = {
+        recipient_type: formData.get('recipient_type'),
+        message: formData.get('message'),
+        message_type: formData.get('message_type') || 'custom'
+    };
+    
+    // Add specific recipient data
+    if (data.recipient_type === 'individual') {
+        data.guest_id = formData.get('guest_id');
+    } else if (data.recipient_type === 'group') {
+        data.group_id = formData.get('group_id');
+    } else if (data.recipient_type === 'status') {
+        data.status = formData.get('status');
+    }
+    
+    // Validate form
+    if (!data.recipient_type) {
+        alert('Por favor, selecione o tipo de destinatário.');
+        return;
+    }
+    
+    if (!data.message.trim()) {
+        alert('Por favor, digite uma mensagem.');
+        return;
+    }
+    
+    if (data.recipient_type === 'individual' && !data.guest_id) {
+        alert('Por favor, selecione um convidado.');
+        return;
+    }
+    
+    if (data.recipient_type === 'group' && !data.group_id) {
+        alert('Por favor, selecione um grupo.');
+        return;
+    }
+    
+    if (data.recipient_type === 'status' && !data.status) {
+        alert('Por favor, selecione um status.');
+        return;
+    }
+    
+    // Send message
+    const button = document.querySelector('button[type="submit"]');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
+    button.disabled = true;
+    
+    fetch('/admin/send_whatsapp', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+        
+        if (result.success) {
+            showResults(result.results);
+        } else {
+            alert('Erro ao enviar mensagem: ' + (result.error || 'Erro desconhecido'));
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        button.innerHTML = originalText;
+        button.disabled = false;
+        alert('Erro ao enviar mensagem.');
+    });
+});
+
+function showResults(results) {
+    const content = document.getElementById('resultsContent');
+    
+    content.innerHTML = `
+        <div class="alert alert-success">
+            <h6><i class="fas fa-check-circle me-2"></i>Mensagens Enviadas com Sucesso</h6>
+            <p><strong>Total:</strong> ${results.total}</p>
+            <p><strong>Enviadas:</strong> ${results.successful}</p>
+            <p><strong>Falharam:</strong> ${results.failed}</p>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Telefone</th>
+                        <th>Status</th>
+                        <th>Erro</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${results.results.map(result => `
+                        <tr>
+                            <td>${result.phone}</td>
+                            <td>
+                                ${result.success ? 
+                                    '<span class="badge bg-success">Enviado</span>' : 
+                                    '<span class="badge bg-danger">Falhou</span>'
+                                }
+                            </td>
+                            <td>${result.error || '-'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    new bootstrap.Modal(document.getElementById('resultsModal')).show();
+}
+
+// Character counter
+document.getElementById('messageContent').addEventListener('input', function() {
+    const length = this.value.length;
+    const maxLength = 1600;
+    const remaining = maxLength - length;
+    
+    // Update form text
+    const formText = this.parentElement.querySelector('.form-text');
+    formText.innerHTML = `${remaining} caracteres restantes. Emojis são permitidos.`;
+    
+    if (remaining < 0) {
+        formText.classList.add('text-danger');
+    } else {
+        formText.classList.remove('text-danger');
+    }
+});
+</script>
+{% endblock %}

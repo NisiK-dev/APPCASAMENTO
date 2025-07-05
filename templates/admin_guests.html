@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Convidados{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-users me-2"></i>
+                Gerenciar Convidados
+            </h2>
+            <div>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addGuestModal">
+                    <i class="fas fa-plus me-2"></i>
+                    Adicionar Convidado
+                </button>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Voltar ao Dashboard
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Lista de Convidados
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if guests %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Telefone/WhatsApp</th>
+                                    <th>Grupo</th>
+                                    <th>Status RSVP</th>
+                                    <th>Data Criação</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for guest in guests %}
+                                <tr>
+                                    <td><strong>{{ guest.name }}</strong></td>
+                                    <td>
+                                        {% if guest.phone %}
+                                            <span class="badge bg-success">
+                                                <i class="fab fa-whatsapp me-1"></i>
+                                                {{ guest.phone }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">Não informado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if guest.group %}
+                                            <span class="badge bg-info">{{ guest.group.name }}</span>
+                                        {% else %}
+                                            <span class="text-muted">Sem grupo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if guest.rsvp_status == 'confirmado' %}
+                                            <span class="badge bg-success">Confirmado</span>
+                                        {% elif guest.rsvp_status == 'nao_confirmado' %}
+                                            <span class="badge bg-danger">Não Confirmado</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Pendente</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ guest.created_at.strftime('%d/%m/%Y') }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="editGuest({{ guest.id }}, '{{ guest.name }}', '{{ guest.phone or '' }}', '{{ guest.group_id or '' }}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                onclick="deleteGuest({{ guest.id }}, '{{ guest.name }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5>Nenhum convidado cadastrado</h5>
+                        <p class="text-muted">Adicione seu primeiro convidado clicando no botão acima.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Guest Modal -->
+<div class="modal fade" id="addGuestModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Adicionar Convidado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_guest') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" id="name" name="name" required placeholder="Ex: João Silva">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Telefone/WhatsApp (Opcional)</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" placeholder="Ex: +5511999999999">
+                            <div class="form-text">Formato: +55 + DDD + número (para WhatsApp)</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="group_id" class="form-label">Grupo (Opcional)</label>
+                        <select class="form-select" id="group_id" name="group_id">
+                            <option value="">Selecione um grupo</option>
+                            {% for group in groups %}
+                                <option value="{{ group.id }}">{{ group.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Agrupe famílias ou amigos para facilitar o gerenciamento</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Guest Modal -->
+<div class="modal fade" id="editGuestModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Convidado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="editGuestForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editName" class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" id="editName" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editPhone" class="form-label">Telefone/WhatsApp</label>
+                            <input type="tel" class="form-control" id="editPhone" name="phone" placeholder="Ex: +5511999999999">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editGroupId" class="form-label">Grupo</label>
+                        <select class="form-select" id="editGroupId" name="group_id">
+                            <option value="">Selecione um grupo</option>
+                            {% for group in groups %}
+                                <option value="{{ group.id }}">{{ group.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Guest Modal -->
+<div class="modal fade" id="deleteGuestModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja remover o convidado <strong id="deleteGuestName"></strong>?</p>
+                <p class="text-muted">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" id="deleteGuestForm" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Sim, Remover</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function editGuest(id, name, phone, groupId) {
+    document.getElementById('editGuestForm').action = `/admin/edit_guest/${id}`;
+    document.getElementById('editName').value = name;
+    document.getElementById('editPhone').value = phone;
+    document.getElementById('editGroupId').value = groupId;
+    new bootstrap.Modal(document.getElementById('editGuestModal')).show();
+}
+
+function deleteGuest(id, name) {
+    document.getElementById('deleteGuestForm').action = `/admin/delete_guest/${id}`;
+    document.getElementById('deleteGuestName').textContent = name;
+    new bootstrap.Modal(document.getElementById('deleteGuestModal')).show();
+}
+
+// Formatação automática do telefone
+document.getElementById('phone').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 0 && !value.startsWith('55')) {
+        value = '55' + value;
+    }
+    if (value.length > 2) {
+        value = '+' + value;
+    }
+    e.target.value = value;
+});
+
+document.getElementById('editPhone').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 0 && !value.startsWith('55')) {
+        value = '55' + value;
+    }
+    if (value.length > 2) {
+        value = '+' + value;
+    }
+    e.target.value = value;
+});
+</script>
+{% endblock %}

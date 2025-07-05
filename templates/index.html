@@ -1,120 +1,240 @@
 {% extends "base.html" %}
 
-{% block title %}Bem-vindos ao nosso Casamento{% endblock %}
+{% block title %}Nosso Casamento - Bem-vindos!{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="text-center mb-5">
-            <h1 class="display-4 mb-3">
-                <i class="fas fa-heart text-danger me-3"></i>
-                Bem-vindos ao nosso Casamento!
-                <i class="fas fa-heart text-danger ms-3"></i>
-            </h1>
-            <p class="lead text-muted">
-                É com grande alegria que convidamos você para celebrar conosco este momento especial.
-            </p>
-        </div>
-
-        <div class="card border-0 shadow-lg">
-            <div class="card-body p-5">
-                <div class="row text-center">
-                    <div class="col-md-6 mb-4">
-                        <div class="wedding-option">
-                            <i class="fas fa-calendar-check fa-3x text-success mb-3"></i>
-                            <h3>Confirmar Presença</h3>
-                            <p class="text-muted mb-4">
-                                Confirme sua presença em nosso casamento preenchendo o formulário RSVP.
-                            </p>
-                            <a href="{{ url_for('rsvp') }}" class="btn btn-success btn-lg">
-                                <i class="fas fa-check me-2"></i>
-                                Confirmar Agora
-                            </a>
-                        </div>
+<!-- Hero Section -->
+<div class="hero-section text-center py-5 mb-5">
+    <div class="container">
+        <h1 class="display-4 mb-4">
+            <i class="fas fa-heart text-danger me-3"></i>
+            Bem-vindos ao nosso Casamento!
+            <i class="fas fa-heart text-danger ms-3"></i>
+        </h1>
+        <p class="lead mb-4">Celebre este momento especial conosco</p>
+        
+        <!-- Countdown Timer -->
+        <div class="countdown-container mb-4">
+            <div class="row justify-content-center">
+                <div class="col-auto">
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="days">00</div>
+                        <div class="countdown-label">Dias</div>
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <div class="wedding-option">
-                            <i class="fas fa-user-shield fa-3x text-primary mb-3"></i>
-                            <h3>Área do Administrador</h3>
-                            <p class="text-muted mb-4">
-                                Acesso restrito para gerenciar a lista de convidados e visualizar confirmações.
-                            </p>
-                            <a href="{{ url_for('admin_login') }}" class="btn btn-outline-primary btn-lg">
-                                <i class="fas fa-sign-in-alt me-2"></i>
-                                Fazer Login
-                            </a>
-                        </div>
+                </div>
+                <div class="col-auto">
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="hours">00</div>
+                        <div class="countdown-label">Horas</div>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="minutes">00</div>
+                        <div class="countdown-label">Minutos</div>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="seconds">00</div>
+                        <div class="countdown-label">Segundos</div>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <a href="{{ url_for('rsvp') }}" class="btn btn-primary btn-lg me-3">
+            <i class="fas fa-calendar-check me-2"></i>
+            Confirmar Presença
+        </a>
+        <a href="{{ url_for('gifts') }}" class="btn btn-outline-light btn-lg">
+            <i class="fas fa-gift me-2"></i>
+            Lista de Presentes
+        </a>
+    </div>
+</div>
 
-        <!-- Venue Information -->
-        {% if venue %}
-        <div class="card mt-4 bg-gradient">
-            <div class="card-body text-center">
-                <h4 class="card-title">
-                    <i class="fas fa-map-marker-alt text-info me-2"></i>
-                    Informações do Local
-                </h4>
-                <div class="row">
-                    <div class="col-md-8 mx-auto">
-                        <p class="card-text">
-                            <strong>Local:</strong> {{ venue.name }}<br>
-                            <strong>Endereço:</strong> {{ venue.address }}<br>
-                            <strong>Data:</strong> {{ venue.date }}<br>
-                            <strong>Horário:</strong> {{ venue.time }}
-                        </p>
-                        {% if venue.description %}
-                        <p class="text-muted">{{ venue.description }}</p>
-                        {% endif %}
-                        {% if venue.map_link %}
-                        <a href="{{ venue.map_link }}" target="_blank" class="btn btn-outline-light">
-                            <i class="fas fa-map me-2"></i>
-                            Ver no Mapa
-                        </a>
-                        {% endif %}
+<div class="row">
+    <!-- Venue Information -->
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-map-marker-alt me-2"></i>
+                    Informações do Evento
+                </h3>
+            </div>
+            <div class="card-body">
+                {% if venue %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-church me-2"></i>Local</h5>
+                            <p class="mb-3">{{ venue.name }}</p>
+                            
+                            <h5><i class="fas fa-calendar-alt me-2"></i>Data</h5>
+                            <p class="mb-3">{{ venue.date }}</p>
+                            
+                            <h5><i class="fas fa-clock me-2"></i>Horário</h5>
+                            <p class="mb-3">{{ venue.time }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-map-marked-alt me-2"></i>Endereço</h5>
+                            <p class="mb-3">{{ venue.address }}</p>
+                            
+                            {% if venue.description %}
+                                <h5><i class="fas fa-info-circle me-2"></i>Descrição</h5>
+                                <p class="mb-3">{{ venue.description }}</p>
+                            {% endif %}
+                            
+                            {% if venue.map_link %}
+                                <a href="{{ venue.map_link }}" target="_blank" class="btn btn-outline-primary">
+                                    <i class="fas fa-map me-2"></i>
+                                    Ver no Google Maps
+                                </a>
+                            {% endif %}
+                        </div>
                     </div>
-                </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+                        <h5>Informações em breve</h5>
+                        <p class="text-muted">As informações do local serão divulgadas em breve.</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
-        {% endif %}
+    </div>
 
-        <!-- Gift Registry Preview -->
-        {% if gifts %}
-        <div class="card mt-4">
-            <div class="card-body text-center">
-                <h4 class="card-title">
-                    <i class="fas fa-gift text-warning me-2"></i>
+    <!-- Gift Preview -->
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-gift me-2"></i>
                     Lista de Presentes
-                </h4>
-                <p class="text-muted mb-4">
-                    Preparamos uma lista de presentes para ajudar em nossa nova jornada
-                </p>
-                <div class="row">
-                    {% for gift in gifts[:3] %}
-                    <div class="col-md-4 mb-3">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="card-body">
-                                <h6 class="card-title">{{ gift.item_name }}</h6>
+                </h3>
+            </div>
+            <div class="card-body">
+                {% if gifts %}
+                    <div class="gift-preview">
+                        {% for gift in gifts %}
+                            <div class="gift-item mb-3 p-3 border rounded">
+                                <h6 class="mb-2">{{ gift.item_name }}</h6>
                                 {% if gift.price %}
-                                <p class="text-success font-weight-bold">{{ gift.price }}</p>
+                                    <p class="text-muted mb-2">{{ gift.price }}</p>
                                 {% endif %}
                                 {% if gift.description %}
-                                <p class="card-text small text-muted">{{ gift.description[:50] }}...</p>
+                                    <p class="small text-muted mb-0">{{ gift.description[:50] + '...' if gift.description|length > 50 else gift.description }}</p>
                                 {% endif %}
                             </div>
-                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
-                </div>
-                <a href="{{ url_for('gifts') }}" class="btn btn-outline-warning">
-                    <i class="fas fa-list me-2"></i>
-                    Ver Lista Completa
+                    
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('gifts') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-2"></i>
+                            Ver Lista Completa
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+                        <h5>Lista em breve</h5>
+                        <p class="text-muted">Nossa lista de presentes será divulgada em breve.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RSVP Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <h2 class="mb-4">
+                    <i class="fas fa-calendar-check me-2"></i>
+                    Confirme sua Presença
+                </h2>
+                <p class="lead mb-4">
+                    Sua presença é muito importante para nós! Por favor, confirme se poderá comparecer ao nosso casamento.
+                </p>
+                <a href="{{ url_for('rsvp') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-check me-2"></i>
+                    Confirmar Presença Agora
                 </a>
             </div>
         </div>
-        {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Contagem regressiva para o casamento
+let weddingDate = new Date('2025-10-19T08:30:00'); // Valor padrão
+
+// Buscar data do evento do servidor
+fetch('/api/event-datetime')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            weddingDate = new Date(data.datetime);
+        }
+    })
+    .catch(error => {
+        console.log('Usando data padrão para contagem regressiva');
+    });
+
+function updateCountdown() {
+    const now = new Date();
+    const difference = weddingDate.getTime() - now.getTime();
+    
+    if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+        
+        document.getElementById('days').textContent = days.toString().padStart(2, '0');
+        document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+        document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+        document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+    } else {
+        // O casamento já aconteceu
+        document.getElementById('days').textContent = '00';
+        document.getElementById('hours').textContent = '00';
+        document.getElementById('minutes').textContent = '00';
+        document.getElementById('seconds').textContent = '00';
+        
+        // Mostrar mensagem especial
+        document.querySelector('.countdown-container').innerHTML = `
+            <div class="alert alert-success text-center">
+                <h4><i class="fas fa-heart me-2"></i>Obrigado por celebrar conosco!</h4>
+                <p>Nosso casamento foi um sucesso graças à presença de vocês!</p>
+            </div>
+        `;
+    }
+}
+
+// Adicionar animações suaves aos cards
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar contagem regressiva
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+    
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.transition = 'transform 0.3s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
 {% endblock %}

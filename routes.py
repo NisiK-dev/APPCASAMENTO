@@ -2,207 +2,214 @@ from flask import render_template, request, redirect, url_for, flash, session, j
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import app, db
 from models import Admin, Guest, GuestGroup, VenueInfo, GiftRegistry
-import logging
+from send_whatsapp import send_whatsapp_message, send_bulk_whatsapp_messages, get_wedding_message
+import json
 
 @app.route('/')
 def index():
+    """Página inicial com informações do casamento"""
     venue = VenueInfo.query.first()
-    gifts = GiftRegistry.query.filter_by(is_active=True).all()
+    gifts = GiftRegistry.query.filter_by(is_active=True).limit(3).all()
     return render_template('index.html', venue=venue, gifts=gifts)
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
+    """Login do administrador"""
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = request.form.get('username')
+        password = request.form.get('password')
         
         admin = Admin.query.filter_by(username=username).first()
         
         if admin and check_password_hash(admin.password_hash, password):
-            session['admin_logged_in'] = True
             session['admin_id'] = admin.id
+            session['admin_username'] = admin.username
             flash('Login realizado com sucesso!', 'success')
             return redirect(url_for('admin_dashboard'))
         else:
-            flash('Usuário ou senha incorretos!', 'error')
+            flash('Usuário ou senha inválidos!', 'danger')
     
     return render_template('admin_login.html')
 
 @app.route('/admin/logout')
 def admin_logout():
-    session.pop('admin_logged_in', None)
+    """Logout do administrador"""
     session.pop('admin_id', None)
-    flash('Logout realizado com sucesso!', 'success')
+    session.pop('admin_username', None)
+    flash('Logout realizado com sucesso!', 'info')
     return redirect(url_for('index'))
 
 @app.route('/admin/dashboard')
 def admin_dashboard():
-    if not session.get('admin_logged_in'):
-        flash('Acesso negado. Faça login para continuar.', 'error')
+    """Dashboard do administrador"""
+    if 'admin_id' not in session:
+        flash('Acesso negado! Faça login primeiro.', 'danger')
+        return redirect(url_for('admin_login'))
+    
+    # Estatísticas
+    total_guests = Guest.query.count()
+    confirmed_guests = Guest.query.filter_by(rsvp_status='confirmado').count()
+    pending_guests = Guest.query.filter_by(rsvp_status='pendente').count()
+    declined_guests = Guest.query.filter_by(rsvp_status='nao_confirmado').count()
+    
+    total_groups = GuestGroup.query.count()
+    total_gifts = GiftRegistry.query.count()
+    
+    return render_template('admin_dashboard.html', 
+                         total_guests=total_guests,
+                         confirmed_guests=confirmed_guests,
+                         pending_guests=pending_guests,
+                         declined_guests=declined_guests,
+                         total_groups=total_groups,
+                         total_gifts=total_gifts)
+
+@app.route('/admin/guests')
+def admin_guests():
+    """Gerenciar lista de convidados"""
+    if 'admin_id' not in session:
+        flash('Acesso negado! Faça login primeiro.', 'danger')
         return redirect(url_for('admin_login'))
     
     guests = Guest.query.all()
     groups = GuestGroup.query.all()
-    
-    # Count statistics
-    total_guests = len(guests)
-    confirmed = len([g for g in guests if g.rsvp_status == 'confirmado'])
-    declined = len([g for g in guests if g.rsvp_status == 'nao_confirmado'])
-    pending = len([g for g in guests if g.rsvp_status == 'pendente'])
-    
-    stats = {
-        'total': total_guests,
-        'confirmed': confirmed,
-        'declined': declined,
-        'pending': pending
-    }
-    
-    return render_template('admin_dashboard.html', guests=guests, groups=groups, stats=stats)
+    return render_template('admin_guests.html', guests=guests, groups=groups)
 
 @app.route('/admin/add_guest', methods=['POST'])
 def add_guest():
-    if not session.get('admin_logged_in'):
-        flash('Acesso negado.', 'error')
+    """Adicionar novo convidado"""
+    if 'admin_id' not in session:
+        flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
-    name = request.form['name'].strip()
-    phone = request.form.get('phone', '').strip()
+    name = request.form.get('name')
+    phone = request.form.get('phone')
     group_id = request.form.get('group_id')
     
-    if name:
-        # Check if guest already exists
-        existing_guest = Guest.query.filter_by(name=name).first()
-        if existing_guest:
-            flash('Este convidado já está na lista!', 'error')
-        else:
-            guest = Guest(name=name, phone=phone if phone else None)
-            if group_id and group_id != '':
-                guest.group_id = int(group_id)
-            db.session.add(guest)
-            db.session.commit()
-            flash('Convidado adicionado com sucesso!', 'success')
-    else:
-        flash('Nome não pode estar vazio!', 'error')
+    if not name:
+        flash('Nome é obrigatório!', 'danger')
+        return redirect(url_for('admin_guests'))
     
-    return redirect(url_for('admin_dashboard'))
+    # Converte group_id para int ou None
+    group_id = int(group_id) if group_id and group_id != '' else None
+    
+    guest = Guest(
+        name=name,
+        phone=phone,
+        group_id=group_id
+    )
+    
+    db.session.add(guest)
+    db.session.commit()
+    
+    flash(f'Convidado {name} adicionado com sucesso!', 'success')
+    return redirect(url_for('admin_guests'))
 
 @app.route('/admin/edit_guest/<int:guest_id>', methods=['POST'])
 def edit_guest(guest_id):
-    if not session.get('admin_logged_in'):
-        flash('Acesso negado.', 'error')
+    """Editar convidado"""
+    if 'admin_id' not in session:
+        flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
     guest = Guest.query.get_or_404(guest_id)
-    new_name = request.form['name'].strip()
-    new_phone = request.form.get('phone', '').strip()
+    
+    guest.name = request.form.get('name')
+    guest.phone = request.form.get('phone')
     group_id = request.form.get('group_id')
+    guest.group_id = int(group_id) if group_id and group_id != '' else None
     
-    if new_name:
-        # Check if another guest already has this name
-        existing_guest = Guest.query.filter(Guest.name == new_name, Guest.id != guest_id).first()
-        if existing_guest:
-            flash('Já existe um convidado com este nome!', 'error')
-        else:
-            guest.name = new_name
-            guest.phone = new_phone if new_phone else None
-            guest.group_id = int(group_id) if group_id and group_id != '' else None
-            db.session.commit()
-            flash('Convidado atualizado com sucesso!', 'success')
-    else:
-        flash('Nome não pode estar vazio!', 'error')
+    db.session.commit()
     
-    return redirect(url_for('admin_dashboard'))
+    flash(f'Convidado {guest.name} atualizado com sucesso!', 'success')
+    return redirect(url_for('admin_guests'))
 
 @app.route('/admin/delete_guest/<int:guest_id>', methods=['POST'])
 def delete_guest(guest_id):
-    if not session.get('admin_logged_in'):
-        flash('Acesso negado.', 'error')
+    """Deletar convidado"""
+    if 'admin_id' not in session:
+        flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
     guest = Guest.query.get_or_404(guest_id)
+    name = guest.name
+    
     db.session.delete(guest)
     db.session.commit()
-    flash('Convidado removido com sucesso!', 'success')
     
-    return redirect(url_for('admin_dashboard'))
+    flash(f'Convidado {name} removido com sucesso!', 'success')
+    return redirect(url_for('admin_guests'))
 
-@app.route('/rsvp', methods=['GET', 'POST'])
+@app.route('/rsvp')
 def rsvp():
-    if request.method == 'POST':
-        name = request.form['name'].strip()
-        
-        if not name:
-            flash('Por favor, digite seu nome completo.', 'error')
-            return render_template('rsvp.html')
-        
-        # Find guest by name (case-insensitive)
-        guest = Guest.query.filter(Guest.name.ilike(name)).first()
-        
-        if not guest:
-            flash('Nome não encontrado na lista de convidados. Verifique a grafia e tente novamente.', 'error')
-            return render_template('rsvp.html')
-        
-        # Get all guests in the same group
-        group_guests = []
-        if guest.group:
-            group_guests = Guest.query.filter_by(group_id=guest.group.id).all()
-        else:
-            group_guests = [guest]
-        
-        # Update RSVP status for selected guests
-        for g in group_guests:
-            guest_id = str(g.id)
-            if guest_id in request.form:
-                rsvp_response = request.form[guest_id]
-                g.rsvp_status = rsvp_response
-                logging.info(f"Guest {g.name} RSVP updated to {rsvp_response}")
-        
-        db.session.commit()
-        
-        return render_template('rsvp_success.html', guests=group_guests, main_guest=guest)
-    
+    """Página de confirmação de presença"""
     return render_template('rsvp.html')
 
 @app.route('/search_guest', methods=['POST'])
 def search_guest():
-    name = request.form['name'].strip()
+    """Buscar convidado por nome (API)"""
+    name = request.form.get('name', '').strip()
     
     if not name:
-        return jsonify({'error': 'Nome não pode estar vazio'})
+        return jsonify({'error': 'Nome é obrigatório'}), 400
     
-    # Find guest by name (case-insensitive)
-    guest = Guest.query.filter(Guest.name.ilike(name)).first()
+    # Busca por nome (case-insensitive)
+    guest = Guest.query.filter(Guest.name.ilike(f'%{name}%')).first()
     
     if not guest:
-        return jsonify({'error': 'Nome não encontrado na lista de convidados'})
+        return jsonify({'error': 'Convidado não encontrado'}), 404
     
-    # Get all guests in the same group
-    group_guests = []
-    if guest.group:
-        group_guests = Guest.query.filter_by(group_id=guest.group.id).all()
+    # Se o convidado pertence a um grupo, busca todos os membros do grupo
+    if guest.group_id:
+        group_guests = Guest.query.filter_by(group_id=guest.group_id).all()
+        group_name = guest.group.name if guest.group else None
     else:
         group_guests = [guest]
+        group_name = None
     
-    # Return guest data
-    guest_data = []
-    for g in group_guests:
-        guest_data.append({
-            'id': g.id,
-            'name': g.name,
-            'rsvp_status': g.rsvp_status
-        })
+    guests_data = [{
+        'id': g.id,
+        'name': g.name,
+        'phone': g.phone,
+        'rsvp_status': g.rsvp_status
+    } for g in group_guests]
+    
+    return jsonify({
+        'guests': guests_data,
+        'group_name': group_name
+    })
+
+@app.route('/confirm_rsvp', methods=['POST'])
+def confirm_rsvp():
+    """Confirmar presença dos convidados"""
+    data = request.get_json()
+    
+    if not data or 'guests' not in data:
+        return jsonify({'error': 'Dados inválidos'}), 400
+    
+    updated_guests = []
+    
+    for guest_data in data['guests']:
+        guest_id = guest_data.get('id')
+        new_status = guest_data.get('rsvp_status')
+        
+        if guest_id and new_status in ['confirmado', 'nao_confirmado']:
+            guest = Guest.query.get(guest_id)
+            if guest:
+                guest.rsvp_status = new_status
+                updated_guests.append(guest.name)
+    
+    db.session.commit()
     
     return jsonify({
         'success': True,
-        'guests': guest_data,
-        'group_name': guest.group.name if guest.group else None
+        'updated_guests': updated_guests
     })
 
-# Admin routes for group management
 @app.route('/admin/groups')
 def admin_groups():
-    if not session.get('admin_logged_in'):
-        flash('Acesso negado.', 'error')
+    """Gerenciar grupos de convidados"""
+    if 'admin_id' not in session:
+        flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
     groups = GuestGroup.query.all()
@@ -210,74 +217,71 @@ def admin_groups():
 
 @app.route('/admin/add_group', methods=['POST'])
 def add_group():
-    if not session.get('admin_logged_in'):
-        flash('Acesso negado.', 'error')
+    """Adicionar novo grupo"""
+    if 'admin_id' not in session:
+        flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
-    name = request.form['name'].strip()
-    description = request.form.get('description', '').strip()
+    name = request.form.get('name')
+    description = request.form.get('description')
     
-    if name:
-        existing_group = GuestGroup.query.filter_by(name=name).first()
-        if existing_group:
-            flash('Já existe um grupo com este nome!', 'error')
-        else:
-            group = GuestGroup(name=name, description=description if description else None)
-            db.session.add(group)
-            db.session.commit()
-            flash('Grupo adicionado com sucesso!', 'success')
-    else:
-        flash('Nome do grupo não pode estar vazio!', 'error')
+    if not name:
+        flash('Nome do grupo é obrigatório!', 'danger')
+        return redirect(url_for('admin_groups'))
     
+    group = GuestGroup(
+        name=name,
+        description=description
+    )
+    
+    db.session.add(group)
+    db.session.commit()
+    
+    flash(f'Grupo {name} criado com sucesso!', 'success')
     return redirect(url_for('admin_groups'))
 
 @app.route('/admin/edit_group/<int:group_id>', methods=['POST'])
 def edit_group(group_id):
-    if not session.get('admin_logged_in'):
-        flash('Acesso negado.', 'error')
+    """Editar grupo"""
+    if 'admin_id' not in session:
+        flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
     group = GuestGroup.query.get_or_404(group_id)
-    new_name = request.form['name'].strip()
-    new_description = request.form.get('description', '').strip()
     
-    if new_name:
-        existing_group = GuestGroup.query.filter(GuestGroup.name == new_name, GuestGroup.id != group_id).first()
-        if existing_group:
-            flash('Já existe um grupo com este nome!', 'error')
-        else:
-            group.name = new_name
-            group.description = new_description if new_description else None
-            db.session.commit()
-            flash('Grupo atualizado com sucesso!', 'success')
-    else:
-        flash('Nome do grupo não pode estar vazio!', 'error')
+    group.name = request.form.get('name')
+    group.description = request.form.get('description')
     
+    db.session.commit()
+    
+    flash(f'Grupo {group.name} atualizado com sucesso!', 'success')
     return redirect(url_for('admin_groups'))
 
 @app.route('/admin/delete_group/<int:group_id>', methods=['POST'])
 def delete_group(group_id):
-    if not session.get('admin_logged_in'):
-        flash('Acesso negado.', 'error')
+    """Deletar grupo"""
+    if 'admin_id' not in session:
+        flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
     group = GuestGroup.query.get_or_404(group_id)
+    name = group.name
     
-    # Check if group has guests
-    if group.guests:
-        flash('Não é possível excluir um grupo que possui convidados!', 'error')
-    else:
-        db.session.delete(group)
-        db.session.commit()
-        flash('Grupo removido com sucesso!', 'success')
+    # Remove a associação dos convidados com o grupo
+    for guest in group.guests:
+        guest.group_id = None
     
+    db.session.delete(group)
+    db.session.commit()
+    
+    flash(f'Grupo {name} removido com sucesso!', 'success')
     return redirect(url_for('admin_groups'))
 
-# Admin routes for venue management
 @app.route('/admin/venue')
 def admin_venue():
-    if not session.get('admin_logged_in'):
-        flash('Acesso negado.', 'error')
+    """Gerenciar informações do local"""
+    if 'admin_id' not in session:
+        flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
     venue = VenueInfo.query.first()
@@ -285,32 +289,40 @@ def admin_venue():
 
 @app.route('/admin/update_venue', methods=['POST'])
 def update_venue():
-    if not session.get('admin_logged_in'):
-        flash('Acesso negado.', 'error')
+    """Atualizar informações do local"""
+    if 'admin_id' not in session:
+        flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
     venue = VenueInfo.query.first()
+    
     if not venue:
         venue = VenueInfo()
         db.session.add(venue)
     
-    venue.name = request.form['name'].strip()
-    venue.address = request.form['address'].strip()
-    venue.map_link = request.form.get('map_link', '').strip()
-    venue.description = request.form.get('description', '').strip()
-    venue.date = request.form['date'].strip()
-    venue.time = request.form['time'].strip()
+    venue.name = request.form.get('name')
+    venue.address = request.form.get('address')
+    venue.map_link = request.form.get('map_link')
+    venue.description = request.form.get('description')
+    venue.date = request.form.get('date')
+    venue.time = request.form.get('time')
+    
+    # Lidar com event_datetime
+    event_datetime_str = request.form.get('event_datetime')
+    if event_datetime_str:
+        from datetime import datetime
+        venue.event_datetime = datetime.fromisoformat(event_datetime_str)
     
     db.session.commit()
-    flash('Informações do local atualizadas com sucesso!', 'success')
     
+    flash('Informações do local atualizadas com sucesso!', 'success')
     return redirect(url_for('admin_venue'))
 
-# Admin routes for gift registry
 @app.route('/admin/gifts')
 def admin_gifts():
-    if not session.get('admin_logged_in'):
-        flash('Acesso negado.', 'error')
+    """Gerenciar lista de presentes"""
+    if 'admin_id' not in session:
+        flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
     gifts = GiftRegistry.query.all()
@@ -318,67 +330,165 @@ def admin_gifts():
 
 @app.route('/admin/add_gift', methods=['POST'])
 def add_gift():
-    if not session.get('admin_logged_in'):
-        flash('Acesso negado.', 'error')
+    """Adicionar presente"""
+    if 'admin_id' not in session:
+        flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
-    item_name = request.form['item_name'].strip()
-    description = request.form.get('description', '').strip()
-    price = request.form.get('price', '').strip()
-    store_link = request.form.get('store_link', '').strip()
+    item_name = request.form.get('item_name')
+    description = request.form.get('description')
+    price = request.form.get('price')
+    store_link = request.form.get('store_link')
     
-    if item_name:
-        gift = GiftRegistry(
-            item_name=item_name,
-            description=description if description else None,
-            price=price if price else None,
-            store_link=store_link if store_link else None
-        )
-        db.session.add(gift)
-        db.session.commit()
-        flash('Presente adicionado com sucesso!', 'success')
-    else:
-        flash('Nome do presente não pode estar vazio!', 'error')
+    if not item_name:
+        flash('Nome do presente é obrigatório!', 'danger')
+        return redirect(url_for('admin_gifts'))
     
+    gift = GiftRegistry(
+        item_name=item_name,
+        description=description,
+        price=price,
+        store_link=store_link
+    )
+    
+    db.session.add(gift)
+    db.session.commit()
+    
+    flash(f'Presente {item_name} adicionado com sucesso!', 'success')
     return redirect(url_for('admin_gifts'))
 
 @app.route('/admin/edit_gift/<int:gift_id>', methods=['POST'])
 def edit_gift(gift_id):
-    if not session.get('admin_logged_in'):
-        flash('Acesso negado.', 'error')
+    """Editar presente"""
+    if 'admin_id' not in session:
+        flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
     gift = GiftRegistry.query.get_or_404(gift_id)
     
-    gift.item_name = request.form['item_name'].strip()
-    gift.description = request.form.get('description', '').strip()
-    gift.price = request.form.get('price', '').strip()
-    gift.store_link = request.form.get('store_link', '').strip()
-    gift.is_active = 'is_active' in request.form
+    gift.item_name = request.form.get('item_name')
+    gift.description = request.form.get('description')
+    gift.price = request.form.get('price')
+    gift.store_link = request.form.get('store_link')
+    gift.is_active = bool(request.form.get('is_active'))
     
     db.session.commit()
-    flash('Presente atualizado com sucesso!', 'success')
     
+    flash(f'Presente {gift.item_name} atualizado com sucesso!', 'success')
     return redirect(url_for('admin_gifts'))
 
 @app.route('/admin/delete_gift/<int:gift_id>', methods=['POST'])
 def delete_gift(gift_id):
-    if not session.get('admin_logged_in'):
-        flash('Acesso negado.', 'error')
+    """Deletar presente"""
+    if 'admin_id' not in session:
+        flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
     gift = GiftRegistry.query.get_or_404(gift_id)
+    name = gift.item_name
+    
     db.session.delete(gift)
     db.session.commit()
-    flash('Presente removido com sucesso!', 'success')
     
+    flash(f'Presente {name} removido com sucesso!', 'success')
     return redirect(url_for('admin_gifts'))
 
-# Public routes for gifts
-@app.route('/presentes')
+@app.route('/gifts')
 def gifts():
+    """Página pública da lista de presentes"""
     gifts = GiftRegistry.query.filter_by(is_active=True).all()
     return render_template('gifts.html', gifts=gifts)
+
+@app.route('/api/event-datetime')
+def api_event_datetime():
+    """API para obter a data do evento para contagem regressiva"""
+    venue = VenueInfo.query.first()
+    if venue and venue.event_datetime:
+        return jsonify({
+            'datetime': venue.event_datetime.isoformat(),
+            'success': True
+        })
+    else:
+        # Data padrão caso não esteja configurada
+        return jsonify({
+            'datetime': '2025-10-19T08:30:00',
+            'success': True
+        })
+
+@app.route('/admin/whatsapp')
+def admin_whatsapp():
+    """Página para envio de mensagens WhatsApp"""
+    if 'admin_id' not in session:
+        flash('Acesso negado!', 'danger')
+        return redirect(url_for('admin_login'))
+    
+    guests = Guest.query.filter(Guest.phone.isnot(None)).all()
+    groups = GuestGroup.query.all()
+    venue = VenueInfo.query.first()
+    
+    return render_template('admin_whatsapp.html', guests=guests, groups=groups, venue=venue)
+
+@app.route('/admin/send_whatsapp', methods=['POST'])
+def send_whatsapp():
+    """Enviar mensagem WhatsApp"""
+    if 'admin_id' not in session:
+        flash('Acesso negado!', 'danger')
+        return redirect(url_for('admin_login'))
+    
+    data = request.get_json()
+    
+    recipient_type = data.get('recipient_type')  # 'individual', 'group', 'all'
+    message = data.get('message')
+    message_type = data.get('message_type', 'custom')
+    
+    if not message:
+        return jsonify({'error': 'Mensagem é obrigatória'}), 400
+    
+    phone_numbers = []
+    
+    if recipient_type == 'individual':
+        guest_id = data.get('guest_id')
+        guest = Guest.query.get(guest_id)
+        if guest and guest.phone:
+            phone_numbers.append(guest.phone)
+    
+    elif recipient_type == 'group':
+        group_id = data.get('group_id')
+        group = GuestGroup.query.get(group_id)
+        if group:
+            phone_numbers = [g.phone for g in group.guests if g.phone]
+    
+    elif recipient_type == 'all':
+        guests = Guest.query.filter(Guest.phone.isnot(None)).all()
+        phone_numbers = [g.phone for g in guests]
+    
+    elif recipient_type == 'status':
+        status = data.get('status')
+        guests = Guest.query.filter(Guest.rsvp_status == status, Guest.phone.isnot(None)).all()
+        phone_numbers = [g.phone for g in guests]
+    
+    if not phone_numbers:
+        return jsonify({'error': 'Nenhum número de telefone encontrado'}), 400
+    
+    # Formatar mensagem se for pré-definida
+    if message_type != 'custom':
+        venue = VenueInfo.query.first()
+        if venue:
+            message = get_wedding_message(message_type,
+                                        date=venue.date,
+                                        time=venue.time,
+                                        venue=venue.name,
+                                        address=venue.address,
+                                        rsvp_link=request.url_root + 'rsvp',
+                                        gift_link=request.url_root + 'gifts')
+    
+    # Enviar mensagens
+    results = send_bulk_whatsapp_messages(phone_numbers, message)
+    
+    return jsonify({
+        'success': True,
+        'results': results
+    })
 
 @app.errorhandler(404)
 def not_found(error):
