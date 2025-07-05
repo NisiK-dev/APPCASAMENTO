@@ -211,16 +211,16 @@ function showConfirmStep() {
     
     selectedGuests.forEach(guest => {
         const currentStatus = guest.rsvp_status;
+        const badgeClass = currentStatus === 'confirmado' ? 'success' : 
+                          currentStatus === 'nao_confirmado' ? 'danger' : 'warning';
+        const badgeText = currentStatus === 'confirmado' ? 'Confirmado' :
+                         currentStatus === 'nao_confirmado' ? 'Não Confirmado' : 'Pendente';
         
         html += `
             <div class="guest-card mb-3 p-3">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <h6 class="mb-0">${guest.name}</h6>
-                    <span class="badge bg-${currentStatus === 'confirmado' ? 'success' : 
-                                            currentStatus === 'nao_confirmado' ? 'danger' : 'warning'}">
-                        ${currentStatus === 'confirmado' ? 'Confirmado' :
-                          currentStatus === 'nao_confirmado' ? 'Não Confirmado' : 'Pendente'}
-                    </span>
+                    <span class="badge bg-${badgeClass}">${badgeText}</span>
                 </div>
                 
                 <div class="row">
