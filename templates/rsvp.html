@@ -106,13 +106,19 @@ document.getElementById('guestSearch').addEventListener('input', function() {
     document.getElementById('searchResults').style.display = 'none';
     
     searchTimeout = setTimeout(() => {
-        fetch(`/search_guest?q=${encodeURIComponent(query)}`)
+        const formData = new FormData();
+        formData.append('name', query);
+        
+        fetch('/search_guest', {
+            method: 'POST',
+            body: formData
+        })
             .then(response => response.json())
             .then(data => {
                 document.getElementById('searchLoading').style.display = 'none';
                 
                 if (data.guests && data.guests.length > 0) {
-                    displaySearchResults(data.guests);
+                    displaySearchResults(data.guests, data.group_name);
                 } else {
                     document.getElementById('guestList').innerHTML = `
                         <div class="alert alert-warning">
@@ -137,74 +143,63 @@ document.getElementById('guestSearch').addEventListener('input', function() {
     }, 500);
 });
 
-function displaySearchResults(guests) {
+function displaySearchResults(guests, groupName) {
     const guestList = document.getElementById('guestList');
-    
-    const groupedGuests = {};
-    guests.forEach(guest => {
-        const groupName = guest.group_name || 'Sem grupo';
-        if (!groupedGuests[groupName]) {
-            groupedGuests[groupName] = [];
-        }
-        groupedGuests[groupName].push(guest);
-    });
     
     let html = '';
     
-    Object.keys(groupedGuests).forEach(groupName => {
-        const groupGuests = groupedGuests[groupName];
-        
+    if (groupName) {
         html += `
-            <div class="guest-group mb-3">
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="mb-0">${groupName}</h6>
-                    </div>
-                    <div class="card-body">
+            <div class="alert alert-info">
+                <i class="fas fa-users me-2"></i>
+                <strong>Grupo encontrado:</strong> ${groupName}
+            </div>
         `;
-        
-        groupGuests.forEach(guest => {
-            const statusBadge = guest.rsvp_status === 'confirmado' ? 
-                '<span class="badge bg-success ms-2">Confirmado</span>' :
-                guest.rsvp_status === 'nao_confirmado' ?
-                '<span class="badge bg-danger ms-2">Não Confirmado</span>' :
-                '<span class="badge bg-warning ms-2">Pendente</span>';
-            
-            html += `
-                <div class="guest-item d-flex justify-content-between align-items-center mb-2">
-                    <span>${guest.name}${statusBadge}</span>
-                    <button type="button" class="btn btn-outline-primary btn-sm" 
-                            onclick="selectGuestGroup([${groupGuests.map(g => g.id).join(',')}])">
-                        Selecionar Grupo
-                    </button>
+    }
+    
+    html += `
+        <div class="guest-group mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">${groupName || 'Convidados'}</h6>
                 </div>
-            `;
-        });
+                <div class="card-body">
+    `;
+    
+    guests.forEach(guest => {
+        const statusBadge = guest.rsvp_status === 'confirmado' ? 
+            '<span class="badge bg-success ms-2">Confirmado</span>' :
+            guest.rsvp_status === 'nao_confirmado' ?
+            '<span class="badge bg-danger ms-2">Não Confirmado</span>' :
+            '<span class="badge bg-warning ms-2">Pendente</span>';
         
         html += `
-                    </div>
-                </div>
+            <div class="guest-item d-flex justify-content-between align-items-center mb-2">
+                <span>${guest.name}${statusBadge}</span>
             </div>
         `;
     });
+    
+    html += `
+                    <div class="text-center mt-3">
+                        <button type="button" class="btn btn-primary" 
+                                onclick="selectGuestGroup(${JSON.stringify(guests)})">
+                            <i class="fas fa-check me-2"></i>
+                            Confirmar Presenças
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
     
     guestList.innerHTML = html;
     document.getElementById('searchResults').style.display = 'block';
 }
 
-function selectGuestGroup(guestIds) {
-    fetch('/search_guest?ids=' + guestIds.join(','))
-        .then(response => response.json())
-        .then(data => {
-            if (data.guests) {
-                selectedGuests = data.guests;
-                showConfirmStep();
-            }
-        })
-        .catch(error => {
-            console.error('Erro ao carregar grupo:', error);
-            alert('Erro ao carregar informações do grupo.');
-        });
+function selectGuestGroup(guests) {
+    selectedGuests = guests;
+    showConfirmStep();
 }
 
 function showConfirmStep() {

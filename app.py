@@ -85,5 +85,50 @@ with app.app_context():
         db.session.commit()
         print("Lista de presentes criada")
 
+    # Criar grupos de exemplo se não existirem
+    if GuestGroup.query.count() == 0:
+        groups = [
+            GuestGroup(name='Família Silva', description='Parentes do lado da noiva'),
+            GuestGroup(name='Família Santos', description='Parentes do lado do noivo'),
+            GuestGroup(name='Amigos da Faculdade', description='Turma da universidade')
+        ]
+        for group in groups:
+            db.session.add(group)
+        db.session.commit()
+        print("Grupos de exemplo criados")
+
+    # Criar convidados de exemplo se não existirem
+    if Guest.query.count() == 0:
+        # Obter os grupos criados
+        familia_silva = GuestGroup.query.filter_by(name='Família Silva').first()
+        familia_santos = GuestGroup.query.filter_by(name='Família Santos').first()
+        amigos_faculdade = GuestGroup.query.filter_by(name='Amigos da Faculdade').first()
+        
+        guests = [
+            # Família Silva
+            Guest(name='João Silva', phone='+5511999999999', group_id=familia_silva.id),
+            Guest(name='Maria Silva', phone='+5511888888888', group_id=familia_silva.id),
+            Guest(name='Pedro Silva', phone='+5511777777777', group_id=familia_silva.id),
+            
+            # Família Santos
+            Guest(name='Ana Santos', phone='+5511666666666', group_id=familia_santos.id),
+            Guest(name='Carlos Santos', phone='+5511555555555', group_id=familia_santos.id),
+            Guest(name='Lucia Santos', phone='+5511444444444', group_id=familia_santos.id),
+            
+            # Amigos da Faculdade
+            Guest(name='Rafael Oliveira', phone='+5511333333333', group_id=amigos_faculdade.id),
+            Guest(name='Marina Costa', phone='+5511222222222', group_id=amigos_faculdade.id),
+            Guest(name='Bruno Ferreira', phone='+5511111111111', group_id=amigos_faculdade.id),
+            
+            # Convidados individuais (sem grupo)
+            Guest(name='Roberto Lima', phone='+5511000000000'),
+            Guest(name='Fernanda Almeida', phone='+5511999000000')
+        ]
+        
+        for guest in guests:
+            db.session.add(guest)
+        db.session.commit()
+        print("Convidados de exemplo criados")
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
