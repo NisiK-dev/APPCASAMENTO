@@ -1,0 +1,29 @@
+Crie um sistema web completo para confirmação de presença em casamento (RSVP), com as seguintes funcionalidades:
+1. Estrutura Completa (Frontend e Backend):
+ * Backend: Desenvolva a lógica de servidor para gerenciar dados, autenticação e comunicação com o frontend. Escolha um framework robusto como Flask (Python) ou Node.js (Express) para esta parte.
+ * Frontend: Crie uma interface de usuário intuitiva e responsiva para convidados e administradores. Utilize tecnologias web padrão como HTML, CSS e JavaScript. Para uma experiência mais fluida, considere um framework como React, Vue.js ou Svelte.
+2. Gerenciamento de Lista de Convidados (Acesso do Administrador):
+ * Autenticação de Administrador: Implemente um sistema de login simples para que apenas o administrador possa acessar e gerenciar a lista de convidados.
+ * Lista de Contatos Editável: Desenvolva uma interface no painel do administrador onde seja possível:
+   * Adicionar novos convidados (nome completo).
+   * Remover convidados existentes.
+   * Editar nomes de convidados.
+   * Visualizar o status de RSVP de cada convidado (confirmado, não confirmado, pendente).
+   * A lista deve ser armazenada em um banco de dados (por exemplo, SQLite para simplicidade inicial, ou PostgreSQL/MongoDB para escalabilidade).
+3. Confirmação de Presença do Convidado:
+ * Página de RSVP Pública: Crie uma página de acesso público onde o convidado possa interagir.
+ * Busca por Nome: O convidado deve ter um campo para digitar seu nome completo.
+ * Validação do Nome: O sistema deve verificar se o nome digitado existe na lista de contatos do administrador. Se o nome não for encontrado, uma mensagem de erro apropriada deve ser exibida.
+ * Opção de Confirmação: Se o nome for validado, o convidado deve ter a opção clara de "Confirmar Presença" ou "Não Confirmar Presença".
+ * Atualização de Status: Após a seleção do convidado, o status de RSVP no banco de dados deve ser atualizado instantaneamente.
+ * Mensagem de Confirmação: Exiba uma mensagem amigável para o convidado após a confirmação/não confirmação (ex: "Sua presença foi confirmada com sucesso!").
+Considerações Adicionais para o Desenvolvimento:
+ * Segurança: Implemente medidas básicas de segurança, como hash de senhas (para o administrador) e prevenção contra injeção de SQL.
+ * Responsividade: Garanta que a interface seja responsiva e funcione bem em diferentes dispositivos (computadores, tablets, celulares).
+ * Tratamento de Erros: Exiba mensagens de erro claras e úteis para o usuário em caso de problemas (ex: nome não encontrado, erro de servidor).
+ * Estrutura de Projeto: Organize o código de forma lógica com pastas separadas para frontend, backend, modelos de banco de dados, etc.
+ * Instruções de Execução: Inclua um README.md no seu projeto explicando como configurar e executar a aplicação no Replit.
+Sugestão de Tecnologias (Opcional, mas útil para o Replit):
+ * Backend: Python com Flask e SQLAlchemy (para ORM com o banco de dados).
+ * Frontend: HTML, CSS, JavaScript puro ou com um micro-framework como Alpine.js para interatividade leve.
+ * Banco de Dados: SQLite (vem embutido no Python, ideal para protótipos e Replit)
