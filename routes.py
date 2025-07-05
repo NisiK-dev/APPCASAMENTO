@@ -523,6 +523,75 @@ def send_whatsapp():
         'results': results
     })
 
+@app.route('/admin/group_guests/<int:group_id>')
+def get_group_guests(group_id):
+    """API para obter convidados do grupo e disponíveis"""
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    group = GuestGroup.query.get_or_404(group_id)
+    
+    # Convidados do grupo
+    group_guests = [{
+        'id': guest.id,
+        'name': guest.name,
+        'rsvp_status': guest.rsvp_status
+    } for guest in group.guests]
+    
+    # Convidados disponíveis (sem grupo)
+    available_guests = [{
+        'id': guest.id,
+        'name': guest.name,
+        'rsvp_status': guest.rsvp_status
+    } for guest in Guest.query.filter_by(group_id=None).all()]
+    
+    return jsonify({
+        'group_guests': group_guests,
+        'available_guests': available_guests
+    })
+
+@app.route('/admin/add_guest_to_group', methods=['POST'])
+def add_guest_to_group():
+    """Adicionar convidado ao grupo"""
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    guest_id = data.get('guest_id')
+    group_id = data.get('group_id')
+    
+    if not guest_id or not group_id:
+        return jsonify({'error': 'Missing data'}), 400
+    
+    guest = Guest.query.get_or_404(guest_id)
+    group = GuestGroup.query.get_or_404(group_id)
+    
+    # Adicionar convidado ao grupo
+    guest.group_id = group_id
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/admin/remove_guest_from_group', methods=['POST'])
+def remove_guest_from_group():
+    """Remover convidado do grupo"""
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    guest_id = data.get('guest_id')
+    
+    if not guest_id:
+        return jsonify({'error': 'Missing data'}), 400
+    
+    guest = Guest.query.get_or_404(guest_id)
+    
+    # Remover convidado do grupo
+    guest.group_id = None
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
 @app.errorhandler(404)
 def not_found(error):
     return render_template('404.html'), 404
