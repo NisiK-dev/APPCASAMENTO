@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmação de Presença{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="text-center mb-4">
+            <i class="fas fa-calendar-check fa-3x text-success mb-3"></i>
+            <h2>Confirmação de Presença</h2>
+            <p class="text-muted">Por favor, confirme sua presença em nosso casamento</p>
+        </div>
+
+        <div class="card border-0 shadow">
+            <div class="card-body p-5">
+                <form method="POST">
+                    <div class="mb-4">
+                        <label for="name" class="form-label">Nome Completo</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   placeholder="Digite seu nome completo" required>
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Digite seu nome exatamente como está no convite
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Confirmação de Presença</label>
+                        <div class="mt-3">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="rsvp_response" 
+                                       id="confirm" value="confirmado" required>
+                                <label class="form-check-label" for="confirm">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    <strong>Sim, estarei presente!</strong>
+                                    <div class="text-muted small">Confirmo minha presença no casamento</div>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="rsvp_response" 
+                                       id="decline" value="nao_confirmado" required>
+                                <label class="form-check-label" for="decline">
+                                    <i class="fas fa-times text-danger me-2"></i>
+                                    <strong>Não poderei comparecer</strong>
+                                    <div class="text-muted small">Infelizmente não poderei estar presente</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-paper-plane me-2"></i>
+                            Confirmar Resposta
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Voltar ao Início
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4 bg-light">
+            <div class="card-body text-center">
+                <h6 class="card-title">
+                    <i class="fas fa-question-circle text-info me-2"></i>
+                    Precisa de Ajuda?
+                </h6>
+                <p class="card-text small">
+                    Se você não encontrar seu nome na lista, verifique a grafia ou
+                    entre em contato conosco para mais informações.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
