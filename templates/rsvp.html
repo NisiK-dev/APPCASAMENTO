@@ -270,33 +270,31 @@ function goBackToSearch() {
 document.getElementById('rsvpForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    const formData = new FormData(this);
     const button = this.querySelector('button[type="submit"]');
     const originalText = button.innerHTML;
+    
+    // Verificar se pelo menos um convidado foi selecionado
+    let hasSelection = false;
+    selectedGuests.forEach(guest => {
+        const radios = document.querySelectorAll(`input[name="rsvp_${guest.id}"]`);
+        for (let radio of radios) {
+            if (radio.checked) {
+                hasSelection = true;
+                break;
+            }
+        }
+    });
+    
+    if (!hasSelection) {
+        alert('Por favor, confirme a presença para pelo menos um convidado.');
+        return;
+    }
     
     button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvando...';
     button.disabled = true;
     
-    fetch(this.action, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.text();
-        }
-        throw new Error('Erro na resposta do servidor');
-    })
-    .then(html => {
-        document.body.innerHTML = html;
-    })
-    .catch(error => {
-        console.error('Erro:', error);
-        alert('Erro ao salvar confirmações. Tente novamente.');
-        
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
+    // Submeter o formulário normalmente
+    this.submit();
 });
 
 // Enter key on search

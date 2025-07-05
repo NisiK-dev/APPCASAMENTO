@@ -194,29 +194,35 @@ def search_guest():
 @app.route('/confirm_rsvp', methods=['POST'])
 def confirm_rsvp():
     """Confirmar presença dos convidados"""
-    data = request.get_json()
+    # Obter IDs dos convidados
+    guest_ids = request.form.getlist('guest_ids')
     
-    if not data or 'guests' not in data:
-        return jsonify({'error': 'Dados inválidos'}), 400
+    if not guest_ids:
+        flash('Nenhum convidado selecionado!', 'danger')
+        return redirect(url_for('rsvp'))
     
-    updated_guests = []
+    confirmed_guests = []
+    declined_guests = []
     
-    for guest_data in data['guests']:
-        guest_id = guest_data.get('id')
-        new_status = guest_data.get('rsvp_status')
-        
-        if guest_id and new_status in ['confirmado', 'nao_confirmado']:
-            guest = Guest.query.get(guest_id)
-            if guest:
-                guest.rsvp_status = new_status
-                updated_guests.append(guest.name)
+    # Processar cada convidado
+    for guest_id in guest_ids:
+        guest = Guest.query.get(guest_id)
+        if guest:
+            # Verificar o status escolhido
+            rsvp_choice = request.form.get(f'rsvp_{guest_id}')
+            
+            if rsvp_choice in ['confirmado', 'nao_confirmado']:
+                guest.rsvp_status = rsvp_choice
+                if rsvp_choice == 'confirmado':
+                    confirmed_guests.append(guest)
+                else:
+                    declined_guests.append(guest)
     
     db.session.commit()
     
-    return jsonify({
-        'success': True,
-        'updated_guests': updated_guests
-    })
+    return render_template('rsvp_success.html', 
+                         confirmed_guests=confirmed_guests,
+                         declined_guests=declined_guests)
 
 @app.route('/admin/groups')
 def admin_groups():
