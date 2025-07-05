@@ -64,7 +64,7 @@
                         <i class="fas fa-arrow-left me-2"></i>
                         Voltar à Busca
                     </button>
-                    <button type="button" class="btn btn-success btn-lg" onclick="confirmRSVP()">
+                    <button type="button" class="btn btn-success btn-lg" onclick="submitRSVP()">
                         <i class="fas fa-check me-2"></i>
                         Confirmar Presenças
                     </button>
@@ -74,9 +74,9 @@
     </div>
 
     <!-- Help Section -->
-    <div class="text-center mt-5">
+    <div class="text-center mt-4">
         <div class="alert alert-info">
-            <i class="fas fa-info-circle me-2"></i>
+            <h6><i class="fas fa-question-circle me-2"></i>Precisa de ajuda?</h6>
             <p class="mb-0">
                 Se você não encontrar seu nome na lista, entre em contato conosco.
                 Você pode confirmar a presença de toda sua família de uma vez.
@@ -88,11 +88,12 @@
 
 {% block scripts %}
 <script>
-var selectedGuests = [];
-var searchTimeout;
+let selectedGuests = [];
+let searchTimeout;
 
+// Buscar convidados
 document.getElementById('guestSearch').addEventListener('input', function() {
-    var query = this.value.trim();
+    const query = this.value.trim();
     
     clearTimeout(searchTimeout);
     
@@ -104,18 +105,16 @@ document.getElementById('guestSearch').addEventListener('input', function() {
     document.getElementById('searchLoading').style.display = 'block';
     document.getElementById('searchResults').style.display = 'none';
     
-    searchTimeout = setTimeout(function() {
-        var formData = new FormData();
+    searchTimeout = setTimeout(() => {
+        const formData = new FormData();
         formData.append('name', query);
         
         fetch('/search_guest', {
             method: 'POST',
             body: formData
         })
-        .then(function(response) {
-            return response.json();
-        })
-        .then(function(data) {
+        .then(response => response.json())
+        .then(data => {
             document.getElementById('searchLoading').style.display = 'none';
             
             if (data.guests && data.guests.length > 0) {
@@ -125,7 +124,7 @@ document.getElementById('guestSearch').addEventListener('input', function() {
                 document.getElementById('searchResults').style.display = 'block';
             }
         })
-        .catch(function(error) {
+        .catch(error => {
             console.error('Erro na busca:', error);
             document.getElementById('searchLoading').style.display = 'none';
             document.getElementById('guestList').innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>Erro ao buscar convidados. Tente novamente.</div>';
@@ -135,8 +134,9 @@ document.getElementById('guestSearch').addEventListener('input', function() {
 });
 
 function displaySearchResults(guests, groupName) {
-    var guestList = document.getElementById('guestList');
-    var html = '';
+    const guestList = document.getElementById('guestList');
+    
+    let html = '';
     
     if (groupName) {
         html += '<div class="alert alert-info"><i class="fas fa-users me-2"></i><strong>Grupo encontrado:</strong> ' + groupName + '</div>';
@@ -144,20 +144,15 @@ function displaySearchResults(guests, groupName) {
     
     html += '<div class="guest-group mb-3"><div class="card"><div class="card-header"><h6 class="mb-0">' + (groupName || 'Convidados') + '</h6></div><div class="card-body">';
     
-    for (var i = 0; i < guests.length; i++) {
-        var guest = guests[i];
-        var statusBadge = '';
-        
-        if (guest.rsvp_status === 'confirmado') {
-            statusBadge = '<span class="badge bg-success ms-2">Confirmado</span>';
-        } else if (guest.rsvp_status === 'nao_confirmado') {
-            statusBadge = '<span class="badge bg-danger ms-2">Não Confirmado</span>';
-        } else {
-            statusBadge = '<span class="badge bg-warning ms-2">Pendente</span>';
-        }
+    guests.forEach(guest => {
+        const statusBadge = guest.rsvp_status === 'confirmado' ? 
+            '<span class="badge bg-success ms-2">Confirmado</span>' :
+            guest.rsvp_status === 'nao_confirmado' ?
+            '<span class="badge bg-danger ms-2">Não Confirmado</span>' :
+            '<span class="badge bg-warning ms-2">Pendente</span>';
         
         html += '<div class="guest-item d-flex justify-content-between align-items-center mb-2"><span>' + guest.name + statusBadge + '</span></div>';
-    }
+    });
     
     html += '<div class="text-center mt-3"><button type="button" class="btn btn-primary" onclick="selectGuestGroup(' + JSON.stringify(guests) + ')"><i class="fas fa-check me-2"></i>Confirmar Presenças</button></div></div></div></div>';
     
@@ -174,25 +169,15 @@ function showConfirmStep() {
     document.getElementById('searchStep').style.display = 'none';
     document.getElementById('confirmStep').style.display = 'block';
     
-    var guestsList = document.getElementById('selectedGuestsList');
-    var html = '<h6 class="mb-3">Confirme a presença para:</h6>';
+    const guestsList = document.getElementById('selectedGuestsList');
+    let html = '<h6 class="mb-3">Confirme a presença para:</h6>';
     
-    for (var i = 0; i < selectedGuests.length; i++) {
-        var guest = selectedGuests[i];
-        var currentStatus = guest.rsvp_status;
-        var badgeClass = '';
-        var badgeText = '';
-        
-        if (currentStatus === 'confirmado') {
-            badgeClass = 'success';
-            badgeText = 'Confirmado';
-        } else if (currentStatus === 'nao_confirmado') {
-            badgeClass = 'danger';
-            badgeText = 'Não Confirmado';
-        } else {
-            badgeClass = 'warning';
-            badgeText = 'Pendente';
-        }
+    selectedGuests.forEach(guest => {
+        const currentStatus = guest.rsvp_status;
+        const badgeClass = currentStatus === 'confirmado' ? 'success' : 
+                          currentStatus === 'nao_confirmado' ? 'danger' : 'warning';
+        const badgeText = currentStatus === 'confirmado' ? 'Confirmado' :
+                         currentStatus === 'nao_confirmado' ? 'Não Confirmado' : 'Pendente';
         
         html += '<div class="guest-card mb-3 p-3">';
         html += '<div class="d-flex justify-content-between align-items-center mb-2">';
@@ -202,30 +187,25 @@ function showConfirmStep() {
         html += '<div class="row">';
         html += '<div class="col-6">';
         html += '<div class="form-check">';
-        html += '<input class="form-check-input" type="radio" name="rsvp_' + guest.id + '" id="confirm_' + guest.id + '" value="confirmado"';
-        if (currentStatus === 'confirmado') {
-            html += ' checked';
-        }
-        html += '>';
+        html += '<input class="form-check-input" type="radio" name="rsvp_' + guest.id + '" id="confirm_' + guest.id + '" value="confirmado"' + (currentStatus === 'confirmado' ? ' checked' : '') + '>';
         html += '<label class="form-check-label text-success" for="confirm_' + guest.id + '"><i class="fas fa-check me-1"></i>Confirmo presença</label>';
         html += '</div>';
         html += '</div>';
         html += '<div class="col-6">';
         html += '<div class="form-check">';
-        html += '<input class="form-check-input" type="radio" name="rsvp_' + guest.id + '" id="decline_' + guest.id + '" value="nao_confirmado"';
-        if (currentStatus === 'nao_confirmado') {
-            html += ' checked';
-        }
-        html += '>';
+        html += '<input class="form-check-input" type="radio" name="rsvp_' + guest.id + '" id="decline_' + guest.id + '" value="nao_confirmado"' + (currentStatus === 'nao_confirmado' ? ' checked' : '') + '>';
         html += '<label class="form-check-label text-danger" for="decline_' + guest.id + '"><i class="fas fa-times me-1"></i>Não poderei comparecer</label>';
         html += '</div>';
         html += '</div>';
         html += '</div>';
         html += '<input type="hidden" name="guest_ids" value="' + guest.id + '">';
         html += '</div>';
-    }
+    });
     
     guestsList.innerHTML = html;
+    
+    // Re-attach form submission event after content is updated
+    setupFormSubmission();
 }
 
 function goBackToSearch() {
@@ -234,37 +214,37 @@ function goBackToSearch() {
     selectedGuests = [];
 }
 
-function confirmRSVP() {
-    var hasSelection = false;
-    
-    for (var i = 0; i < selectedGuests.length; i++) {
-        var guest = selectedGuests[i];
-        var radios = document.querySelectorAll('input[name="rsvp_' + guest.id + '"]');
-        
-        for (var j = 0; j < radios.length; j++) {
-            if (radios[j].checked) {
+// Function to submit RSVP
+function submitRSVP() {
+    // Verificar se pelo menos um convidado foi selecionado
+    let hasSelection = false;
+    selectedGuests.forEach(guest => {
+        const radios = document.querySelectorAll('input[name="rsvp_' + guest.id + '"]');
+        for (let radio of radios) {
+            if (radio.checked) {
                 hasSelection = true;
                 break;
             }
         }
-        
-        if (hasSelection) break;
-    }
+    });
     
     if (!hasSelection) {
         alert('Por favor, confirme a presença para pelo menos um convidado.');
         return;
     }
     
-    var button = document.querySelector('button[onclick="confirmRSVP()"]');
+    // Encontrar o botão e mostrar loading
+    const button = document.querySelector('button[onclick="submitRSVP()"]');
     if (button) {
         button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvando...';
         button.disabled = true;
     }
     
+    // Submeter o formulário
     document.getElementById('rsvpForm').submit();
 }
 
+// Enter key on search
 document.getElementById('guestSearch').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         e.preventDefault();
