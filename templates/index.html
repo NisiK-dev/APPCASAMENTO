@@ -49,22 +49,72 @@
             </div>
         </div>
 
+        <!-- Venue Information -->
+        {% if venue %}
         <div class="card mt-4 bg-gradient">
             <div class="card-body text-center">
                 <h4 class="card-title">
-                    <i class="fas fa-info-circle text-info me-2"></i>
-                    Informações Importantes
+                    <i class="fas fa-map-marker-alt text-info me-2"></i>
+                    Informações do Local
                 </h4>
-                <p class="card-text">
-                    <strong>Data:</strong> A definir<br>
-                    <strong>Local:</strong> A definir<br>
-                    <strong>Horário:</strong> A definir
-                </p>
-                <p class="text-muted">
-                    Por favor, confirme sua presença até a data limite para que possamos nos organizar adequadamente.
-                </p>
+                <div class="row">
+                    <div class="col-md-8 mx-auto">
+                        <p class="card-text">
+                            <strong>Local:</strong> {{ venue.name }}<br>
+                            <strong>Endereço:</strong> {{ venue.address }}<br>
+                            <strong>Data:</strong> {{ venue.date }}<br>
+                            <strong>Horário:</strong> {{ venue.time }}
+                        </p>
+                        {% if venue.description %}
+                        <p class="text-muted">{{ venue.description }}</p>
+                        {% endif %}
+                        {% if venue.map_link %}
+                        <a href="{{ venue.map_link }}" target="_blank" class="btn btn-outline-light">
+                            <i class="fas fa-map me-2"></i>
+                            Ver no Mapa
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
+        {% endif %}
+
+        <!-- Gift Registry Preview -->
+        {% if gifts %}
+        <div class="card mt-4">
+            <div class="card-body text-center">
+                <h4 class="card-title">
+                    <i class="fas fa-gift text-warning me-2"></i>
+                    Lista de Presentes
+                </h4>
+                <p class="text-muted mb-4">
+                    Preparamos uma lista de presentes para ajudar em nossa nova jornada
+                </p>
+                <div class="row">
+                    {% for gift in gifts[:3] %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ gift.item_name }}</h6>
+                                {% if gift.price %}
+                                <p class="text-success font-weight-bold">{{ gift.price }}</p>
+                                {% endif %}
+                                {% if gift.description %}
+                                <p class="card-text small text-muted">{{ gift.description[:50] }}...</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <a href="{{ url_for('gifts') }}" class="btn btn-outline-warning">
+                    <i class="fas fa-list me-2"></i>
+                    Ver Lista Completa
+                </a>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

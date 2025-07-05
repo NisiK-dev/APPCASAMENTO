@@ -34,7 +34,7 @@ with app.app_context():
     db.create_all()
     
     # Create default admin user if it doesn't exist
-    from models import Admin
+    from models import Admin, VenueInfo, GiftRegistry
     from werkzeug.security import generate_password_hash
     
     if not Admin.query.first():
@@ -45,6 +45,47 @@ with app.app_context():
         db.session.add(admin)
         db.session.commit()
         logging.info("Default admin user created - username: admin, password: admin123")
+    
+    # Create default venue info if it doesn't exist
+    if not VenueInfo.query.first():
+        venue = VenueInfo(
+            name='Igreja São José',
+            address='Rua das Flores, 123, Centro, São Paulo - SP',
+            map_link='https://maps.google.com/?q=Igreja+São+José+SP',
+            description='Cerimônia religiosa seguida de recepção no salão anexo',
+            date='15 de dezembro de 2025',
+            time='16:00'
+        )
+        db.session.add(venue)
+        db.session.commit()
+        logging.info("Default venue info created")
+    
+    # Create default gift registry items if they don't exist
+    if not GiftRegistry.query.first():
+        gifts = [
+            GiftRegistry(
+                item_name='Jogo de Panelas',
+                description='Conjunto completo de panelas antiaderentes',
+                price='R$ 299,00',
+                store_link='https://exemplo.com/panelas'
+            ),
+            GiftRegistry(
+                item_name='Jogo de Cama Casal',
+                description='Jogo de cama 100% algodão, king size',
+                price='R$ 180,00',
+                store_link='https://exemplo.com/jogo-cama'
+            ),
+            GiftRegistry(
+                item_name='Micro-ondas',
+                description='Micro-ondas 30 litros com grill',
+                price='R$ 450,00',
+                store_link='https://exemplo.com/microondas'
+            )
+        ]
+        for gift in gifts:
+            db.session.add(gift)
+        db.session.commit()
+        logging.info("Default gift registry items created")
 
 # Import routes after app initialization
 from routes import *

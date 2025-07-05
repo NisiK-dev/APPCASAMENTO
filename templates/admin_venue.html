@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Local do Evento{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-map-marker-alt me-2"></i>
+                Gerenciar Local do Evento
+            </h2>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Voltar ao Dashboard
+            </a>
+        </div>
+
+        <div class="card border-0 shadow">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>
+                    Informações do Local
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('update_venue') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Nome do Local</label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{{ venue.name if venue else '' }}" required
+                                   placeholder="Ex: Igreja São José">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="date" class="form-label">Data do Evento</label>
+                            <input type="text" class="form-control" id="date" name="date" 
+                                   value="{{ venue.date if venue else '' }}" required
+                                   placeholder="Ex: 15 de dezembro de 2025">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="time" class="form-label">Horário</label>
+                            <input type="text" class="form-control" id="time" name="time" 
+                                   value="{{ venue.time if venue else '' }}" required
+                                   placeholder="Ex: 16:00">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="map_link" class="form-label">Link do Mapa (Opcional)</label>
+                            <input type="url" class="form-control" id="map_link" name="map_link" 
+                                   value="{{ venue.map_link if venue else '' }}"
+                                   placeholder="https://maps.google.com/...">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Endereço Completo</label>
+                        <textarea class="form-control" id="address" name="address" rows="3" required
+                                  placeholder="Rua, número, bairro, cidade, estado">{{ venue.address if venue else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="description" class="form-label">Descrição (Opcional)</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"
+                                  placeholder="Descrição adicional sobre o local ou evento">{{ venue.description if venue else '' }}</textarea>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-save me-2"></i>
+                            Salvar Informações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if venue %}
+        <div class="card mt-4 bg-light">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-eye me-2"></i>
+                    Prévia - Como aparece para os convidados
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <h5><strong>{{ venue.name }}</strong></h5>
+                    <p class="mb-2"><strong>Endereço:</strong> {{ venue.address }}</p>
+                    <p class="mb-2"><strong>Data:</strong> {{ venue.date }}</p>
+                    <p class="mb-2"><strong>Horário:</strong> {{ venue.time }}</p>
+                    {% if venue.description %}
+                    <p class="text-muted">{{ venue.description }}</p>
+                    {% endif %}
+                    {% if venue.map_link %}
+                    <a href="{{ venue.map_link }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-map me-2"></i>
+                        Ver no Mapa
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

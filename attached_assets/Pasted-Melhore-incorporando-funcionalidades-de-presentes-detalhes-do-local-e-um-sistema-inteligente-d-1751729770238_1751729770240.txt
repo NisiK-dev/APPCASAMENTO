@@ -1,0 +1,97 @@
+Melhore 
+
+
+
+ incorporando funcionalidades de presentes, detalhes do local e um sistema inteligente de sincronização de convidados.
+
+1. Estrutura Completa (Frontend e Backend):
+
+
+
+Backend: Desenvolva a lógica de servidor robusta. Utilize um framework como Flask (Python) ou Node.js (Express), com um banco de dados relacional como PostgreSQL ou SQLite para armazenar dados de forma eficiente e segura (nomes, RSVP, grupos de convidados, presentes, etc.).
+
+Frontend: Crie uma interface de usuário intuitiva, responsiva e esteticamente agradável. Utilize tecnologias web modernas como HTML, CSS (com um pré-processador como SASS ou um framework CSS como Tailwind CSS) e JavaScript (com um framework reativo como React, Vue.js ou Svelte) para uma experiência de usuário rica.
+
+Funcionalidades para o Convidado
+
+1. Página Inicial Integrada:
+
+
+
+Design Clean e Informativo: A página inicial (pública) deve ser o portal principal para os convidados.
+
+Informações do Local: Inclua uma seção proeminente com o nome, endereço e um mapa interativo (integrado via API de mapas como Google Maps) do local da cerimônia e/ou recepção.
+
+Página de Presentes: Integre um link ou uma seção clara para a lista de presentes. Esta seção pode:
+
+Redirecionar para uma lista externa (ex: site de loja).
+
+Exibir uma lista de itens desejados com botões de "Contribuir" (sem funcionalidade de transação direta no Replit, mas com informações sobre como o convidado pode contribuir).
+
+Opcionalmente, mostrar uma conta bancária para presentes em dinheiro (discretamente).
+
+Chamada para Ação RSVP: Um botão ou campo claro para o convidado iniciar o processo de confirmação de presença.
+
+2. Confirmação de Presença Inteligente:
+
+
+
+Campo de Busca por Nome: O convidado digita seu nome completo em um campo de busca.
+
+Sincronização de Grupo de Convidados: Ao digitar seu nome, o sistema deve identificar o convidado e automaticamente exibir outros convidados associados a ele (ex: cônjuge, filhos, acompanhantes).
+
+Exemplo: Se "Maria Silva" digitar seu nome, o sistema deve mostrar "Maria Silva", "João Silva" (marido) e "Filho Silva" (filho), se eles estiverem no mesmo grupo de convidados no banco de dados.
+
+Confirmação Individual: Para cada nome exibido, o convidado deve ter a opção individual de "Confirmar Presença" ou "Não Confirmar Presença". Isso permite que Maria confirme para si e para seus filhos, mas talvez não para o marido se ele já confirmou ou não puder ir.
+
+Mensagens de Feedback: Exiba mensagens claras e amigáveis após a confirmação/não confirmação individual ou em grupo.
+
+Validação Robusta: Mensagens de erro claras se o nome não for encontrado ou se houver problemas na busca.
+
+Funcionalidades para o Administrador (Acesso Discreto)
+
+1. Acesso Administrativo Discreto:
+
+
+
+Link de Login Discreto: O link ou botão para o painel de administração deve ser discreto e não proeminente na página inicial pública. Pode ser um pequeno ícone no rodapé, um link em texto quase invisível, ou acessível apenas através de uma URL direta conhecida pelo administrador (ex: /admin-login).
+
+Autenticação Segura: Implemente um sistema de login com nome de usuário e senha, com hashes de senhas para segurança.
+
+2. Gerenciamento Abrangente de Convidados:
+
+
+
+Dashboard do Administrador: Uma interface limpa para gerenciar todos os aspectos do sistema.
+
+Lista de Convidados Detalhada:
+
+Adicionar Convidados (Individual e em Grupo): Capacidade de adicionar convidados individualmente ou criar "grupos" de convidados que serão sincronizados no frontend (ex: família Silva).
+
+Número de Telefone: Adicione um campo para armazenar o número de telefone do convidado (opcional, para contato direto).
+
+Status de RSVP: Visualização clara do status de cada convidado (Confirmado, Não Confirmado, Pendente).
+
+Edição/Exclusão: Funcionalidades para editar nomes, grupos e excluir convidados.
+
+Filtros e Buscas: Ferramentas para filtrar convidados por status de RSVP, nome, grupo, etc.
+
+Exportação de Dados: Opção de exportar a lista de convidados e seus status para CSV ou Excel.
+
+Gerenciamento de Conteúdo da Página Inicial:
+
+Opção para o administrador editar os detalhes do local (endereço, nome, link do mapa).
+
+Opção para o administrador gerenciar a lista de presentes (adicionar/editar links ou textos explicativos).
+
+Considerações de Implementação:
+
+
+
+Design UX/UI: Priorize uma experiência de usuário suave e um design visualmente atraente.
+
+Segurança: Reforce a segurança com validação de entrada, proteção CSRF (se aplicável ao framework), e autenticação segura.
+
+Estrutura do Banco de Dados: Modele o banco de dados para suportar grupos de convidados, com chaves estrangeiras para relacionar membros de um mesmo grupo.
+
+Documentação (README.md): Um README.md detalhado com instruções de configuração, execução e uso da aplicação.

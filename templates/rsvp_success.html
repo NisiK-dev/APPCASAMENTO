@@ -4,70 +4,78 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="text-center">
-            {% if guest.rsvp_status == 'confirmado' %}
-                <div class="mb-4">
-                    <i class="fas fa-check-circle fa-5x text-success mb-3"></i>
-                    <h2 class="text-success">Presença Confirmada!</h2>
-                </div>
+    <div class="col-md-8">
+        <div class="text-center mb-4">
+            <i class="fas fa-check-circle fa-5x text-success mb-3"></i>
+            <h2 class="text-success">Confirmações Registradas!</h2>
+        </div>
+        
+        <div class="card border-0 shadow">
+            <div class="card-body p-5">
+                <h4 class="text-center mb-4">Obrigado, {{ main_guest.name }}!</h4>
                 
-                <div class="card border-success">
-                    <div class="card-body p-5">
-                        <h4>Obrigado, {{ guest.name }}!</h4>
-                        <p class="lead">
-                            Sua presença foi confirmada com sucesso em nosso casamento.
-                        </p>
-                        <p class="text-muted">
-                            Estamos muito felizes em saber que você estará conosco neste dia especial!
-                        </p>
-                        
-                        <div class="mt-4 p-3 bg-light rounded">
-                            <h6>
-                                <i class="fas fa-info-circle text-info me-2"></i>
-                                Informações Importantes
-                            </h6>
-                            <p class="mb-0 small">
-                                Em breve você receberá mais detalhes sobre o local, horário e outras informações importantes.
-                            </p>
+                <p class="lead text-center mb-4">
+                    Registramos as confirmações para os seguintes convidados:
+                </p>
+                
+                <div class="row">
+                    {% for guest in guests %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card {% if guest.rsvp_status == 'confirmado' %}border-success{% else %}border-danger{% endif %}">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">{{ guest.name }}</h6>
+                                {% if guest.rsvp_status == 'confirmado' %}
+                                    <div class="text-success">
+                                        <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                        <p class="mb-0"><strong>Presença Confirmada</strong></p>
+                                    </div>
+                                {% else %}
+                                    <div class="text-danger">
+                                        <i class="fas fa-times-circle fa-2x mb-2"></i>
+                                        <p class="mb-0"><strong>Não Comparecerá</strong></p>
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
-                </div>
-            {% else %}
-                <div class="mb-4">
-                    <i class="fas fa-times-circle fa-5x text-danger mb-3"></i>
-                    <h2 class="text-danger">Resposta Registrada</h2>
+                    {% endfor %}
                 </div>
                 
-                <div class="card border-danger">
-                    <div class="card-body p-5">
-                        <h4>Obrigado, {{ guest.name }}!</h4>
-                        <p class="lead">
-                            Registramos que você não poderá comparecer ao nosso casamento.
-                        </p>
-                        <p class="text-muted">
-                            Sentiremos sua falta neste dia especial, mas compreendemos sua situação.
-                        </p>
-                        
-                        <div class="mt-4 p-3 bg-light rounded">
-                            <h6>
-                                <i class="fas fa-heart text-danger me-2"></i>
-                                Mensagem Especial
-                            </h6>
-                            <p class="mb-0 small">
-                                Mesmo não podendo estar presente fisicamente, você estará em nossos corações.
-                            </p>
-                        </div>
-                    </div>
+                {% set confirmed_count = guests|selectattr('rsvp_status', 'equalto', 'confirmado')|list|length %}
+                {% if confirmed_count > 0 %}
+                <div class="mt-4 p-3 bg-success bg-opacity-10 rounded">
+                    <h6 class="text-success">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Informações Importantes
+                    </h6>
+                    <p class="mb-0 small">
+                        Estamos muito felizes em saber que {{ confirmed_count }} {% if confirmed_count == 1 %}pessoa estará{% else %}pessoas estarão{% endif %} conosco neste dia especial!
+                        Em breve você receberá mais detalhes sobre o local, horário e outras informações importantes.
+                    </p>
                 </div>
-            {% endif %}
-            
-            <div class="mt-4">
-                <a href="{{ url_for('index') }}" class="btn btn-primary">
-                    <i class="fas fa-home me-2"></i>
-                    Voltar ao Início
-                </a>
+                {% endif %}
+                
+                {% set declined_count = guests|selectattr('rsvp_status', 'equalto', 'nao_confirmado')|list|length %}
+                {% if declined_count > 0 %}
+                <div class="mt-4 p-3 bg-danger bg-opacity-10 rounded">
+                    <h6 class="text-danger">
+                        <i class="fas fa-heart me-2"></i>
+                        Mensagem Especial
+                    </h6>
+                    <p class="mb-0 small">
+                        Sentiremos a falta {% if declined_count == 1 %}desta pessoa{% else %}destas pessoas{% endif %} neste dia especial, mas compreendemos a situação.
+                        {% if declined_count == 1 %}Ela estará{% else %}Elas estarão{% endif %} em nossos corações.
+                    </p>
+                </div>
+                {% endif %}
             </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-home me-2"></i>
+                Voltar ao Início
+            </a>
         </div>
     </div>
 </div>

@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Grupos{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-users me-2"></i>
+                Gerenciar Grupos de Convidados
+            </h2>
+            <div>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addGroupModal">
+                    <i class="fas fa-plus me-2"></i>
+                    Adicionar Grupo
+                </button>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Voltar ao Dashboard
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Lista de Grupos
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if groups %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nome do Grupo</th>
+                                    <th>Descrição</th>
+                                    <th>Nº de Convidados</th>
+                                    <th>Data de Criação</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for group in groups %}
+                                <tr>
+                                    <td><strong>{{ group.name }}</strong></td>
+                                    <td>{{ group.description or '-' }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ group.guests|length }} convidados</span>
+                                    </td>
+                                    <td>{{ group.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="editGroup({{ group.id }}, '{{ group.name }}', '{{ group.description or '' }}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                onclick="deleteGroup({{ group.id }}, '{{ group.name }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5>Nenhum grupo cadastrado</h5>
+                        <p class="text-muted">Adicione seu primeiro grupo clicando no botão acima.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Group Modal -->
+<div class="modal fade" id="addGroupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Adicionar Grupo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_group') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nome do Grupo</label>
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="Ex: Família Silva">
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Descrição (Opcional)</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="Descrição do grupo"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Group Modal -->
+<div class="modal fade" id="editGroupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Grupo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="editGroupForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editGroupName" class="form-label">Nome do Grupo</label>
+                        <input type="text" class="form-control" id="editGroupName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editGroupDescription" class="form-label">Descrição (Opcional)</label>
+                        <textarea class="form-control" id="editGroupDescription" name="description" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Group Modal -->
+<div class="modal fade" id="deleteGroupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja remover o grupo <strong id="deleteGroupName"></strong>?</p>
+                <p class="text-muted">Esta ação não pode ser desfeita. Os convidados do grupo não serão removidos, apenas desvinculados do grupo.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" id="deleteGroupForm" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Sim, Remover</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function editGroup(id, name, description) {
+    document.getElementById('editGroupForm').action = `/admin/edit_group/${id}`;
+    document.getElementById('editGroupName').value = name;
+    document.getElementById('editGroupDescription').value = description;
+    new bootstrap.Modal(document.getElementById('editGroupModal')).show();
+}
+
+function deleteGroup(id, name) {
+    document.getElementById('deleteGroupForm').action = `/admin/delete_group/${id}`;
+    document.getElementById('deleteGroupName').textContent = name;
+    new bootstrap.Modal(document.getElementById('deleteGroupModal')).show();
+}
+</script>
+{% endblock %}
