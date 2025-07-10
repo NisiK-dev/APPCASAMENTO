@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Configurações - Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-cog me-2"></i>
+        Configurações do Administrador
+    </h2>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>
+        Voltar ao Dashboard
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-key me-2"></i>
+                    Alterar Senha
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="current_password" class="form-label">
+                            <i class="fas fa-lock me-1"></i>
+                            Senha Atual
+                        </label>
+                        <input type="password" class="form-control" id="current_password" name="current_password" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label">
+                            <i class="fas fa-key me-1"></i>
+                            Nova Senha
+                        </label>
+                        <input type="password" class="form-control" id="new_password" name="new_password" required>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            A senha deve ter pelo menos 6 caracteres.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">
+                            <i class="fas fa-check-double me-1"></i>
+                            Confirmar Nova Senha
+                        </label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            Alterar Senha
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Dicas de Segurança
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Use pelo menos 8 caracteres
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Combine letras maiúsculas e minúsculas
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Inclua números e símbolos
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Evite informações pessoais óbvias
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Troque sua senha regularmente
+                    </li>
+                </ul>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Importante:</strong> Sua senha será criptografada e não poderá ser recuperada. Mantenha-a em local seguro.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user me-2"></i>
+                    Informações da Conta
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">
+                    <strong>Usuário:</strong> {{ session.admin_username }}
+                </p>
+                <p class="mb-2">
+                    <strong>Status:</strong> 
+                    <span class="badge bg-success">
+                        <i class="fas fa-check me-1"></i>
+                        Ativo
+                    </span>
+                </p>
+                <p class="mb-0 text-muted">
+                    <i class="fas fa-clock me-1"></i>
+                    Última alteração de senha: Em breve
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const newPassword = document.getElementById('new_password');
+    const confirmPassword = document.getElementById('confirm_password');
+    const form = document.querySelector('form');
+    
+    // Validação em tempo real
+    function validatePasswords() {
+        const newPass = newPassword.value;
+        const confirmPass = confirmPassword.value;
+        
+        if (confirmPass && newPass !== confirmPass) {
+            confirmPassword.setCustomValidity('As senhas não coincidem');
+            confirmPassword.classList.add('is-invalid');
+        } else {
+            confirmPassword.setCustomValidity('');
+            confirmPassword.classList.remove('is-invalid');
+        }
+        
+        if (newPass && newPass.length < 6) {
+            newPassword.setCustomValidity('A senha deve ter pelo menos 6 caracteres');
+            newPassword.classList.add('is-invalid');
+        } else {
+            newPassword.setCustomValidity('');
+            newPassword.classList.remove('is-invalid');
+        }
+    }
+    
+    newPassword.addEventListener('input', validatePasswords);
+    confirmPassword.addEventListener('input', validatePasswords);
+    
+    // Validação antes do envio
+    form.addEventListener('submit', function(e) {
+        validatePasswords();
+        
+        if (!form.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        form.classList.add('was-validated');
+    });
+    
+    // Mostrar/ocultar senhas
+    const toggleButtons = document.querySelectorAll('.toggle-password');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const input = this.previousElementSibling;
+            const icon = this.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

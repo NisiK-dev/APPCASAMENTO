@@ -454,6 +454,47 @@ def api_event_datetime():
             'success': True
         })
 
+@app.route('/admin/settings', methods=['GET', 'POST'])
+def admin_settings():
+    """Página de configurações do administrador"""
+    if 'admin_id' not in session:
+        flash('Acesso negado! Faça login primeiro.', 'danger')
+        return redirect(url_for('admin_login'))
+    
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if not all([current_password, new_password, confirm_password]):
+            flash('Todos os campos são obrigatórios!', 'danger')
+            return render_template('admin_settings.html')
+        
+        # Verificar senha atual
+        admin = Admin.query.get(session['admin_id'])
+        if not check_password_hash(admin.password_hash, current_password):
+            flash('Senha atual incorreta!', 'danger')
+            return render_template('admin_settings.html')
+        
+        # Verificar se as novas senhas coincidem
+        if new_password != confirm_password:
+            flash('As novas senhas não coincidem!', 'danger')
+            return render_template('admin_settings.html')
+        
+        # Verificar se a nova senha tem pelo menos 6 caracteres
+        if len(new_password) < 6:
+            flash('A nova senha deve ter pelo menos 6 caracteres!', 'danger')
+            return render_template('admin_settings.html')
+        
+        # Atualizar senha
+        admin.password_hash = generate_password_hash(new_password)
+        db.session.commit()
+        
+        flash('Senha alterada com sucesso!', 'success')
+        return redirect(url_for('admin_dashboard'))
+    
+    return render_template('admin_settings.html')
+
 @app.route('/admin/whatsapp')
 def admin_whatsapp():
     """Página para envio de mensagens WhatsApp"""
