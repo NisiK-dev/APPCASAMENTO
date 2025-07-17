@@ -21,7 +21,7 @@
 
 /* Global Styles */
 body {
-    background-image: url('/static/img/Background.jpg');
+
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center center;
@@ -29,15 +29,32 @@ body {
     line-height: 1.6;
 }
 
+.container {
+    padding: 0px;
+}
+
 .nomes {
     font-family: 'minhafont';
     font-size: 100px;
-    color: rgb(160, 103, 76);
+    color: black;
+    margin: 0px;
+    padding: 0px;
+}
+
+.text-1 {
+    color: black;
+    font-size: 30px;
+    font-family: 'minhafont';
+    margin: 0px;
+    padding: 0px;
 }
 
 /* Hero Section */
 .hero-section {
-    background: transparent;
+
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
     border-radius: 15px;
     margin-bottom: 2rem;
     position: relative;
@@ -51,7 +68,6 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.1)" points="0,1000 1000,0 1000,1000"/></svg>');
     background-size: cover;
 }
 
@@ -62,6 +78,11 @@ body {
 
 /* Cards */
 .card {
+    background: white;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
+    color: black;
     border: none;
     border-radius: 15px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -75,8 +96,8 @@ body {
 }
 
 .card-header {
-    background: linear-gradient(45deg, var(--bs-primary), var(--bs-info));
-    color: white;
+    background: white;
+    color: black;
     border: none;
     padding: 1rem 1.5rem;
 }
@@ -85,7 +106,7 @@ body {
 .card-header h5,
 .card-header h6 {
     margin: 0;
-    color: white;
+    color: black;
 }
 
 /* Buttons */
@@ -103,7 +124,7 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(45deg, var(--wedding-primary), var(--wedding-accent));
+    background: black;
 }
 
 .btn-success {
@@ -284,7 +305,7 @@ body {
     text-align: center;
     margin: 0 1rem;
     padding: 1rem;
-    background: rgb(160, 103, 76);
+    background: rgb(160, 103, 76, 0.5);
     border-radius: 15px;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
