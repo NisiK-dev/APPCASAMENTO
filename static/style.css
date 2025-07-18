@@ -56,11 +56,6 @@ body {
     margin-bottom: 2rem;
     position: relative;
     overflow: hidden;
-    background-image: url('../static/img/kelly-nisio-background.jpg');
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center center;
-    min-height: 80vh;
 }
 
 .hero-section::before {
@@ -70,7 +65,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.1);
+    background-size: cover;
 }
 
 .hero-section .container {
