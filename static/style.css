@@ -56,7 +56,7 @@ body {
     margin-bottom: 2rem;
     position: relative;
     overflow: hidden;
-    background-image: url('../static/img/kelly-nisio-background.jpg');
+    background-image: url('img/kelly-nisio-background.jpg');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center center;
