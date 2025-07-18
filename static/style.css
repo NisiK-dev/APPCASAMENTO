@@ -34,6 +34,7 @@ body {
 }
 
 .nomes {
+
     font-family: 'minhafont';
     font-size: 100px;
     color: black;
@@ -51,10 +52,6 @@ body {
 
 /* Hero Section */
 .hero-section {
-
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center center;
     border-radius: 15px;
     margin-bottom: 2rem;
     position: relative;
