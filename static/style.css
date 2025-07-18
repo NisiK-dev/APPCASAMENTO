@@ -52,8 +52,7 @@ body {
 
 /* Hero Section */
 .hero-section {
-
-    background-image: url('static/img/Kelly.jpg');
+    background-image: url('img/Kelly.jpg');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center center;
