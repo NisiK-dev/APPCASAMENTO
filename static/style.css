@@ -509,6 +509,17 @@ footer {
     }
 }
 
+/* iOS/iPhone Background Fix */
+@media screen and (max-device-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+    body {
+        background-attachment: fixed !important;
+        background-size: cover !important;
+        background-position: center center !important;
+        background-repeat: no-repeat !important;
+        -webkit-background-size: cover !important;
+    }
+}
+
 /* Animation Classes */
 .fade-in {
     animation: fadeIn 0.5s ease-in;
