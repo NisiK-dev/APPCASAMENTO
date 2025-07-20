@@ -456,6 +456,10 @@ footer {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .text-1 {
+        font-size: 60px;
+    }
+
     .hero-section h1 {
         font-size: 2rem;
     }
@@ -475,6 +479,10 @@ footer {
 }
 
 @media (max-width: 576px) {
+    .text-1 {
+        font-size: 40px;
+    }
+
     .container {
         padding: 0 1rem;
     }
