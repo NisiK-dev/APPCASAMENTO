@@ -460,7 +460,7 @@ footer {
 /* Responsive Design */
 @media (max-width: 768px) {
     body {
-        background-attachment: scroll;
+        background-attachment: fixed;
         background-size: cover;
         background-position: center top;
     }
@@ -485,7 +485,7 @@ footer {
 
 @media (max-width: 576px) {
     body {
-        background-attachment: scroll;
+        background-attachment: fixed;
         background-size: cover;
         background-position: center center;
         background-repeat: no-repeat;
