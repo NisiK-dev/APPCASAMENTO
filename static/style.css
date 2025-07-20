@@ -21,7 +21,7 @@
 
 /* Global Styles */
 body {
-
+    background-image: url('https://i.imgur.com/UI9BW9H.png');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center center;
@@ -33,32 +33,33 @@ body {
     padding: 0px;
 }
 
-.nomes {
-
+.text-1 {
     font-family: 'minhafont';
-    font-size: 100px;
-    color: black;
+    font-size: 5px;
+    color: rgb(117, 62, 41);
     margin: 0px;
     padding: 0px;
 }
-
-.text-1 {
+.text-2 {
     color: black;
-    font-size: 30px;
-    font-family: 'minhafont';
+    font-weight: bold;
+    font-size: 15px;
+    font-family: Arial, Helvetica,;}
+.text-3 {
+    color: black;
+    font-size: 10px;
+    font-family: Arial, Helvetica, sans-serif;
     margin: 0px;
     padding: 0px;
 }
 
 /* Hero Section */
 .hero-section {
-    background-image: url('img/Kelly.jpg');
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center center;
-    background-attachment: fixed;
-    min-height: 80vh;
+    background: rgb(225, 239, 225, 0.5);
+    border-radius: 15px;
+    margin-bottom: 2rem;
     position: relative;
+    overflow: hidden;
 }
 
 .hero-section::before {
@@ -68,8 +69,8 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(1px);
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.1)" points="0,1000 1000,0 1000,1000"/></svg>');
+    background-size: cover;
 }
 
 .hero-section .container {
@@ -79,7 +80,7 @@ body {
 
 /* Cards */
 .card {
-    background: white;
+    background: rgb(225, 239, 225, 0.5);
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center center;
