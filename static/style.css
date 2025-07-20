@@ -459,6 +459,12 @@ footer {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    body {
+        background-attachment: scroll;
+        background-size: cover;
+        background-position: center top;
+    }
+
     .text-1 {
         font-size: 80px;
     }
@@ -478,6 +484,13 @@ footer {
 }
 
 @media (max-width: 576px) {
+    body {
+        background-attachment: scroll;
+        background-size: cover;
+        background-position: center center;
+        background-repeat: no-repeat;
+    }
+
     .text-1 {
         font-size: 80px;
     }
