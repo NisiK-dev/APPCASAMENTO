@@ -30,24 +30,27 @@ body {
 }
 
 .container {
-    padding: 0px;
+    padding: 0px
 }
 
 .text-1 {
     font-family: 'minhafont';
-    font-size: 100px;
+    font-size: 80px;
     color: rgb(117, 62, 41);
     margin: 0px;
     padding: 0px;
 }
+
 .text-2 {
     color: black;
     font-weight: bold;
-    font-size: 15px;
-    font-family: Arial, Helvetica,;}
+    font-size: 25px;
+    font-family: Arial, Helvetica, ;
+}
+
 .text-3 {
     color: black;
-    font-size: 10px;
+    font-size: 20px;
     font-family: Arial, Helvetica, sans-serif;
     margin: 0px;
     padding: 0px;
@@ -55,7 +58,7 @@ body {
 
 /* Hero Section */
 .hero-section {
-    background: rgb(225, 239, 225, 0.5);
+    background: rgb(225, 239, 225, 0.8);
     border-radius: 15px;
     margin-bottom: 2rem;
     position: relative;
@@ -457,11 +460,7 @@ footer {
 /* Responsive Design */
 @media (max-width: 768px) {
     .text-1 {
-        font-size: 60px;
-    }
-
-    .hero-section h1 {
-        font-size: 2rem;
+        font-size: 80px;
     }
 
     .card-body {
@@ -480,7 +479,7 @@ footer {
 
 @media (max-width: 576px) {
     .text-1 {
-        font-size: 40px;
+        font-size: 80px;
     }
 
     .container {
