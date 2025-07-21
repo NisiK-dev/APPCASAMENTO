@@ -683,3 +683,12 @@ footer {
     color: #000000 !important;
     font-weight: 500;
 }
+
+/* Gift card text colors - ensure descriptions are black */
+.gift-card .card-text.text-dark {
+    color: #000000 !important;
+}
+
+.gift-card .card-text {
+    color: #000000 !important;
+}
