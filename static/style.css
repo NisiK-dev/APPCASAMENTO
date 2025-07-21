@@ -13,9 +13,9 @@
 }
 
 :root {
-    --wedding-primary: #d946ef;
-    --wedding-secondary: #f472b6;
-    --wedding-accent: #ec4899;
+    --wedding-primary: rgb(117, 62, 41);
+    --wedding-secondary: white;
+    --wedding-accent: blue;
     --wedding-gold: #fbbf24;
 }
 
@@ -73,6 +73,7 @@ body {
     margin-bottom: 2rem;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .hero-section::before {
@@ -93,7 +94,7 @@ body {
 
 /* Cards */
 .card {
-    background: rgb(225, 239, 225, 0.5);
+    background: rgb(225, 239, 225, 0.8);
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center center;
@@ -130,19 +131,19 @@ body {
     padding: 0.5rem 1.5rem;
     font-weight: 500;
     transition: all 0.3s ease;
-    border: none;
-    color: black;
-    background-color: white;
+    border: 2px solid var(--wedding-primary);
+    color: var(--wedding-primary);
+    background: var(--wedding-secondary);
 }
 
 .btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    background: var(--wedding-accent);
+    border: 2px solid var(--wedding-secondary);
+    color: var(--wedding-secondary);
 }
 
-.btn-primary {
-    background-color: white;
-}
 
 .btn-success {
     background: linear-gradient(45deg, #059669, #10b981);
@@ -151,11 +152,13 @@ body {
 .btn-outline-primary {
     border: 2px solid var(--wedding-primary);
     color: var(--wedding-primary);
+    background-color: white;
 }
 
 .btn-outline-primary:hover {
-    background: var(--wedding-primary);
-    border-color: var(--wedding-primary);
+    background: var(--wedding-accent);
+    border: 2px solid var(--wedding-secondary);
+    
 }
 
 /* Navigation */
@@ -426,54 +429,6 @@ body {
 
     .countdown-label {
         font-size: 0.65rem;
-    }
-}
-
-/* Button Container Styles */
-.buttons-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin-top: 2rem;
-}
-
-.buttons-container .btn {
-    flex: 0 1 auto;
-    min-width: 200px;
-    transition: all 0.3s ease;
-}
-
-.buttons-container .btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-}
-
-/* Responsive button adjustments */
-@media (max-width: 768px) {
-    .buttons-container {
-        gap: 0.8rem;
-        margin-top: 1.5rem;
-    }
-    
-    .buttons-container .btn {
-        min-width: 180px;
-        padding: 0.8rem 1.5rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .buttons-container {
-        flex-direction: column;
-        gap: 0.8rem;
-        margin-top: 1.5rem;
-    }
-    
-    .buttons-container .btn {
-        min-width: 250px;
-        width: 100%;
-        max-width: 300px;
     }
 }
 
