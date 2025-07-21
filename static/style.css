@@ -703,3 +703,26 @@ footer {
     background-color: #f8f9fa !important;
     border: 1px solid #dee2e6 !important;
 }
+
+/* Force all gift card text elements to be black */
+.gift-card .card-title,
+.gift-card .card-text,
+.gift-card .badge,
+.gift-card h5,
+.gift-card p,
+.gift-card span {
+    color: #000000 !important;
+}
+
+/* Override Bootstrap badge colors specifically for gift cards */
+.gift-card .badge.bg-success {
+    background-color: #f8f9fa !important;
+    color: #000000 !important;
+    border: 1px solid #dee2e6 !important;
+}
+
+.gift-card .badge.bg-light {
+    background-color: #f8f9fa !important;
+    color: #000000 !important;
+    border: 1px solid #dee2e6 !important;
+}
