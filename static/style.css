@@ -298,6 +298,11 @@ body {
     border-radius: 10px;
 }
 
+.gift-item h6 {
+    color: black !important;
+    font-weight: bold;
+}
+
 .gift-item:hover {
     background: rgba(212, 70, 239, 0.1);
     transform: translateX(10px);
@@ -603,6 +608,12 @@ footer {
         opacity: 1;
         transform: translateX(0);
     }
+}
+
+/* Gift Cards Styles */
+.card-title {
+    color: black !important;
+    font-weight: bold;
 }
 
 /* Custom Scrollbar */
