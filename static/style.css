@@ -76,21 +76,6 @@ body {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Buttons Container */
-.buttons-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin-top: 2rem;
-}
-
-.buttons-container .btn {
-    min-width: 200px;
-    text-align: center;
-}
-
 .hero-section::before {
     content: '';
     position: absolute;
@@ -110,9 +95,6 @@ body {
 /* Cards */
 .card {
     background: rgb(225, 239, 225, 0.8);
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center center;
     color: black;
     border: none;
     border-radius: 15px;
@@ -129,7 +111,7 @@ body {
 .card-header {
     background: white;
     color: black;
-    border: none;
+     border:none;
     padding: 1rem 1.5rem;
 }
 
@@ -137,7 +119,8 @@ body {
 .card-header h5,
 .card-header h6 {
     margin: 0;
-    color: black;
+    color:black;
+  
 }
 
 /* Buttons */
@@ -201,7 +184,7 @@ body {
 
 .table th {
     background: var(--bs-dark);
-    color: white;
+    color: black;
     border: none;
     font-weight: 600;
     text-transform: uppercase;
@@ -575,16 +558,6 @@ footer {
 
     .card {
         margin-bottom: 1rem;
-    }
-
-    .buttons-container {
-        flex-direction: column;
-        gap: 0.8rem;
-    }
-
-    .buttons-container .btn {
-        width: 100%;
-        min-width: auto;
     }
 }
 
