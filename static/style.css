@@ -73,7 +73,7 @@ body {
     margin-bottom: 2rem;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
 
 .hero-section::before {
@@ -98,20 +98,20 @@ body {
     color: black;
     border: none;
     border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
     transition: all 0.3s ease;
     overflow: hidden;
 }
 
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
 
 .card-header {
     background: white;
     color: black;
-     border:none;
+    border: none;
     padding: 1rem 1.5rem;
 }
 
@@ -119,8 +119,8 @@ body {
 .card-header h5,
 .card-header h6 {
     margin: 0;
-    color:black;
-  
+    color: black;
+
 }
 
 /* Buttons */
@@ -156,13 +156,14 @@ body {
 .btn-outline-primary:hover {
     background: var(--wedding-accent);
     border: 2px solid var(--wedding-secondary);
-    
+
 }
 
 /* Navigation */
 .navbar-brand {
     font-weight: bold;
     font-size: 1.5rem;
+
 }
 
 .navbar-nav .nav-link {
@@ -296,6 +297,8 @@ body {
 .gift-item {
     transition: all 0.3s ease;
     border-radius: 10px;
+    background: rgb(108, 217, 126,0.8);
+
 }
 
 .gift-item h6 {
@@ -304,8 +307,9 @@ body {
 }
 
 .gift-item:hover {
-    background: rgba(212, 70, 239, 0.1);
+    background: rgb(114, 150, 126);
     transform: translateX(10px);
+
 }
 
 /* Progress Bars */
@@ -434,6 +438,7 @@ body {
         font-size: 0.65rem;
     }
 }
+
 
 /* RSVP Form Styles */
 .rsvp-container {
@@ -666,4 +671,15 @@ footer {
     .btn {
         display: none !important;
     }
+}
+
+/* Text color overrides - Force black text for specific elements */
+.text-dark {
+    color: #000000 !important;
+}
+
+/* Ensure gifts page intro text is black */
+.lead.text-dark {
+    color: #000000 !important;
+    font-weight: 500;
 }
