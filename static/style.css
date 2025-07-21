@@ -739,3 +739,18 @@ footer {
 .gift-item p.text-dark {
     color: #000000 !important;
 }
+
+/* RSVP page text styling */
+.rsvp-container .card-header h5,
+.rsvp-container .form-label,
+.rsvp-container .form-text,
+.rsvp-container .lead.text-dark,
+.rsvp-container h2,
+.rsvp-container h6 {
+    color: #000000 !important;
+}
+
+.rsvp-container .form-text {
+    color: #000000 !important;
+    opacity: 0.7;
+}

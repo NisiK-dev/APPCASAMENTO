@@ -3,13 +3,15 @@
 {% block title %}Confirmar Presença{% endblock %}
 
 {% block content %}
+<div class="fixed-background"></div>
+
 <div class="rsvp-container">
     <div class="text-center mb-5">
         <h2>
             <i class="fas fa-calendar-check me-2"></i>
             Confirme sua Presença
         </h2>
-        <p class="lead text-muted">
+        <p class="lead text-dark">
             Por favor, confirme se você poderá comparecer ao nosso casamento
         </p>
     </div>
@@ -25,20 +27,17 @@
         <div class="card-body">
             <div class="mb-3">
                 <label for="guestSearch" class="form-label">Digite seu nome</label>
-                <input type="text" 
-                       class="form-control form-control-lg" 
-                       id="guestSearch" 
-                       placeholder="Ex: João Silva" 
-                       autocomplete="off">
+                <input type="text" class="form-control form-control-lg" id="guestSearch" placeholder="Ex: João Silva"
+                    autocomplete="off">
                 <div class="form-text">Digite pelo menos 2 caracteres para buscar</div>
             </div>
-            
+
             <!-- Search Results -->
             <div id="searchResults" style="display: none;">
                 <h6 class="mb-3">Resultados da busca:</h6>
                 <div id="guestList"></div>
             </div>
-            
+
             <!-- Loading -->
             <div id="searchLoading" class="text-center" style="display: none;">
                 <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
@@ -58,7 +57,7 @@
         <div class="card-body">
             <form id="rsvpForm" method="POST" action="{{ url_for('confirm_rsvp') }}">
                 <div id="selectedGuestsList"></div>
-                
+
                 <div class="text-center mt-4">
                     <button type="button" class="btn btn-outline-secondary me-3" onclick="goBackToSearch()">
                         <i class="fas fa-arrow-left me-2"></i>
@@ -88,189 +87,189 @@
 
 {% block scripts %}
 <script>
-var selectedGuests = [];
-var searchTimeout;
+    var selectedGuests = [];
+    var searchTimeout;
 
-document.getElementById('guestSearch').addEventListener('input', function() {
-    var query = this.value.trim();
-    
-    clearTimeout(searchTimeout);
-    
-    if (query.length < 2) {
+    document.getElementById('guestSearch').addEventListener('input', function () {
+        var query = this.value.trim();
+
+        clearTimeout(searchTimeout);
+
+        if (query.length < 2) {
+            document.getElementById('searchResults').style.display = 'none';
+            return;
+        }
+
+        document.getElementById('searchLoading').style.display = 'block';
         document.getElementById('searchResults').style.display = 'none';
-        return;
-    }
-    
-    document.getElementById('searchLoading').style.display = 'block';
-    document.getElementById('searchResults').style.display = 'none';
-    
-    searchTimeout = setTimeout(function() {
-        var formData = new FormData();
-        formData.append('name', query);
-        
-        fetch('/search_guest', {
-            method: 'POST',
-            body: formData
-        })
-        .then(function(response) {
-            return response.json();
-        })
-        .then(function(data) {
-            document.getElementById('searchLoading').style.display = 'none';
-            
-            if (data.guests && data.guests.length > 0) {
-                displaySearchResults(data.guests, data.group_name);
+
+        searchTimeout = setTimeout(function () {
+            var formData = new FormData();
+            formData.append('name', query);
+
+            fetch('/search_guest', {
+                method: 'POST',
+                body: formData
+            })
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (data) {
+                    document.getElementById('searchLoading').style.display = 'none';
+
+                    if (data.guests && data.guests.length > 0) {
+                        displaySearchResults(data.guests, data.group_name);
+                    } else {
+                        document.getElementById('guestList').innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>Nenhum convidado encontrado com este nome.</div>';
+                        document.getElementById('searchResults').style.display = 'block';
+                    }
+                })
+                .catch(function (error) {
+                    console.error('Erro na busca:', error);
+                    document.getElementById('searchLoading').style.display = 'none';
+                    document.getElementById('guestList').innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>Erro ao buscar convidados. Tente novamente.</div>';
+                    document.getElementById('searchResults').style.display = 'block';
+                });
+        }, 500);
+    });
+
+    function displaySearchResults(guests, groupName) {
+        var guestList = document.getElementById('guestList');
+        var html = '';
+
+        if (groupName) {
+            html += '<div class="alert alert-info"><i class="fas fa-users me-2"></i><strong>Grupo encontrado:</strong> ' + groupName + '</div>';
+        }
+
+        html += '<div class="guest-group mb-3"><div class="card"><div class="card-header"><h6 class="mb-0">' + (groupName || 'Convidados') + '</h6></div><div class="card-body">';
+
+        for (var i = 0; i < guests.length; i++) {
+            var guest = guests[i];
+            var statusBadge = '';
+
+            if (guest.rsvp_status === 'confirmado') {
+                statusBadge = '<span class="badge bg-success ms-2">Confirmado</span>';
+            } else if (guest.rsvp_status === 'nao_confirmado') {
+                statusBadge = '<span class="badge bg-danger ms-2">Não Confirmado</span>';
             } else {
-                document.getElementById('guestList').innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>Nenhum convidado encontrado com este nome.</div>';
-                document.getElementById('searchResults').style.display = 'block';
+                statusBadge = '<span class="badge bg-warning ms-2">Pendente</span>';
             }
-        })
-        .catch(function(error) {
-            console.error('Erro na busca:', error);
-            document.getElementById('searchLoading').style.display = 'none';
-            document.getElementById('guestList').innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>Erro ao buscar convidados. Tente novamente.</div>';
-            document.getElementById('searchResults').style.display = 'block';
-        });
-    }, 500);
-});
 
-function displaySearchResults(guests, groupName) {
-    var guestList = document.getElementById('guestList');
-    var html = '';
-    
-    if (groupName) {
-        html += '<div class="alert alert-info"><i class="fas fa-users me-2"></i><strong>Grupo encontrado:</strong> ' + groupName + '</div>';
+            html += '<div class="guest-item d-flex justify-content-between align-items-center mb-2"><span>' + guest.name + statusBadge + '</span></div>';
+        }
+
+        html += '<div class="text-center mt-3"><button type="button" class="btn btn-primary" onclick="selectGuestGroup()" data-guests="' + encodeURIComponent(JSON.stringify(guests)) + '"><i class="fas fa-check me-2"></i>Confirmar Presenças</button></div></div></div></div>';
+
+        guestList.innerHTML = html;
+        document.getElementById('searchResults').style.display = 'block';
     }
-    
-    html += '<div class="guest-group mb-3"><div class="card"><div class="card-header"><h6 class="mb-0">' + (groupName || 'Convidados') + '</h6></div><div class="card-body">';
-    
-    for (var i = 0; i < guests.length; i++) {
-        var guest = guests[i];
-        var statusBadge = '';
-        
-        if (guest.rsvp_status === 'confirmado') {
-            statusBadge = '<span class="badge bg-success ms-2">Confirmado</span>';
-        } else if (guest.rsvp_status === 'nao_confirmado') {
-            statusBadge = '<span class="badge bg-danger ms-2">Não Confirmado</span>';
-        } else {
-            statusBadge = '<span class="badge bg-warning ms-2">Pendente</span>';
-        }
-        
-        html += '<div class="guest-item d-flex justify-content-between align-items-center mb-2"><span>' + guest.name + statusBadge + '</span></div>';
+
+    function selectGuestGroup() {
+        var button = event.target;
+        var guestsData = button.getAttribute('data-guests');
+        selectedGuests = JSON.parse(decodeURIComponent(guestsData));
+        showConfirmStep();
     }
-    
-    html += '<div class="text-center mt-3"><button type="button" class="btn btn-primary" onclick="selectGuestGroup()" data-guests="' + encodeURIComponent(JSON.stringify(guests)) + '"><i class="fas fa-check me-2"></i>Confirmar Presenças</button></div></div></div></div>';
-    
-    guestList.innerHTML = html;
-    document.getElementById('searchResults').style.display = 'block';
-}
 
-function selectGuestGroup() {
-    var button = event.target;
-    var guestsData = button.getAttribute('data-guests');
-    selectedGuests = JSON.parse(decodeURIComponent(guestsData));
-    showConfirmStep();
-}
+    function showConfirmStep() {
+        document.getElementById('searchStep').style.display = 'none';
+        document.getElementById('confirmStep').style.display = 'block';
 
-function showConfirmStep() {
-    document.getElementById('searchStep').style.display = 'none';
-    document.getElementById('confirmStep').style.display = 'block';
-    
-    var guestsList = document.getElementById('selectedGuestsList');
-    var html = '<h6 class="mb-3">Confirme a presença para:</h6>';
-    
-    for (var i = 0; i < selectedGuests.length; i++) {
-        var guest = selectedGuests[i];
-        var currentStatus = guest.rsvp_status;
-        var badgeClass = '';
-        var badgeText = '';
-        
-        if (currentStatus === 'confirmado') {
-            badgeClass = 'success';
-            badgeText = 'Confirmado';
-        } else if (currentStatus === 'nao_confirmado') {
-            badgeClass = 'danger';
-            badgeText = 'Não Confirmado';
-        } else {
-            badgeClass = 'warning';
-            badgeText = 'Pendente';
-        }
-        
-        html += '<div class="guest-card mb-3 p-3">';
-        html += '<div class="d-flex justify-content-between align-items-center mb-2">';
-        html += '<h6 class="mb-0">' + guest.name + '</h6>';
-        html += '<span class="badge bg-' + badgeClass + '">' + badgeText + '</span>';
-        html += '</div>';
-        html += '<div class="row">';
-        html += '<div class="col-6">';
-        html += '<div class="form-check">';
-        html += '<input class="form-check-input" type="radio" name="rsvp_' + guest.id + '" id="confirm_' + guest.id + '" value="confirmado"';
-        if (currentStatus === 'confirmado') {
-            html += ' checked';
-        }
-        html += '>';
-        html += '<label class="form-check-label text-success" for="confirm_' + guest.id + '"><i class="fas fa-check me-1"></i>Confirmo presença</label>';
-        html += '</div>';
-        html += '</div>';
-        html += '<div class="col-6">';
-        html += '<div class="form-check">';
-        html += '<input class="form-check-input" type="radio" name="rsvp_' + guest.id + '" id="decline_' + guest.id + '" value="nao_confirmado"';
-        if (currentStatus === 'nao_confirmado') {
-            html += ' checked';
-        }
-        html += '>';
-        html += '<label class="form-check-label text-danger" for="decline_' + guest.id + '"><i class="fas fa-times me-1"></i>Não poderei comparecer</label>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '<input type="hidden" name="guest_ids" value="' + guest.id + '">';
-        html += '</div>';
-    }
-    
-    guestsList.innerHTML = html;
-}
+        var guestsList = document.getElementById('selectedGuestsList');
+        var html = '<h6 class="mb-3">Confirme a presença para:</h6>';
 
-function goBackToSearch() {
-    document.getElementById('confirmStep').style.display = 'none';
-    document.getElementById('searchStep').style.display = 'block';
-    selectedGuests = [];
-}
+        for (var i = 0; i < selectedGuests.length; i++) {
+            var guest = selectedGuests[i];
+            var currentStatus = guest.rsvp_status;
+            var badgeClass = '';
+            var badgeText = '';
 
-function confirmRSVP() {
-    var hasSelection = false;
-    
-    for (var i = 0; i < selectedGuests.length; i++) {
-        var guest = selectedGuests[i];
-        var radios = document.querySelectorAll('input[name="rsvp_' + guest.id + '"]');
-        
-        for (var j = 0; j < radios.length; j++) {
-            if (radios[j].checked) {
-                hasSelection = true;
-                break;
+            if (currentStatus === 'confirmado') {
+                badgeClass = 'success';
+                badgeText = 'Confirmado';
+            } else if (currentStatus === 'nao_confirmado') {
+                badgeClass = 'danger';
+                badgeText = 'Não Confirmado';
+            } else {
+                badgeClass = 'warning';
+                badgeText = 'Pendente';
             }
-        }
-        
-        if (hasSelection) break;
-    }
-    
-    if (!hasSelection) {
-        alert('Por favor, confirme a presença para pelo menos um convidado.');
-        return;
-    }
-    
-    var button = document.querySelector('button[onclick="confirmRSVP()"]');
-    if (button) {
-        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvando...';
-        button.disabled = true;
-    }
-    
-    document.getElementById('rsvpForm').submit();
-}
 
-document.getElementById('guestSearch').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
+            html += '<div class="guest-card mb-3 p-3">';
+            html += '<div class="d-flex justify-content-between align-items-center mb-2">';
+            html += '<h6 class="mb-0">' + guest.name + '</h6>';
+            html += '<span class="badge bg-' + badgeClass + '">' + badgeText + '</span>';
+            html += '</div>';
+            html += '<div class="row">';
+            html += '<div class="col-6">';
+            html += '<div class="form-check">';
+            html += '<input class="form-check-input" type="radio" name="rsvp_' + guest.id + '" id="confirm_' + guest.id + '" value="confirmado"';
+            if (currentStatus === 'confirmado') {
+                html += ' checked';
+            }
+            html += '>';
+            html += '<label class="form-check-label text-success" for="confirm_' + guest.id + '"><i class="fas fa-check me-1"></i>Confirmo presença</label>';
+            html += '</div>';
+            html += '</div>';
+            html += '<div class="col-6">';
+            html += '<div class="form-check">';
+            html += '<input class="form-check-input" type="radio" name="rsvp_' + guest.id + '" id="decline_' + guest.id + '" value="nao_confirmado"';
+            if (currentStatus === 'nao_confirmado') {
+                html += ' checked';
+            }
+            html += '>';
+            html += '<label class="form-check-label text-danger" for="decline_' + guest.id + '"><i class="fas fa-times me-1"></i>Não poderei comparecer</label>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            html += '<input type="hidden" name="guest_ids" value="' + guest.id + '">';
+            html += '</div>';
+        }
+
+        guestsList.innerHTML = html;
     }
-});
+
+    function goBackToSearch() {
+        document.getElementById('confirmStep').style.display = 'none';
+        document.getElementById('searchStep').style.display = 'block';
+        selectedGuests = [];
+    }
+
+    function confirmRSVP() {
+        var hasSelection = false;
+
+        for (var i = 0; i < selectedGuests.length; i++) {
+            var guest = selectedGuests[i];
+            var radios = document.querySelectorAll('input[name="rsvp_' + guest.id + '"]');
+
+            for (var j = 0; j < radios.length; j++) {
+                if (radios[j].checked) {
+                    hasSelection = true;
+                    break;
+                }
+            }
+
+            if (hasSelection) break;
+        }
+
+        if (!hasSelection) {
+            alert('Por favor, confirme a presença para pelo menos um convidado.');
+            return;
+        }
+
+        var button = document.querySelector('button[onclick="confirmRSVP()"]');
+        if (button) {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvando...';
+            button.disabled = true;
+        }
+
+        document.getElementById('rsvpForm').submit();
+    }
+
+    document.getElementById('guestSearch').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+        }
+    });
 </script>
 {% endblock %}
