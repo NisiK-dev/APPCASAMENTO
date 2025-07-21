@@ -684,11 +684,22 @@ footer {
     font-weight: 500;
 }
 
-/* Gift card text colors - ensure descriptions are black */
+/* Gift card text colors - ensure all text elements are black */
 .gift-card .card-text.text-dark {
     color: #000000 !important;
 }
 
 .gift-card .card-text {
     color: #000000 !important;
+}
+
+.gift-card .card-title.text-dark {
+    color: #000000 !important;
+    font-weight: 600;
+}
+
+.gift-card .badge.text-dark {
+    color: #000000 !important;
+    background-color: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
 }

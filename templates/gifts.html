@@ -34,7 +34,7 @@
                                 <i class="fas fa-gift fa-2x text-warning"></i>
                             </div>
                             {% endif %}
-                            <h5 class="card-title text-center">{{ gift.item_name }}</h5>
+                            <h5 class="card-title text-center text-dark">{{ gift.item_name }}</h5>
                             
                             {% if gift.description %}
                             <p class="card-text text-dark flex-grow-1">{{ gift.description }}</p>
@@ -42,7 +42,7 @@
                             
                             {% if gift.price %}
                             <div class="text-center mb-3">
-                                <span class="badge bg-success fs-6">{{ gift.price }}</span>
+                                <span class="badge bg-light text-dark fs-6 border">{{ gift.price }}</span>
                             </div>
                             {% endif %}
                             
