@@ -303,6 +303,14 @@ body {
     transform: translateX(10px);
 }
 
+/* Gift Price Styles */
+.badge.bg-success {
+    background-color: transparent !important;
+    color: black !important;
+    border: 1px solid #ccc !important;
+    font-weight: bold !important;
+}
+
 /* Progress Bars */
 .progress {
     height: 8px;
