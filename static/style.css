@@ -726,3 +726,16 @@ footer {
     color: #000000 !important;
     border: 1px solid #dee2e6 !important;
 }
+
+/* Gift preview in homepage - force black text */
+.gift-preview .gift-item h6,
+.gift-preview .gift-item p,
+.gift-preview .gift-item .text-dark {
+    color: #000000 !important;
+}
+
+.gift-item.text-dark,
+.gift-item h6.text-dark,
+.gift-item p.text-dark {
+    color: #000000 !important;
+}
