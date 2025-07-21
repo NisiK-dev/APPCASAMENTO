@@ -193,6 +193,13 @@ body {
     letter-spacing: 0.5px;
 }
 
+/* Override for AÇÕES header specifically */
+.table th.text-white.fw-bold {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+}
+
 .table td {
     vertical-align: middle;
     border-color: rgba(255, 255, 255, 0.1);
