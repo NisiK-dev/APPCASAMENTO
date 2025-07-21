@@ -24,6 +24,7 @@ body {
 
     line-height: 1.6;
 }
+
 .fixed-background {
     position: fixed;
     top: 0;
@@ -34,7 +35,8 @@ body {
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center center;
-    z-index: -1; /* Coloca a imagem atrás do conteúdo */
+    z-index: -1;
+    /* Coloca a imagem atrás do conteúdo */
 }
 
 .container {
@@ -129,6 +131,8 @@ body {
     font-weight: 500;
     transition: all 0.3s ease;
     border: none;
+    color: black;
+    background-color: white;
 }
 
 .btn:hover {
@@ -137,7 +141,7 @@ body {
 }
 
 .btn-primary {
-    background: black;
+    background-color: white;
 }
 
 .btn-success {
@@ -422,6 +426,54 @@ body {
 
     .countdown-label {
         font-size: 0.65rem;
+    }
+}
+
+/* Button Container Styles */
+.buttons-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+.buttons-container .btn {
+    flex: 0 1 auto;
+    min-width: 200px;
+    transition: all 0.3s ease;
+}
+
+.buttons-container .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive button adjustments */
+@media (max-width: 768px) {
+    .buttons-container {
+        gap: 0.8rem;
+        margin-top: 1.5rem;
+    }
+    
+    .buttons-container .btn {
+        min-width: 180px;
+        padding: 0.8rem 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .buttons-container {
+        flex-direction: column;
+        gap: 0.8rem;
+        margin-top: 1.5rem;
+    }
+    
+    .buttons-container .btn {
+        min-width: 250px;
+        width: 100%;
+        max-width: 300px;
     }
 }
 

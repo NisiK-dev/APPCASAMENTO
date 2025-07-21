@@ -38,14 +38,16 @@
             </div>
         </div>
 
-        <a href="{{ url_for('rsvp') }}" class="btn btn-primary btn-lg me-3">
-            <i class="fas fa-calendar-check me-2"></i>
-            Confirmar Presença
-        </a>
-        <a href="{{ url_for('gifts') }}" class="btn btn-outline-light btn-lg">
-            <i class="fas fa-gift me-2"></i>
-            Lista de Presentes
-        </a>
+        <div class="buttons-container">
+            <a href="{{ url_for('rsvp') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-calendar-check me-2"></i>
+                Confirmar Presença
+            </a>
+            <a href="{{ url_for('gifts') }}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-gift me-2"></i>
+                Lista de Presentes
+            </a>
+        </div>
     </div>
 </div>
 
