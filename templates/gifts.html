@@ -16,55 +16,54 @@
         </div>
 
         {% if gifts %}
-            <div class="row">
-                {% for gift in gifts %}
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 border-0 shadow-sm gift-card">
-                        {% if gift.image_filename %}
-                        <div class="card-img-top-wrapper" style="height: 200px; overflow: hidden;">
-                            <img src="{{ url_for('static', filename='uploads/gifts/' + gift.image_filename) }}" 
-                                 alt="{{ gift.item_name }}" 
-                                 class="card-img-top" 
-                                 style="width: 100%; height: 100%; object-fit: cover;">
+        <div class="row">
+            {% for gift in gifts %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 border-0 shadow-sm gift-card">
+                    {% if gift.image_filename %}
+                    <div class="card-img-top-wrapper" style="height: 200px; overflow: hidden;">
+                        <img src="{{ url_for('static', filename='uploads/gifts/' + gift.image_filename) }}"
+                            alt="{{ gift.item_name }}" class="card-img-top"
+                            style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        {% if not gift.image_filename %}
+                        <div class="text-center mb-3">
+                            <i class="fas fa-gift fa-2x text-warning"></i>
                         </div>
                         {% endif %}
-                        <div class="card-body d-flex flex-column">
-                            {% if not gift.image_filename %}
-                            <div class="text-center mb-3">
-                                <i class="fas fa-gift fa-2x text-warning"></i>
-                            </div>
-                            {% endif %}
-                            <h5 class="card-title text-center text-dark">{{ gift.item_name }}</h5>
-                            
-                            {% if gift.description %}
-                            <p class="card-text text-dark flex-grow-1">{{ gift.description }}</p>
-                            {% endif %}
-                            
-                            {% if gift.price %}
-                            <div class="text-center mb-3">
-                                <span class="badge bg-light text-dark fs-6 border">{{ gift.price }}</span>
-                            </div>
-                            {% endif %}
-                            
-                            {% if gift.store_link %}
-                            <div class="mt-auto">
-                                <a href="{{ gift.store_link }}" target="_blank" class="btn btn-outline-warning w-100">
-                                    <i class="fas fa-external-link-alt me-2"></i>
-                                    Ver na Loja
-                                </a>
-                            </div>
-                            {% endif %}
+                        <h5 class="card-title text-center text-dark">{{ gift.item_name }}</h5>
+
+                        {% if gift.description %}
+                        <p class="card-text text-dark flex-grow-1">{{ gift.description }}</p>
+                        {% endif %}
+
+                        {% if gift.price %}
+                        <div class="text-center mb-3">
+                            <span class="badge bg-light text-dark fs-6 border">{{ gift.price }}</span>
                         </div>
+                        {% endif %}
+
+                        {% if gift.store_link %}
+                        <div class="mt-auto">
+                            <a href="{{ gift.store_link }}" target="_blank" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-external-link-alt me-2"></i>
+                                AQUI<br> Pix / Cartão de Credito
+                            </a>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
-                {% endfor %}
             </div>
+            {% endfor %}
+        </div>
         {% else %}
-            <div class="text-center py-5">
-                <i class="fas fa-gift fa-3x text-muted mb-3"></i>
-                <h5>Nenhum presente cadastrado</h5>
-                <p class="text-muted">A lista de presentes ainda não foi criada.</p>
-            </div>
+        <div class="text-center py-5">
+            <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+            <h5>Nenhum presente cadastrado</h5>
+            <p class="text-muted">A lista de presentes ainda não foi criada.</p>
+        </div>
         {% endif %}
 
         <div class="card mt-5 bg-light">
@@ -74,7 +73,7 @@
                     Informações Importantes
                 </h5>
                 <p class="card-text">
-                    Caso prefira contribuir de outra forma ou tenha dúvidas sobre os presentes, 
+                    Caso prefira contribuir de outra forma ou tenha dúvidas sobre os presentes,
                     entre em contato conosco. Sua presença já é o maior presente!
                 </p>
                 <div class="mt-3">
@@ -95,13 +94,13 @@
 
 {% block scripts %}
 <style>
-.gift-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
+    .gift-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
 
-.gift-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-}
+    .gift-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
 </style>
 {% endblock %}
