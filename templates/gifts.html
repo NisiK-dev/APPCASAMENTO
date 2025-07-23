@@ -51,9 +51,18 @@
                         </div>
                         {% endif %}
 
-                        {% if gift.pix_link or gift.credit_card_link %}
+                        {% if gift.pix_key or gift.pix_link or gift.credit_card_link %}
                         <div class="mt-auto">
                             <div class="d-grid gap-2">
+                                {% if gift.pix_key %}
+                                <div class="pix-container">
+                                    <div class="pix-key" id="pixKey{{ gift.id }}">{{ gift.pix_key }}</div>
+                                    <button class="btn pix-copy-btn" onclick="copiarPix({{ gift.id }})">
+                                        <i class="fas fa-copy me-2"></i>Copiar Chave PIX
+                                    </button>
+                                    <div class="copied-msg" id="copiedMsg{{ gift.id }}">✅ Chave copiada com sucesso!</div>
+                                </div>
+                                {% endif %}
                                 {% if gift.pix_link %}
                                 <a href="{{ gift.pix_link }}" target="_blank" class="btn btn-success">
                                     <i class="fas fa-mobile-alt me-2"></i>
@@ -119,4 +128,31 @@
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
     }
 </style>
+<script>
+function copiarPix(giftId) {
+    const chavePix = document.getElementById(`pixKey${giftId}`).textContent;
+    navigator.clipboard.writeText(chavePix).then(() => {
+        const msg = document.getElementById(`copiedMsg${giftId}`);
+        msg.style.display = "block";
+        setTimeout(() => {
+            msg.style.display = "none";
+        }, 2000);
+    }).catch(err => {
+        console.error('Erro ao copiar PIX: ', err);
+        // Fallback for browsers that don't support clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = chavePix;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        const msg = document.getElementById(`copiedMsg${giftId}`);
+        msg.style.display = "block";
+        setTimeout(() => {
+            msg.style.display = "none";
+        }, 2000);
+    });
+}
+</script>
 {% endblock %}

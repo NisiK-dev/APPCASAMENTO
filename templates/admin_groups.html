@@ -3,6 +3,9 @@
 {% block title %}Gerenciar Grupos{% endblock %}
 
 {% block content %}
+
+<div class="fixed-background"></div>
+
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -45,16 +48,16 @@
                                         {{ group.guests|length }} convidado(s)
                                     </small>
                                     <div>
-                                        <button type="button" class="btn btn-sm btn-outline-success me-1" 
-                                                onclick="manageGroupGuests({{ group.id }}, '{{ group.name }}')">
+                                        <button type="button" class="btn btn-sm btn-outline-success me-1"
+                                            onclick="manageGroupGuests({{ group.id }}, '{{ group.name }}')">
                                             <i class="fas fa-users"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-outline-primary me-1" 
-                                                onclick="editGroup({{ group.id }}, '{{ group.name }}', '{{ group.description or '' }}')">
+                                        <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                            onclick="editGroup({{ group.id }}, '{{ group.name }}', '{{ group.description or '' }}')">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                onclick="deleteGroup({{ group.id }}, '{{ group.name }}')">
+                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                            onclick="deleteGroup({{ group.id }}, '{{ group.name }}')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -69,11 +72,11 @@
                                             <i class="fas fa-user me-1"></i>
                                             {{ guest.name }}
                                             {% if guest.rsvp_status == 'confirmado' %}
-                                                <span class="badge bg-success badge-sm">Confirmado</span>
+                                            <span class="badge bg-success badge-sm">Confirmado</span>
                                             {% elif guest.rsvp_status == 'nao_confirmado' %}
-                                                <span class="badge bg-danger badge-sm">Não Confirmado</span>
+                                            <span class="badge bg-danger badge-sm">Não Confirmado</span>
                                             {% else %}
-                                                <span class="badge bg-warning badge-sm">Pendente</span>
+                                            <span class="badge bg-warning badge-sm">Pendente</span>
                                             {% endif %}
                                         </li>
                                         {% endfor %}
@@ -109,13 +112,13 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="name" class="form-label">Nome do Grupo *</label>
-                        <input type="text" class="form-control" id="name" name="name" required 
-                               placeholder="Ex: Família Silva">
+                        <input type="text" class="form-control" id="name" name="name" required
+                            placeholder="Ex: Família Silva">
                     </div>
                     <div class="mb-3">
                         <label for="description" class="form-label">Descrição (Opcional)</label>
-                        <textarea class="form-control" id="description" name="description" rows="3" 
-                                  placeholder="Ex: Parentes do lado da noiva"></textarea>
+                        <textarea class="form-control" id="description" name="description" rows="3"
+                            placeholder="Ex: Parentes do lado da noiva"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -214,51 +217,51 @@
 
 {% block scripts %}
 <script>
-function editGroup(id, name, description) {
-    document.getElementById('edit_name').value = name;
-    document.getElementById('edit_description').value = description;
-    document.getElementById('editGroupForm').action = '/admin/edit_group/' + id;
-    
-    new bootstrap.Modal(document.getElementById('editGroupModal')).show();
-}
+    function editGroup(id, name, description) {
+        document.getElementById('edit_name').value = name;
+        document.getElementById('edit_description').value = description;
+        document.getElementById('editGroupForm').action = '/admin/edit_group/' + id;
 
-function deleteGroup(id, name) {
-    document.getElementById('deleteGroupName').textContent = name;
-    document.getElementById('deleteGroupForm').action = '/admin/delete_group/' + id;
-    
-    new bootstrap.Modal(document.getElementById('deleteGroupModal')).show();
-}
-
-function manageGroupGuests(groupId, groupName) {
-    document.getElementById('groupNameTitle').textContent = groupName;
-    
-    // Carregar convidados disponíveis e do grupo
-    fetch('/admin/group_guests/' + groupId)
-        .then(response => response.json())
-        .then(data => {
-            loadAvailableGuests(data.available_guests, groupId);
-            loadGroupGuests(data.group_guests, groupId);
-        })
-        .catch(error => {
-            console.error('Erro ao carregar convidados:', error);
-        });
-    
-    new bootstrap.Modal(document.getElementById('manageGuestsModal')).show();
-}
-
-function loadAvailableGuests(guests, groupId) {
-    const container = document.getElementById('availableGuests');
-    container.innerHTML = '';
-    
-    if (guests.length === 0) {
-        container.innerHTML = '<p class="text-muted">Nenhum convidado disponível</p>';
-        return;
+        new bootstrap.Modal(document.getElementById('editGroupModal')).show();
     }
-    
-    guests.forEach(guest => {
-        const guestDiv = document.createElement('div');
-        guestDiv.className = 'mb-2 p-2 border rounded d-flex justify-content-between align-items-center';
-        guestDiv.innerHTML = `
+
+    function deleteGroup(id, name) {
+        document.getElementById('deleteGroupName').textContent = name;
+        document.getElementById('deleteGroupForm').action = '/admin/delete_group/' + id;
+
+        new bootstrap.Modal(document.getElementById('deleteGroupModal')).show();
+    }
+
+    function manageGroupGuests(groupId, groupName) {
+        document.getElementById('groupNameTitle').textContent = groupName;
+
+        // Carregar convidados disponíveis e do grupo
+        fetch('/admin/group_guests/' + groupId)
+            .then(response => response.json())
+            .then(data => {
+                loadAvailableGuests(data.available_guests, groupId);
+                loadGroupGuests(data.group_guests, groupId);
+            })
+            .catch(error => {
+                console.error('Erro ao carregar convidados:', error);
+            });
+
+        new bootstrap.Modal(document.getElementById('manageGuestsModal')).show();
+    }
+
+    function loadAvailableGuests(guests, groupId) {
+        const container = document.getElementById('availableGuests');
+        container.innerHTML = '';
+
+        if (guests.length === 0) {
+            container.innerHTML = '<p class="text-muted">Nenhum convidado disponível</p>';
+            return;
+        }
+
+        guests.forEach(guest => {
+            const guestDiv = document.createElement('div');
+            guestDiv.className = 'mb-2 p-2 border rounded d-flex justify-content-between align-items-center';
+            guestDiv.innerHTML = `
             <span>
                 <i class="fas fa-user me-2"></i>
                 ${guest.name}
@@ -267,88 +270,88 @@ function loadAvailableGuests(guests, groupId) {
                 <i class="fas fa-plus"></i>
             </button>
         `;
-        container.appendChild(guestDiv);
-    });
-}
-
-function loadGroupGuests(guests, groupId) {
-    const container = document.getElementById('groupGuests');
-    container.innerHTML = '';
-    
-    if (guests.length === 0) {
-        container.innerHTML = '<p class="text-muted">Nenhum convidado no grupo</p>';
-        return;
+            container.appendChild(guestDiv);
+        });
     }
-    
-    guests.forEach(guest => {
-        const guestDiv = document.createElement('div');
-        guestDiv.className = 'mb-2 p-2 border rounded d-flex justify-content-between align-items-center';
-        guestDiv.innerHTML = `
+
+    function loadGroupGuests(guests, groupId) {
+        const container = document.getElementById('groupGuests');
+        container.innerHTML = '';
+
+        if (guests.length === 0) {
+            container.innerHTML = '<p class="text-muted">Nenhum convidado no grupo</p>';
+            return;
+        }
+
+        guests.forEach(guest => {
+            const guestDiv = document.createElement('div');
+            guestDiv.className = 'mb-2 p-2 border rounded d-flex justify-content-between align-items-center';
+            guestDiv.innerHTML = `
             <span>
                 <i class="fas fa-user me-2"></i>
                 ${guest.name}
-                ${guest.rsvp_status === 'confirmado' ? '<span class="badge bg-success ms-2">Confirmado</span>' : 
-                  guest.rsvp_status === 'nao_confirmado' ? '<span class="badge bg-danger ms-2">Não Confirmado</span>' : 
-                  '<span class="badge bg-warning ms-2">Pendente</span>'}
+                ${guest.rsvp_status === 'confirmado' ? '<span class="badge bg-success ms-2">Confirmado</span>' :
+                    guest.rsvp_status === 'nao_confirmado' ? '<span class="badge bg-danger ms-2">Não Confirmado</span>' :
+                        '<span class="badge bg-warning ms-2">Pendente</span>'}
             </span>
             <button class="btn btn-sm btn-outline-danger" onclick="removeGuestFromGroup(${guest.id}, ${groupId})">
                 <i class="fas fa-minus"></i>
             </button>
         `;
-        container.appendChild(guestDiv);
-    });
-}
+            container.appendChild(guestDiv);
+        });
+    }
 
-function addGuestToGroup(guestId, groupId) {
-    fetch('/admin/add_guest_to_group', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            guest_id: guestId,
-            group_id: groupId
+    function addGuestToGroup(guestId, groupId) {
+        fetch('/admin/add_guest_to_group', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                guest_id: guestId,
+                group_id: groupId
+            })
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Recarregar as listas
-            manageGroupGuests(groupId, document.getElementById('groupNameTitle').textContent);
-        } else {
-            alert('Erro ao adicionar convidado ao grupo');
-        }
-    })
-    .catch(error => {
-        console.error('Erro:', error);
-        alert('Erro ao adicionar convidado ao grupo');
-    });
-}
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Recarregar as listas
+                    manageGroupGuests(groupId, document.getElementById('groupNameTitle').textContent);
+                } else {
+                    alert('Erro ao adicionar convidado ao grupo');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao adicionar convidado ao grupo');
+            });
+    }
 
-function removeGuestFromGroup(guestId, groupId) {
-    fetch('/admin/remove_guest_from_group', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            guest_id: guestId,
-            group_id: groupId
+    function removeGuestFromGroup(guestId, groupId) {
+        fetch('/admin/remove_guest_from_group', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                guest_id: guestId,
+                group_id: groupId
+            })
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Recarregar as listas
-            manageGroupGuests(groupId, document.getElementById('groupNameTitle').textContent);
-        } else {
-            alert('Erro ao remover convidado do grupo');
-        }
-    })
-    .catch(error => {
-        console.error('Erro:', error);
-        alert('Erro ao remover convidado do grupo');
-    });
-}
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Recarregar as listas
+                    manageGroupGuests(groupId, document.getElementById('groupNameTitle').textContent);
+                } else {
+                    alert('Erro ao remover convidado do grupo');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao remover convidado do grupo');
+            });
+    }
 </script>
 {% endblock %}

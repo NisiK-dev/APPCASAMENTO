@@ -3,6 +3,9 @@
 {% block title %}Gerenciar Local do Evento{% endblock %}
 
 {% block content %}
+
+<div class="fixed-background"></div>
+
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -35,13 +38,9 @@
                                         <i class="fas fa-church me-2"></i>
                                         Nome do Local
                                     </label>
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="name" 
-                                           name="name" 
-                                           value="{{ venue.name if venue else '' }}" 
-                                           required 
-                                           placeholder="Ex: Igreja Santa Maria">
+                                    <input type="text" class="form-control" id="name" name="name"
+                                        value="{{ venue.name if venue else '' }}" required
+                                        placeholder="Ex: Igreja Santa Maria">
                                 </div>
 
                                 <!-- Data e Hora do Evento -->
@@ -50,13 +49,12 @@
                                         <i class="fas fa-calendar-clock me-2"></i>
                                         Data e Hora do Evento
                                     </label>
-                                    <input type="datetime-local" 
-                                           class="form-control" 
-                                           id="event_datetime" 
-                                           name="event_datetime" 
-                                           value="{{ venue.event_datetime.strftime('%Y-%m-%dT%H:%M') if venue and venue.event_datetime else '2025-10-19T08:30' }}" 
-                                           required>
-                                    <div class="form-text">Esta data será usada para a contagem regressiva na página inicial</div>
+                                    <input type="datetime-local" class="form-control" id="event_datetime"
+                                        name="event_datetime"
+                                        value="{{ venue.event_datetime.strftime('%Y-%m-%dT%H:%M') if venue and venue.event_datetime else '2025-10-19T08:30' }}"
+                                        required>
+                                    <div class="form-text">Esta data será usada para a contagem regressiva na página
+                                        inicial</div>
                                 </div>
                             </div>
 
@@ -67,12 +65,9 @@
                                         <i class="fas fa-calendar-alt me-2"></i>
                                         Data (Texto Descritivo)
                                     </label>
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="date" 
-                                           name="date" 
-                                           value="{{ venue.date if venue else '' }}" 
-                                           placeholder="Ex: 19 de Outubro de 2025">
+                                    <input type="text" class="form-control" id="date" name="date"
+                                        value="{{ venue.date if venue else '' }}"
+                                        placeholder="Ex: 19 de Outubro de 2025">
                                     <div class="form-text">Como será exibido para os convidados</div>
                                 </div>
 
@@ -82,12 +77,8 @@
                                         <i class="fas fa-clock me-2"></i>
                                         Horário (Texto Descritivo)
                                     </label>
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="time" 
-                                           name="time" 
-                                           value="{{ venue.time if venue else '' }}" 
-                                           placeholder="Ex: 8:30 da manhã">
+                                    <input type="text" class="form-control" id="time" name="time"
+                                        value="{{ venue.time if venue else '' }}" placeholder="Ex: 8:30 da manhã">
                                     <div class="form-text">Como será exibido para os convidados</div>
                                 </div>
                             </div>
@@ -98,12 +89,8 @@
                                     <i class="fas fa-map-marked-alt me-2"></i>
                                     Endereço Completo
                                 </label>
-                                <textarea class="form-control" 
-                                          id="address" 
-                                          name="address" 
-                                          rows="3" 
-                                          required 
-                                          placeholder="Ex: Rua das Flores, 123 - Centro - São Paulo - SP">{{ venue.address if venue else '' }}</textarea>
+                                <textarea class="form-control" id="address" name="address" rows="3" required
+                                    placeholder="Ex: Rua das Flores, 123 - Centro - São Paulo - SP">{{ venue.address if venue else '' }}</textarea>
                             </div>
 
                             <!-- Link do Google Maps -->
@@ -112,12 +99,9 @@
                                     <i class="fas fa-map me-2"></i>
                                     Link do Google Maps (Opcional)
                                 </label>
-                                <input type="url" 
-                                       class="form-control" 
-                                       id="map_link" 
-                                       name="map_link" 
-                                       value="{{ venue.map_link if venue else '' }}" 
-                                       placeholder="https://maps.google.com/...">
+                                <input type="url" class="form-control" id="map_link" name="map_link"
+                                    value="{{ venue.map_link if venue else '' }}"
+                                    placeholder="https://maps.google.com/...">
                                 <div class="form-text">Permite que os convidados vejam a localização no mapa</div>
                             </div>
 
@@ -127,11 +111,8 @@
                                     <i class="fas fa-info-circle me-2"></i>
                                     Descrição Adicional (Opcional)
                                 </label>
-                                <textarea class="form-control" 
-                                          id="description" 
-                                          name="description" 
-                                          rows="3" 
-                                          placeholder="Ex: Informações sobre estacionamento, dress code, etc.">{{ venue.description if venue else '' }}</textarea>
+                                <textarea class="form-control" id="description" name="description" rows="3"
+                                    placeholder="Ex: Informações sobre estacionamento, dress code, etc.">{{ venue.description if venue else '' }}</textarea>
                             </div>
 
                             <!-- Botões -->
@@ -211,19 +192,19 @@
                             <strong>Local:</strong><br>
                             <span class="text-muted">{{ venue.name }}</span>
                         </div>
-                        
+
                         {% if venue.event_datetime %}
                         <div class="mb-3">
                             <strong>Data/Hora Exata:</strong><br>
                             <span class="text-muted">{{ venue.event_datetime.strftime('%d/%m/%Y às %H:%M') }}</span>
                         </div>
                         {% endif %}
-                        
+
                         <div class="mb-3">
                             <strong>Endereço:</strong><br>
                             <span class="text-muted">{{ venue.address }}</span>
                         </div>
-                        
+
                         {% if venue.map_link %}
                         <div class="mb-3">
                             <a href="{{ venue.map_link }}" target="_blank" class="btn btn-outline-primary btn-sm">
@@ -232,7 +213,7 @@
                             </a>
                         </div>
                         {% endif %}
-                        
+
                         <div class="text-muted">
                             <small>Última atualização: {{ venue.updated_at.strftime('%d/%m/%Y às %H:%M') }}</small>
                         </div>
@@ -247,100 +228,100 @@
 
 {% block scripts %}
 <script>
-// Preview da contagem regressiva
-function updatePreviewCountdown() {
-    const eventDateInput = document.getElementById('event_datetime');
-    if (!eventDateInput.value) return;
-    
-    const eventDate = new Date(eventDateInput.value);
-    const now = new Date();
-    const difference = eventDate.getTime() - now.getTime();
-    
-    if (difference > 0) {
-        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-        
-        document.getElementById('preview-days').textContent = days.toString().padStart(2, '0');
-        document.getElementById('preview-hours').textContent = hours.toString().padStart(2, '0');
-        document.getElementById('preview-minutes').textContent = minutes.toString().padStart(2, '0');
-        document.getElementById('preview-seconds').textContent = seconds.toString().padStart(2, '0');
-    } else {
-        document.getElementById('preview-days').textContent = '00';
-        document.getElementById('preview-hours').textContent = '00';
-        document.getElementById('preview-minutes').textContent = '00';
-        document.getElementById('preview-seconds').textContent = '00';
-    }
-}
+    // Preview da contagem regressiva
+    function updatePreviewCountdown() {
+        const eventDateInput = document.getElementById('event_datetime');
+        if (!eventDateInput.value) return;
 
-// Preencher automaticamente data e hora
-function autoFillDateTime() {
-    document.getElementById('event_datetime').value = '2025-10-19T08:30';
-    document.getElementById('date').value = '19 de Outubro de 2025';
-    document.getElementById('time').value = '8:30 da manhã';
-    updatePreviewCountdown();
-}
+        const eventDate = new Date(eventDateInput.value);
+        const now = new Date();
+        const difference = eventDate.getTime() - now.getTime();
 
-// Atualizar preview quando a data mudar
-document.getElementById('event_datetime').addEventListener('change', function() {
-    updatePreviewCountdown();
-    
-    // Atualizar campos descritivos automaticamente
-    if (this.value) {
-        const date = new Date(this.value);
-        const months = [
-            'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-        ];
-        
-        const day = date.getDate();
-        const month = months[date.getMonth()];
-        const year = date.getFullYear();
-        const hour = date.getHours();
-        const minute = date.getMinutes();
-        
-        document.getElementById('date').value = `${day} de ${month} de ${year}`;
-        
-        let timeText = '';
-        if (hour < 12) {
-            timeText = `${hour}:${minute.toString().padStart(2, '0')} da manhã`;
-        } else if (hour === 12) {
-            timeText = `${hour}:${minute.toString().padStart(2, '0')} do meio-dia`;
+        if (difference > 0) {
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+            document.getElementById('preview-days').textContent = days.toString().padStart(2, '0');
+            document.getElementById('preview-hours').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('preview-minutes').textContent = minutes.toString().padStart(2, '0');
+            document.getElementById('preview-seconds').textContent = seconds.toString().padStart(2, '0');
         } else {
-            timeText = `${hour - 12}:${minute.toString().padStart(2, '0')} da tarde`;
+            document.getElementById('preview-days').textContent = '00';
+            document.getElementById('preview-hours').textContent = '00';
+            document.getElementById('preview-minutes').textContent = '00';
+            document.getElementById('preview-seconds').textContent = '00';
         }
-        
-        document.getElementById('time').value = timeText;
     }
-});
 
-// Inicializar preview
-document.addEventListener('DOMContentLoaded', function() {
-    updatePreviewCountdown();
-    setInterval(updatePreviewCountdown, 1000);
-});
+    // Preencher automaticamente data e hora
+    function autoFillDateTime() {
+        document.getElementById('event_datetime').value = '2025-10-19T08:30';
+        document.getElementById('date').value = '19 de Outubro de 2025';
+        document.getElementById('time').value = '8:30 da manhã';
+        updatePreviewCountdown();
+    }
+
+    // Atualizar preview quando a data mudar
+    document.getElementById('event_datetime').addEventListener('change', function () {
+        updatePreviewCountdown();
+
+        // Atualizar campos descritivos automaticamente
+        if (this.value) {
+            const date = new Date(this.value);
+            const months = [
+                'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+            ];
+
+            const day = date.getDate();
+            const month = months[date.getMonth()];
+            const year = date.getFullYear();
+            const hour = date.getHours();
+            const minute = date.getMinutes();
+
+            document.getElementById('date').value = `${day} de ${month} de ${year}`;
+
+            let timeText = '';
+            if (hour < 12) {
+                timeText = `${hour}:${minute.toString().padStart(2, '0')} da manhã`;
+            } else if (hour === 12) {
+                timeText = `${hour}:${minute.toString().padStart(2, '0')} do meio-dia`;
+            } else {
+                timeText = `${hour - 12}:${minute.toString().padStart(2, '0')} da tarde`;
+            }
+
+            document.getElementById('time').value = timeText;
+        }
+    });
+
+    // Inicializar preview
+    document.addEventListener('DOMContentLoaded', function () {
+        updatePreviewCountdown();
+        setInterval(updatePreviewCountdown, 1000);
+    });
 </script>
 
 <style>
-.countdown-item-small {
-    background: var(--wedding-primary);
-    color: white;
-    border-radius: 8px;
-    padding: 0.5rem;
-    margin-bottom: 0.5rem;
-}
+    .countdown-item-small {
+        background: var(--wedding-primary);
+        color: white;
+        border-radius: 8px;
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
 
-.countdown-number-small {
-    font-size: 1.2rem;
-    font-weight: bold;
-    font-family: 'Courier New', monospace;
-}
+    .countdown-number-small {
+        font-size: 1.2rem;
+        font-weight: bold;
+        font-family: 'Courier New', monospace;
+    }
 
-.countdown-label-small {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
+    .countdown-label-small {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
 </style>
 {% endblock %}

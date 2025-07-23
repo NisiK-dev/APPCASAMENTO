@@ -3,6 +3,8 @@
 {% block title %}Gerenciar Convidados{% endblock %}
 
 {% block content %}
+<div class="fixed-background"></div>
+
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -87,28 +89,28 @@
                                 <td>{{ guest.phone or '-' }}</td>
                                 <td>
                                     {% if guest.group %}
-                                        <span class="badge bg-info">{{ guest.group.name }}</span>
+                                    <span class="badge bg-info">{{ guest.group.name }}</span>
                                     {% else %}
-                                        <span class="text-muted">Sem grupo</span>
+                                    <span class="text-muted">Sem grupo</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% if guest.rsvp_status == 'confirmado' %}
-                                        <span class="badge bg-success">Confirmado</span>
+                                    <span class="badge bg-success">Confirmado</span>
                                     {% elif guest.rsvp_status == 'nao_confirmado' %}
-                                        <span class="badge bg-danger">Não Confirmado</span>
+                                    <span class="badge bg-danger">Não Confirmado</span>
                                     {% else %}
-                                        <span class="badge bg-warning">Pendente</span>
+                                    <span class="badge bg-warning">Pendente</span>
                                     {% endif %}
                                 </td>
                                 <td>{{ guest.created_at.strftime('%d/%m/%Y') }}</td>
                                 <td>
-                                    <button type="button" class="btn btn-sm btn-outline-primary me-1" 
-                                            onclick="editGuest({{ guest.id }}, '{{ guest.name }}', '{{ guest.phone or '' }}', {{ guest.group_id or 'null' }})">
+                                    <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                        onclick="editGuest({{ guest.id }}, '{{ guest.name }}', '{{ guest.phone or '' }}', {{ guest.group_id or 'null' }})">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" 
-                                            onclick="deleteGuest({{ guest.id }}, '{{ guest.name }}')">
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                        onclick="deleteGuest({{ guest.id }}, '{{ guest.name }}')">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </td>
@@ -228,20 +230,20 @@
 
 {% block scripts %}
 <script>
-function editGuest(id, name, phone, groupId) {
-    document.getElementById('edit_name').value = name;
-    document.getElementById('edit_phone').value = phone;
-    document.getElementById('edit_group_id').value = groupId || '';
-    document.getElementById('editGuestForm').action = '/admin/edit_guest/' + id;
-    
-    new bootstrap.Modal(document.getElementById('editGuestModal')).show();
-}
+    function editGuest(id, name, phone, groupId) {
+        document.getElementById('edit_name').value = name;
+        document.getElementById('edit_phone').value = phone;
+        document.getElementById('edit_group_id').value = groupId || '';
+        document.getElementById('editGuestForm').action = '/admin/edit_guest/' + id;
 
-function deleteGuest(id, name) {
-    document.getElementById('deleteGuestName').textContent = name;
-    document.getElementById('deleteGuestForm').action = '/admin/delete_guest/' + id;
-    
-    new bootstrap.Modal(document.getElementById('deleteGuestModal')).show();
-}
+        new bootstrap.Modal(document.getElementById('editGuestModal')).show();
+    }
+
+    function deleteGuest(id, name) {
+        document.getElementById('deleteGuestName').textContent = name;
+        document.getElementById('deleteGuestForm').action = '/admin/delete_guest/' + id;
+
+        new bootstrap.Modal(document.getElementById('deleteGuestModal')).show();
+    }
 </script>
 {% endblock %}

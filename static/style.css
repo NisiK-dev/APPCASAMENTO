@@ -900,3 +900,43 @@ footer {
     color: #dc3545 !important;
     font-weight: 700 !important;
 }
+/* PIX container styling */
+.pix-container {
+    background: #fff;
+    border: 2px solid #d7ccc8;
+    padding: 20px 30px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin-bottom: 10px;
+}
+
+.pix-key {
+    font-size: 18px;
+    font-weight: bold;
+    color: #5d4037;
+    margin-bottom: 15px;
+    word-break: break-all;
+}
+
+.pix-copy-btn {
+    background-color: #8d6e63 !important;
+    color: white !important;
+    border: none !important;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.pix-copy-btn:hover {
+    background-color: #6d4c41 !important;
+}
+
+.copied-msg {
+    color: green;
+    font-size: 14px;
+    margin-top: 10px;
+    display: none;
+}

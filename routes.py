@@ -358,6 +358,7 @@ def add_gift():
     description = request.form.get('description')
     price = request.form.get('price')
     image_url = request.form.get('image_url')
+    pix_key = request.form.get('pix_key')
     pix_link = request.form.get('pix_link')
     credit_card_link = request.form.get('credit_card_link')
     
@@ -389,6 +390,7 @@ def add_gift():
         description=description,
         price=price,
         image_url=image_url,
+        pix_key=pix_key,
         pix_link=pix_link,
         credit_card_link=credit_card_link,
         image_filename=image_filename
@@ -413,6 +415,7 @@ def edit_gift(gift_id):
     gift.description = request.form.get('description')
     gift.price = request.form.get('price')
     gift.image_url = request.form.get('image_url')
+    gift.pix_key = request.form.get('pix_key')
     gift.pix_link = request.form.get('pix_link')
     gift.credit_card_link = request.form.get('credit_card_link')
     gift.is_active = bool(request.form.get('is_active'))

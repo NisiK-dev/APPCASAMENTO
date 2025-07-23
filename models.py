@@ -52,6 +52,7 @@ class GiftRegistry(db.Model):
     description = db.Column(db.Text)
     price = db.Column(db.String(50))  # Armazenado como string para flexibilidade
     image_url = db.Column(db.Text)  # URL da imagem do presente
+    pix_key = db.Column(db.String(200))  # Chave PIX para copiar
     pix_link = db.Column(db.Text)  # Link para pagamento via PIX
     credit_card_link = db.Column(db.Text)  # Link para pagamento via cartão de crédito
     image_filename = db.Column(db.String(255))  # Nome do arquivo de imagem (mantido para compatibilidade)
