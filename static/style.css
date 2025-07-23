@@ -31,7 +31,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('https://i.imgur.com/UI9BW9H.png');
+    background-image: url('https://i.imgur.com/QrLo84i.png');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center center;
@@ -46,34 +46,44 @@ body {
 .text-1 {
     font-family: 'minhafont';
     font-size: 80px;
-    color: rgb(117, 62, 41);
+    color: #bfbba4;
     margin: 0px;
     padding: 0px;
+
+    /* Borda simulada com sombras */
+    text-shadow:
+        -1px -1px 0 #f5f5f5,
+        1px -1px 0  #f5f5f5,
+        -1px 1px 0  #f5f5f5,
+        1px 1px 0  #f5f5f5;
 }
+
 
 .text-2 {
     color: black;
-    font-weight: bold;
+   
     font-size: 25px;
-    font-family: Arial, Helvetica, ;
+font-family: "Poiret One", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
+
 
 .text-3 {
     color: black;
     font-size: 20px;
-    font-family: Arial, Helvetica, sans-serif;
-    margin: 0px;
-    padding: 0px;
+     font-family: "Poiret One", sans-serif;
+      font-weight: 400;
+      font-style: normal;
 }
 
 /* Hero Section */
 .hero-section {
-    background: rgb(225, 239, 225, 0.8);
     border-radius: 15px;
     margin-bottom: 2rem;
     position: relative;
     overflow: hidden;
-    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+
 }
 
 .hero-section::before {
@@ -94,7 +104,7 @@ body {
 
 /* Cards */
 .card {
-    background: rgb(225, 239, 225, 0.8);
+    background: rgb(238, 217, 186,0.5);
     color: black;
     border: none;
     border-radius: 15px;
@@ -304,7 +314,7 @@ body {
 .gift-item {
     transition: all 0.3s ease;
     border-radius: 10px;
-    background: rgb(108, 217, 126,0.8);
+    background: white;
 
 }
 
@@ -314,7 +324,7 @@ body {
 }
 
 .gift-item:hover {
-    background: rgb(114, 150, 126);
+    background: rgb(234, 208, 169);
     transform: translateX(10px);
 
 }
@@ -776,6 +786,7 @@ footer {
     border-color: #0d6efd !important;
     box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
     outline: none !important;
+    color: black]
 }
 
 .rsvp-container .form-control::placeholder {
