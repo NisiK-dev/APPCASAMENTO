@@ -33,7 +33,9 @@ A complete wedding RSVP web application built with Flask and SQLAlchemy. This sy
 - Sample data populated for demonstration
 
 ## Recent Changes
-- 2025-07-22: Migrated project to Replit with proper configuration
+- 2025-07-23: Migration to Replit environment completed successfully
+- Fixed Flask application structure and database initialization
+- Added responsive button layout (side by side on desktop, stacked on mobile)
 - Security enhancements: Removed hardcoded external database references
 - Updated workflow configuration for Gunicorn deployment
 

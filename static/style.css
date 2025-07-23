@@ -53,28 +53,28 @@ body {
     /* Borda simulada com sombras */
     text-shadow:
         -1px -1px 0 #f5f5f5,
-        1px -1px 0  #f5f5f5,
-        -1px 1px 0  #f5f5f5,
-        1px 1px 0  #f5f5f5;
+        1px -1px 0 #f5f5f5,
+        -1px 1px 0 #f5f5f5,
+        1px 1px 0 #f5f5f5;
 }
 
 
 .text-2 {
     color: black;
-   
+
     font-size: 25px;
-font-family: "Poiret One", sans-serif;
-  font-weight: 400;
-  font-style: normal;
+    font-family: "Poiret One", sans-serif;
+    font-weight: 400;
+    font-style: normal;
 }
 
 
 .text-3 {
     color: black;
     font-size: 20px;
-     font-family: "Poiret One", sans-serif;
-      font-weight: 400;
-      font-style: normal;
+    font-family: "Poiret One", sans-serif;
+    font-weight: 400;
+    font-style: normal;
 }
 
 /* Hero Section */
@@ -104,7 +104,7 @@ font-family: "Poiret One", sans-serif;
 
 /* Cards */
 .card {
-    background: rgb(238, 217, 186,0.5);
+    background: rgb(238, 217, 186, 0.5);
     color: black;
     border: none;
     border-radius: 15px;
@@ -456,6 +456,35 @@ font-family: "Poiret One", sans-serif;
     }
 }
 
+
+/* Button Container Styles */
+.buttons-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+/* Responsive button styling */
+@media (max-width: 768px) {
+    .buttons-container {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+    
+    .buttons-container .btn {
+        width: 100%;
+        max-width: 280px;
+    }
+}
+
+@media (min-width: 769px) {
+    .buttons-container .btn {
+        min-width: 200px;
+    }
+}
 
 /* RSVP Form Styles */
 .rsvp-container {
