@@ -829,10 +829,18 @@ footer {
 }
 
 .rsvp-container .form-check-label {
-    color: green !important;
+    color: #000000 !important;
     font-weight: 500 !important;
     margin-left: 8px !important;
     cursor: pointer !important;
+}
+
+.rsvp-container .form-check-label.text-success {
+    color: #198754 !important;
+}
+
+.rsvp-container .form-check-label.text-danger {
+    color: #dc3545 !important;
 }
 
 /* Selected radio option styling */
