@@ -829,7 +829,7 @@ footer {
 }
 
 .rsvp-container .form-check-label {
-    color: #000000 !important;
+    color: green !important;
     font-weight: 500 !important;
     margin-left: 8px !important;
     cursor: pointer !important;
