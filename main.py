@@ -39,19 +39,25 @@ def init_database():
                     item_name='Jogo de Panelas',
                     description='Conjunto com 5 panelas antiaderentes',
                     price='R$ 299,00',
-                    store_link='https://exemplo.com/panelas'
+                    image_url='https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400',
+                    pix_link='https://nubank.com.br/pix/johndoe',
+                    credit_card_link='https://pagseguro.uol.com.br/checkout/panelas'
                 ),
                 GiftRegistry(
                     item_name='Liquidificador',
                     description='Liquidificador de alta potência',
                     price='R$ 189,00',
-                    store_link='https://exemplo.com/liquidificador'
+                    image_url='https://images.unsplash.com/photo-1570222094114-d054a817e56b?w=400',
+                    pix_link='https://nubank.com.br/pix/johndoe',
+                    credit_card_link='https://pagseguro.uol.com.br/checkout/liquidificador'
                 ),
                 GiftRegistry(
                     item_name='Jogo de Cama',
                     description='Jogo de cama casal 100% algodão',
                     price='R$ 149,00',
-                    store_link='https://exemplo.com/jogo-cama'
+                    image_url='https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400',
+                    pix_link='https://nubank.com.br/pix/johndoe',
+                    credit_card_link='https://pagseguro.uol.com.br/checkout/jogo-cama'
                 )
             ]
             for gift in gifts:

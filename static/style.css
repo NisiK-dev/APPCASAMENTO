@@ -62,19 +62,21 @@ body {
 .text-2 {
     color: black;
 
-    font-size: 25px;
+    font-size: 10px;
     font-family: "Poiret One", sans-serif;
     font-weight: 400;
     font-style: normal;
+    margin: 0px;
 }
 
 
 .text-3 {
     color: black;
-    font-size: 20px;
+    font-size: 15px;
     font-family: "Poiret One", sans-serif;
     font-weight: 400;
     font-style: normal;
+    margin: 0px;
 }
 
 /* Hero Section */
@@ -456,35 +458,6 @@ body {
     }
 }
 
-
-/* Button Container Styles */
-.buttons-container {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-top: 2rem;
-}
-
-/* Responsive button styling */
-@media (max-width: 768px) {
-    .buttons-container {
-        flex-direction: column;
-        gap: 0.8rem;
-    }
-    
-    .buttons-container .btn {
-        width: 100%;
-        max-width: 280px;
-    }
-}
-
-@media (min-width: 769px) {
-    .buttons-container .btn {
-        min-width: 200px;
-    }
-}
 
 /* RSVP Form Styles */
 .rsvp-container {

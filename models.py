@@ -51,8 +51,10 @@ class GiftRegistry(db.Model):
     item_name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     price = db.Column(db.String(50))  # Armazenado como string para flexibilidade
-    store_link = db.Column(db.Text)
-    image_filename = db.Column(db.String(255))  # Nome do arquivo de imagem
+    image_url = db.Column(db.Text)  # URL da imagem do presente
+    pix_link = db.Column(db.Text)  # Link para pagamento via PIX
+    credit_card_link = db.Column(db.Text)  # Link para pagamento via cartão de crédito
+    image_filename = db.Column(db.String(255))  # Nome do arquivo de imagem (mantido para compatibilidade)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

@@ -39,7 +39,7 @@
                                     <th>Nome do Presente</th>
                                     <th>Descrição</th>
                                     <th>Preço</th>
-                                    <th>Link da Loja</th>
+                                    <th>Links de Pagamento</th>
                                     <th>Status</th>
                                     <th>Ações</th>
                                 </tr>
@@ -48,7 +48,12 @@
                                 {% for gift in gifts %}
                                 <tr>
                                     <td>
-                                        {% if gift.image_filename %}
+                                        {% if gift.image_url %}
+                                            <img src="{{ gift.image_url }}" 
+                                                 alt="{{ gift.item_name }}" 
+                                                 class="img-thumbnail" 
+                                                 style="width: 60px; height: 60px; object-fit: cover;">
+                                        {% elif gift.image_filename %}
                                             <img src="{{ url_for('static', filename='uploads/gifts/' + gift.image_filename) }}" 
                                                  alt="{{ gift.item_name }}" 
                                                  class="img-thumbnail" 
@@ -64,13 +69,21 @@
                                     <td>{{ gift.description[:50] + '...' if gift.description and gift.description|length > 50 else gift.description or '-' }}</td>
                                     <td>{{ gift.price or '-' }}</td>
                                     <td>
-                                        {% if gift.store_link %}
-                                            <a href="{{ gift.store_link }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-external-link-alt"></i>
-                                            </a>
-                                        {% else %}
-                                            -
-                                        {% endif %}
+                                        <div class="d-flex gap-1">
+                                            {% if gift.pix_link %}
+                                                <a href="{{ gift.pix_link }}" target="_blank" class="btn btn-sm btn-outline-success" title="PIX">
+                                                    <i class="fas fa-mobile-alt"></i>
+                                                </a>
+                                            {% endif %}
+                                            {% if gift.credit_card_link %}
+                                                <a href="{{ gift.credit_card_link }}" target="_blank" class="btn btn-sm btn-outline-primary" title="Cartão">
+                                                    <i class="fas fa-credit-card"></i>
+                                                </a>
+                                            {% endif %}
+                                            {% if not gift.pix_link and not gift.credit_card_link %}
+                                                -
+                                            {% endif %}
+                                        </div>
                                     </td>
                                     <td>
                                         {% if gift.is_active %}
@@ -81,7 +94,7 @@
                                     </td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-primary" 
-                                                onclick="editGift({{ gift.id }}, '{{ gift.item_name }}', '{{ gift.description or '' }}', '{{ gift.price or '' }}', '{{ gift.store_link or '' }}', {{ gift.is_active|lower }})">
+                                                onclick="editGift({{ gift.id }}, '{{ gift.item_name }}', '{{ gift.description or '' }}', '{{ gift.price or '' }}', '{{ gift.image_url or '' }}', '{{ gift.pix_link or '' }}', '{{ gift.credit_card_link or '' }}', {{ gift.is_active|lower }})">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button class="btn btn-sm btn-outline-danger" 
@@ -131,13 +144,19 @@
                         <textarea class="form-control" id="description" name="description" rows="3" placeholder="Descrição do presente"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="store_link" class="form-label">Link da Loja (Opcional)</label>
-                        <input type="url" class="form-control" id="store_link" name="store_link" placeholder="https://exemplo.com/produto">
+                        <label for="image_url" class="form-label">URL da Imagem (Opcional)</label>
+                        <input type="url" class="form-control" id="image_url" name="image_url" placeholder="https://exemplo.com/imagem.jpg">
+                        <div class="form-text">Cole o link direto para a imagem do presente</div>
                     </div>
-                    <div class="mb-3">
-                        <label for="image" class="form-label">Imagem do Presente (Opcional)</label>
-                        <input type="file" class="form-control" id="image" name="image" accept="image/*">
-                        <div class="form-text">Formatos aceitos: JPG, PNG, GIF (máx. 5MB)</div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="pix_link" class="form-label">Link PIX (Opcional)</label>
+                            <input type="url" class="form-control" id="pix_link" name="pix_link" placeholder="https://nubank.com.br/pix/johndoe">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="credit_card_link" class="form-label">Link Cartão de Crédito (Opcional)</label>
+                            <input type="url" class="form-control" id="credit_card_link" name="credit_card_link" placeholder="https://pagseguro.com.br/checkout/presente">
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -174,8 +193,18 @@
                         <textarea class="form-control" id="editDescription" name="description" rows="3"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="editStoreLink" class="form-label">Link da Loja (Opcional)</label>
-                        <input type="url" class="form-control" id="editStoreLink" name="store_link">
+                        <label for="editImageUrl" class="form-label">URL da Imagem (Opcional)</label>
+                        <input type="url" class="form-control" id="editImageUrl" name="image_url">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editPixLink" class="form-label">Link PIX (Opcional)</label>
+                            <input type="url" class="form-control" id="editPixLink" name="pix_link">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editCreditCardLink" class="form-label">Link Cartão de Crédito (Opcional)</label>
+                            <input type="url" class="form-control" id="editCreditCardLink" name="credit_card_link">
+                        </div>
                     </div>
                     <div class="mb-3">
                         <div class="form-check">
@@ -220,12 +249,14 @@
 
 {% block scripts %}
 <script>
-function editGift(id, itemName, description, price, storeLink, isActive) {
+function editGift(id, itemName, description, price, imageUrl, pixLink, creditCardLink, isActive) {
     document.getElementById('editGiftForm').action = `/admin/edit_gift/${id}`;
     document.getElementById('editItemName').value = itemName;
     document.getElementById('editDescription').value = description;
     document.getElementById('editPrice').value = price;
-    document.getElementById('editStoreLink').value = storeLink;
+    document.getElementById('editImageUrl').value = imageUrl;
+    document.getElementById('editPixLink').value = pixLink;
+    document.getElementById('editCreditCardLink').value = creditCardLink;
     document.getElementById('editIsActive').checked = isActive;
     new bootstrap.Modal(document.getElementById('editGiftModal')).show();
 }

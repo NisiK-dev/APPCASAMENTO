@@ -357,7 +357,9 @@ def add_gift():
     item_name = request.form.get('item_name')
     description = request.form.get('description')
     price = request.form.get('price')
-    store_link = request.form.get('store_link')
+    image_url = request.form.get('image_url')
+    pix_link = request.form.get('pix_link')
+    credit_card_link = request.form.get('credit_card_link')
     
     if not item_name:
         flash('Nome do presente é obrigatório!', 'danger')
@@ -386,7 +388,9 @@ def add_gift():
         item_name=item_name,
         description=description,
         price=price,
-        store_link=store_link,
+        image_url=image_url,
+        pix_link=pix_link,
+        credit_card_link=credit_card_link,
         image_filename=image_filename
     )
     
@@ -408,7 +412,9 @@ def edit_gift(gift_id):
     gift.item_name = request.form.get('item_name')
     gift.description = request.form.get('description')
     gift.price = request.form.get('price')
-    gift.store_link = request.form.get('store_link')
+    gift.image_url = request.form.get('image_url')
+    gift.pix_link = request.form.get('pix_link')
+    gift.credit_card_link = request.form.get('credit_card_link')
     gift.is_active = bool(request.form.get('is_active'))
     
     db.session.commit()

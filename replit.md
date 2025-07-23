@@ -36,6 +36,12 @@ A complete wedding RSVP web application built with Flask and SQLAlchemy. This sy
 - 2025-07-23: Migration to Replit environment completed successfully
 - Fixed Flask application structure and database initialization
 - Added responsive button layout (side by side on desktop, stacked on mobile)
+- Enhanced gift registry system:
+  - Added image URL support for gift images
+  - Replaced store links with separate PIX and credit card payment options
+  - Updated database schema with new payment link fields
+  - Improved admin interface with new form fields
+  - Enhanced public gift display with payment buttons
 - Security enhancements: Removed hardcoded external database references
 - Updated workflow configuration for Gunicorn deployment
 
