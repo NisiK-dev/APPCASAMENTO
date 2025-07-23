@@ -63,14 +63,8 @@
                                     <div class="copied-msg" id="copiedMsg{{ gift.id }}">✅ Chave copiada com sucesso!</div>
                                 </div>
                                 {% endif %}
-                                {% if gift.pix_link %}
-                                <a href="{{ gift.pix_link }}" target="_blank" class="btn btn-success">
-                                    <i class="fas fa-mobile-alt me-2"></i>
-                                    Pagar via PIX
-                                </a>
-                                {% endif %}
                                 {% if gift.credit_card_link %}
-                                <a href="{{ gift.credit_card_link }}" target="_blank" class="btn btn-outline-primary">
+                                <a href="{{ gift.credit_card_link }}" target="_blank" class="btn btn-outline-secondary w-100">
                                     <i class="fas fa-credit-card me-2"></i>
                                     Pagar com Cartão
                                 </a>
