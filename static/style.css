@@ -833,6 +833,9 @@ footer {
     font-weight: 500 !important;
     margin-left: 8px !important;
     cursor: pointer !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
 }
 
 .rsvp-container .form-check-label.text-success {
