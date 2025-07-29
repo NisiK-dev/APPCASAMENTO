@@ -681,3 +681,35 @@ def create_admin():
             print("✅ Admin criado automaticamente")
     except Exception as e:
         print(f"Erro ao criar admin: {e}")
+
+# routes.py
+
+from flask import Flask, jsonify # Certifique-se de que 'jsonify' está importado
+# ... outras importações (render_template, request, etc.)
+
+# Importe a instância 'app' do seu app.py (assumindo que você a chamou de 'app')
+from app import app
+# ... outros imports (db, models)
+
+# ... suas outras rotas ...
+
+@app.route('/healthz', methods=['GET'])
+def health_check():
+    """
+    Endpoint para verificação de saúde do aplicativo.
+    Retorna um status 200 OK se o app estiver respondendo.
+    Você pode adicionar aqui verificações mais complexas se quiser,
+    como testar a conexão com o banco de dados.
+    """
+    # Exemplo de como você poderia verificar a conexão com o banco de dados:
+    # try:
+    #     db.session.execute(db.text("SELECT 1"))
+    #     db.session.rollback() # Opcional: garante que a transação não afeta o estado
+    #     db_status = "ok"
+    # except Exception as e:
+    #     db_status = f"error: {str(e)}"
+    #     return jsonify({"status": "error", "database": db_status}), 500
+
+    return jsonify({"status": "ok"}), 200
+
+# ... suas outras rotas ...
