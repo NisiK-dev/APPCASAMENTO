@@ -34,11 +34,22 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 
 db = SQLAlchemy(app)
 
-# Teste a conexão
-@app.before_first_request
+# REMOVIDO: @app.before_first_request (depreciado)
+# A conexão será testada quando necessário
+
+# Função para testar conexão (chamada manualmente quando necessário)
 def test_db_connection():
     try:
-        db.engine.execute('SELECT 1')
-        print("✅ Conexão com banco estabelecida com sucesso!")
+        with app.app_context():
+            db.engine.execute('SELECT 1')
+            print("✅ Conexão com banco estabelecida com sucesso!")
+            return True
     except Exception as e:
         print(f"❌ Erro na conexão com banco: {e}")
+        return False
+
+# Importar suas rotas aqui (se estiver em arquivo separado)
+# from routes import *
+
+if __name__ == '__main__':
+    app.run(debug=True)
