@@ -1,55 +1,56 @@
 import os
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from dotenv import load_dotenv
+from app import app, db
 
-load_dotenv()
+def init_database():
+    """Inicializa o banco de dados no Supabase"""
+    print("🔄 Iniciando migração do banco...")
+    print(f"🌐 DATABASE_URL configurada: {'Sim' if os.environ.get('DATABASE_URL') else 'Não'}")
+    
+    with app.app_context():
+        try:
+            # Testa a conexão primeiro
+            from sqlalchemy import text
+            result = db.session.execute(text('SELECT 1'))
+            print("✅ Conexão com banco OK!")
+            
+            # Importa todos os modelos antes de criar as tabelas
+            try:
+                from models import *
+                print("✅ Modelos importados com sucesso!")
+            except ImportError as e:
+                print(f"⚠️ Aviso ao importar modelos: {e}")
+            
+            # Cria todas as tabelas
+            db.create_all()
+            print("✅ Tabelas criadas com sucesso no Supabase!")
+            
+            # Lista as tabelas criadas
+            result = db.session.execute(text("""
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE table_schema = 'public'
+                AND table_name NOT LIKE '%pgsodium%'
+                AND table_name NOT LIKE '%vault%'
+                ORDER BY table_name
+            """))
+            
+            tables = [row[0] for row in result]
+            if tables:
+                print(f"📋 Tabelas encontradas: {tables}")
+            else:
+                print("⚠️ Nenhuma tabela encontrada - verifique seus modelos")
+            
+            # Commit das mudanças
+            db.session.commit()
+            print("✅ Migração concluída com sucesso!")
+            
+        except Exception as e:
+            print(f"❌ Erro detalhado: {e}")
+            print(f"🔍 Tipo do erro: {type(e).__name__}")
+            db.session.rollback()
+            
+        finally:
+            db.session.close()
 
-app = Flask(__name__)
-
-# Configuração do banco de dados Supabase
-database_url = os.environ.get('DATABASE_URL')
-
-if not database_url:
-    print("⚠️ DATABASE_URL não encontrada, usando SQLite local")
-    database_url = 'sqlite:///instance/wedding_rsvp.db'
-else:
-    print(f"✅ Conectando ao banco: {database_url.split('@')[1] if '@' in database_url else 'local'}")
-
-# Ajusta URL do Postgres se necessário
-if database_url and database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
-
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
-
-# Configurações para melhor conexão com Supabase
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'pool_pre_ping': True,
-    'pool_recycle': 300,
-    'pool_timeout': 30,
-    'max_overflow': 0,
-}
-
-db = SQLAlchemy(app)
-
-# REMOVIDO: @app.before_first_request (depreciado)
-# A conexão será testada quando necessário
-
-# Função para testar conexão (chamada manualmente quando necessário)
-def test_db_connection():
-    try:
-        with app.app_context():
-            db.engine.execute('SELECT 1')
-            print("✅ Conexão com banco estabelecida com sucesso!")
-            return True
-    except Exception as e:
-        print(f"❌ Erro na conexão com banco: {e}")
-        return False
-
-# Importar suas rotas aqui (se estiver em arquivo separado)
-# from routes import *
-
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    init_database()
