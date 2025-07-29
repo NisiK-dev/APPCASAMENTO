@@ -18,18 +18,14 @@ def init_database():
             result = db.session.execute(text('SELECT 1'))
             print("✅ Conexão com banco OK!")
             
-            # Importa modelos no nível do módulo
+            # Importa modelos
             try:
                 import models
                 print("✅ Modelos importados com sucesso!")
             except ImportError as e:
                 print(f"⚠️ Aviso: Não foi possível importar models.py: {e}")
             
-            # Cria todas as tabelas
-            db.create_all()
-            print("✅ Comando create_all() executado!")
-            
-            # Lista as tabelas criadas
+            # Verifica se as tabelas já existem
             result = db.session.execute(text("""
                 SELECT table_name 
                 FROM information_schema.tables 
@@ -39,11 +35,29 @@ def init_database():
                 ORDER BY table_name
             """))
             
-            tables = [row[0] for row in result.fetchall()]
-            if tables:
-                print(f"📋 Tabelas encontradas: {tables}")
+            existing_tables = [row[0] for row in result.fetchall()]
+            
+            if existing_tables:
+                print(f"📋 Tabelas já existentes: {existing_tables}")
+                print("ℹ️  Pulando criação de tabelas (já existem)")
             else:
-                print("📋 Nenhuma tabela personalizada encontrada (isso pode ser normal se não há modelos definidos)")
+                # Só cria se não existir nenhuma tabela
+                print("🔄 Criando tabelas...")
+                db.create_all()
+                print("✅ Tabelas criadas com sucesso!")
+            
+            # Lista todas as tabelas finais
+            result = db.session.execute(text("""
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE table_schema = 'public'
+                AND table_name NOT LIKE 'pg_%'
+                AND table_name NOT LIKE 'sql_%'
+                ORDER BY table_name
+            """))
+            
+            final_tables = [row[0] for row in result.fetchall()]
+            print(f"📋 Tabelas no banco: {final_tables}")
             
             # Commit das mudanças
             db.session.commit()
