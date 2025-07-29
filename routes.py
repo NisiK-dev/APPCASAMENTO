@@ -667,7 +667,7 @@ def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
 
-@app.before_first_request
+@app.before_request
 def create_admin():
     """Criar admin se não existir"""
     try:
