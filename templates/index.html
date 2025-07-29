@@ -10,12 +10,17 @@
 <div class="hero-section text-center py-5 mb-5">
     <div class="container">
         <h1 class="text-1">
-            Kelly & Nisio
+           <p class="kelly"> Kelly</p>
+            <p class="e">&</p>
+            <p class="nisio">Nísio</p>
         </h1><br>
 
-        <p class="text-3">A contagem regressiva começou!<br>
+        <p class="text-3">"E tudo quanto fizerdes, seja em palavra, seja em ação, fazei-o em nome
+            do Senhor Jesus, dando por ele graças a Deus Pai." </p>
+        <p class="text-2"> Colossenses 3:17</p>
+        <p class="text-4"> </p>
 
-        Em breve, diremos SIM para uma nova vida a dois.💕</p>
+        <!-- Countdown Timer -->
         <div class="countdown-container mb-4">
             <div class="countdown-item">
                 <div class="countdown-number" id="days">00</div>
@@ -32,12 +37,9 @@
             <div class="countdown-item">
                 <div class="countdown-number" id="seconds">00</div>
                 <div class="countdown-label">SEGUNDOS</div>
-            </div><br>
-        <p class="text-3">"E tudo quanto fizerdes, seja em palavra, seja em ação, fazei-o em nome
-            do Senhor Jesus, dando por ele graças a Deus Pai." </p>
-        <p class="text-2"> Colossenses 3:17</p>
-        <p class="text-4"> </p>
+            </div>
         </div>
+
         <div class="buttons-container">
             <a href="{{ url_for('rsvp') }}" class="btn btn-primary btn-lg">
                 <i class="fas fa-calendar-check me-2"></i>
@@ -75,12 +77,13 @@
                         <p class="mb-3">{{ venue.time }}</p>
                     </div>
                     <div class="col-md-6">
-                        <h5><i class="fas fa-map-marked-alt me-2"></i>Endereço</h5>
-                        <p class="mb-3">{{ venue.address }}</p>
 
                         {% if venue.description %}
                         <h5><i class="fas fa-info-circle me-2"></i>Descrição</h5>
                         <p class="mb-3">{{ venue.description }}</p>
+                        <h5><i class="fas fa-map-marked-alt me-2"></i>Endereço</h5>
+                        <p class="endereco-quebra">{{ venue.address }}</p>
+
                         {% endif %}
 
                         {% if venue.map_link %}

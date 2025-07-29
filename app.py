@@ -1,35 +1,25 @@
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
-from werkzeug.middleware.proxy_fix import ProxyFix
+from dotenv import load_dotenv
 
-class Base(DeclarativeBase):
-    pass
+load_dotenv()
 
-db = SQLAlchemy(model_class=Base)
-
-# Create the app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "wedding-rsvp-secret-key-2025")
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# Configure the database
-database_url = os.environ.get("DATABASE_URL")
-if not database_url or "ep-crimson-salad-a28xfqnb.eu-central-1.aws.neon.tech" in database_url:
-    # Use SQLite as fallback if the external database is not available
-    database_url = "sqlite:///wedding_rsvp.db"
-    print("Using SQLite database as fallback")
+# Configuração do banco de dados Supabase
+database_url = os.environ.get('DATABASE_URL')
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///instance/wedding_rsvp.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+
+# Configurações específicas para Supabase (opcional)
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,
+    'pool_recycle': 300,
 }
 
-# Initialize the app with the extension
-db.init_app(app)
-
-# Import models and routes after app initialization
-from models import *
-from routes import *
+db = SQLAlchemy(app)

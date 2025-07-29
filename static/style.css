@@ -2,7 +2,7 @@
 @font-face {
     font-family: 'minhafont';
     /* Escolha um nome para sua fonte */
-    src: url('../static/font/Photograph\ Signature.ttf') format('truetype');
+    src: url('../static/font/Emitha-Script.otf') format('truetype');
     /* Caminho para seu arquivo .ttf */
     font-weight: normal;
     /* Ou bold, light, etc., dependendo da sua fonte */
@@ -31,13 +31,22 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('https://i.imgur.com/QrLo84i.png');
+    background-image: url('https://i.imgur.com/GKshwJX.png');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center center;
     z-index: -1;
     /* Coloca a imagem atrás do conteúdo */
 }
+.fundoP{ position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:white;
+        background-size: cover;
+        background-position: center center;
+        z-index: -1;}
 
 .container {
     padding: 0px
@@ -45,10 +54,14 @@ body {
 
 .text-1 {
     font-family: 'minhafont';
-    font-size: 80px;
+    font-size: 100px;
     color: #bfbba4;
-    margin: 0px;
-    padding: 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Opcional: centraliza os nomes */
+
+    /* Espaço entre os itens */
+    gap: 0px;
 
     /* Borda simulada com sombras */
     text-shadow:
@@ -58,6 +71,21 @@ body {
         1px 1px 0 #f5f5f5;
 }
 
+/* Zerando margens dos textos */
+.text-1 .kelly{margin: 0;
+                     line-height: 0.5;}
+.text-1 .nisio {
+    margin: 0;
+           line-height: 0.5;
+    padding-left: 100px;
+}
+
+.text-1 .e { font-family: cursive;
+            font-size: 20px;
+            border: none ;
+    margin: 0;
+           line-height: 0.5;
+    padding-left: 120px;}
 
 .text-2 {
     color: black;
@@ -175,18 +203,31 @@ body {
 .navbar-brand {
     font-weight: bold;
     font-size: 1.5rem;
+    color: white;
 
+
+}
+
+.navbar-toggler {
+    color: white;
+    border: 2px solid white;
+}
+
+.navbar-toggler-icon {
+    color: white;
 }
 
 .navbar-nav .nav-link {
     transition: all 0.3s ease;
     border-radius: 20px;
     margin: 0 0.2rem;
+    color: white;
 }
 
 .navbar-nav .nav-link:hover {
     background: rgba(255, 255, 255, 0.1);
     transform: translateY(-1px);
+
 }
 
 /* Tables */
@@ -197,7 +238,7 @@ body {
 
 .table th {
     background: var(--bs-dark);
-    color: black;
+    color: white;
     border: none;
     font-weight: 600;
     text-transform: uppercase;
@@ -232,9 +273,10 @@ body {
 .form-control,
 .form-select {
     border-radius: 10px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid black;
     background: rgba(255, 255, 255, 0.05);
     transition: all 0.3s ease;
+    color: black;
 }
 
 .form-control:focus,
@@ -242,12 +284,34 @@ body {
     border-color: var(--wedding-primary);
     box-shadow: 0 0 0 0.2rem rgba(212, 70, 239, 0.25);
     background: rgba(255, 255, 255, 0.1);
+    color: black
 }
 
 .form-label {
     font-weight: 600;
-    color: var(--bs-body-color);
+    color: white;
     margin-bottom: 0.5rem;
+}
+
+.col-md-6 mb-3, .form-label  { color: black !important;}
+
+.form-text {
+    color: rgb(86, 88, 93);
+}
+
+.mb-3,
+.text-muted {
+    color: black !important;
+}
+
+.endereco-quebra {
+    white-space: pre-line;
+    margin-bottom: 1rem;
+    /* equivalente ao mb-3 */
+}
+
+.EU {
+    color: rgb(86, 88, 93);
 }
 
 /* Modals */
@@ -255,17 +319,23 @@ body {
     border-radius: 15px;
     border: none;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    color: white;
 }
 
 .modal-header {
-    background: linear-gradient(45deg, var(--wedding-primary), var(--wedding-secondary));
-    color: white;
+    background: white;
+    color: black;
     border: none;
     border-radius: 15px 15px 0 0;
 }
 
 .modal-header .btn-close {
     filter: invert(1);
+}
+
+.modal-body,
+.text-muted {
+    color: white;
 }
 
 /* Alerts */
@@ -900,6 +970,7 @@ footer {
     color: #dc3545 !important;
     font-weight: 700 !important;
 }
+
 /* PIX container styling */
 .pix-container {
     background: #fff;
@@ -907,7 +978,7 @@ footer {
     padding: 20px;
     border-radius: 12px;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 10px;
 }
 
