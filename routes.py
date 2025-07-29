@@ -19,15 +19,25 @@ def admin_login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        admin = Admin.query.filter_by(username=username).first()
+        print(f"🔍 Tentativa de login: {username}")
         
-        if admin and check_password_hash(admin.password_hash, password):
-            session['admin_id'] = admin.id
-            session['admin_username'] = admin.username
-            flash('Login realizado com sucesso!', 'success')
-            return redirect(url_for('admin_dashboard'))
-        else:
-            flash('Usuário ou senha inválidos!', 'danger')
+        try:
+            admin = Admin.query.filter_by(username=username).first()
+            print(f"🔍 Admin encontrado: {admin}")
+            
+            if admin and check_password_hash(admin.password_hash, password):
+                session['admin_id'] = admin.id
+                session['admin_username'] = admin.username
+                print(f"✅ Login bem-sucedido para: {username}")
+                flash('Login realizado com sucesso!', 'success')
+                return redirect(url_for('admin_dashboard'))
+            else:
+                print(f"❌ Credenciais inválidas para: {username}")
+                flash('Usuário ou senha inválidos!', 'danger')
+                
+        except Exception as e:
+            print(f"❌ Erro no login: {e}")
+            flash(f'Erro interno: {str(e)}', 'danger')
     
     return render_template('admin_login.html')
 
