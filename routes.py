@@ -656,3 +656,18 @@ def not_found(error):
 def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
+
+@app.before_first_request
+def create_admin():
+    """Criar admin se não existir"""
+    try:
+        if not Admin.query.first():
+            admin = Admin(
+                username='admin',
+                password_hash=generate_password_hash('admin123')
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print("✅ Admin criado automaticamente")
+    except Exception as e:
+        print(f"Erro ao criar admin: {e}")
