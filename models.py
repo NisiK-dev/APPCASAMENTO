@@ -2,6 +2,7 @@ from app import db
 from datetime import datetime
 
 class Admin(db.Model):
+    __tablename__ = 'admin_user' # <-- Adicione esta linha!
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
