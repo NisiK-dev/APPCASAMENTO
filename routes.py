@@ -713,71 +713,45 @@ import os
 import redis # pip install redis
 import requests # pip install requests
 
-# Configuração do Redis (certifique-se de que a URL está definida nas suas variáveis de ambiente)
-REDIS_URL = os.environ.get('REDIS_URL', None) # Idealmente, sempre vem de variáveis de ambiente
+# routes.py
+
+# Certifique-se de que 'app' e 'db' são importados corretamente do seu arquivo 'app.py'
+# Exemplo: from app import app, db
+# Ajuste conforme a estrutura do seu projeto.
+from app import app, db 
+
+from flask import jsonify, current_app
+from sqlalchemy import text # Necessário para db.session.execute(text("SELECT 1"))
+import os # Necessário se você quiser verificar variáveis de ambiente, mesmo que poucas
 
 @app.route('/healthz')
 def healthz():
-    health_status = {
-        "status": "ok",
-        "message": "Application is healthy.",
-        "checks": {}
-    }
-    status_code = 200
-
-    # --- 1. Verificação de Conexão com o Banco de Dados (Supabase) ---
+    """
+    Verifica a saúde básica do aplicativo e a conexão com o banco de dados (Supabase).
+    O objetivo principal é responder 200 OK para manter o serviço ativo e
+    verificar a conectividade crítica.
+    """
     try:
+        # --- 1. Verificação de Conexão com o Banco de Dados (Supabase) ---
+        # Tenta executar uma consulta simples para verificar a conectividade do DB.
         db.session.execute(text("SELECT 1")).scalar()
-        health_status["checks"]["database"] = {"status": "connected"}
+        
+        # --- 2. Verificação de Variáveis de Ambiente Essenciais (Opcional, mas recomendado) ---
+        # Você pode listar algumas variáveis de ambiente críticas aqui.
+        # Se você usa a DATABASE_URL do Render, pode ser bom verificar.
+        if not os.environ.get("DATABASE_URL"):
+            raise ValueError("DATABASE_URL environment variable is missing.")
+
+        # Se todas as verificações passarem
+        return jsonify({
+            "status": "ok",
+            "message": "Application is healthy and database is connected."
+        }), 200
+
     except Exception as e:
-        health_status["status"] = "error"
-        health_status["message"] = "Database connection failed."
-        health_status["checks"]["database"] = {"status": "disconnected", "error": str(e)}
-        status_code = 500
-        current_app.logger.error(f"Health check: Database connection failed: {e}")
-
-    # --- 2. Verificação de Conexão com Redis (se estiver usando) ---
-    if REDIS_URL:
-        try:
-            r = redis.from_url(REDIS_URL)
-            r.ping()
-            health_status["checks"]["redis"] = {"status": "connected"}
-        except Exception as e:
-            health_status["status"] = "error"
-            health_status["message"] = "Redis connection failed."
-            health_status["checks"]["redis"] = {"status": "disconnected", "error": str(e)}
-            status_code = 500
-            current_app.logger.error(f"Health check: Redis connection failed: {e}")
-    else:
-        health_status["checks"]["redis"] = {"status": "skipped", "message": "REDIS_URL not configured."}
-        # Se Redis for crítico, você pode mudar o status para "error" e status_code para 500 aqui
-
-    # --- 3. Verificação de Variáveis de Ambiente Críticas ---
-    # Adicione as variáveis que são CRÍTICAS para o seu app funcionar
-    critical_env_vars = ["SECRET_KEY", "SQLALCHEMY_DATABASE_URI"] 
-    missing_vars = [var for var in critical_env_vars if not os.environ.get(var)]
-
-    if missing_vars:
-        health_status["status"] = "error"
-        health_status["message"] = "Missing critical environment variables."
-        health_status["checks"]["env_vars"] = {"status": "missing", "details": f"Missing: {', '.join(missing_vars)}"}
-        status_code = 500
-        current_app.logger.error(f"Health check: Missing critical environment variables: {', '.join(missing_vars)}")
-    else:
-        health_status["checks"]["env_vars"] = {"status": "ok"}
-    
-    # --- 4. Verificação de um Serviço Externo (Exemplo: API de Exemplo) ---
-    # Substitua por uma API real que seu app usa
-    EXTERNAL_API_URL = "https://jsonplaceholder.typicode.com/posts/1" # Uma API pública para teste
-    try:
-        response = requests.get(EXTERNAL_API_URL, timeout=5)
-        response.raise_for_status() # Levanta HTTPError para respostas 4xx/5xx
-        health_status["checks"]["external_api"] = {"status": "connected", "details": "jsonplaceholder.typicode.com"}
-    except requests.exceptions.RequestException as e:
-        health_status["status"] = "error"
-        health_status["message"] = "External API connection failed."
-        health_status["checks"]["external_api"] = {"status": "disconnected", "error": str(e)}
-        status_code = 500
-        current_app.logger.error(f"Health check: External API connection failed: {e}")
-
-    return jsonify(health_status), status_code
+        # Se qualquer parte da verificação falhar
+        current_app.logger.error(f"Health check failed: {e}")
+        return jsonify({
+            "status": "error",
+            "message": f"Application unhealthy or critical component failed: {str(e)}"
+        }), 500
