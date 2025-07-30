@@ -693,23 +693,37 @@ from app import app
 
 # ... suas outras rotas ...
 
-@app.route('/healthz', methods=['GET'])
-def health_check():
-    """
-    Endpoint para verificação de saúde do aplicativo.
-    Retorna um status 200 OK se o app estiver respondendo.
-    Você pode adicionar aqui verificações mais complexas se quiser,
-    como testar a conexão com o banco de dados.
-    """
-    # Exemplo de como você poderia verificar a conexão com o banco de dados:
-    # try:
-    #     db.session.execute(db.text("SELECT 1"))
-    #     db.session.rollback() # Opcional: garante que a transação não afeta o estado
-    #     db_status = "ok"
-    # except Exception as e:
-    #     db_status = f"error: {str(e)}"
-    #     return jsonify({"status": "error", "database": db_status}), 500
+# routes.py
 
-    return jsonify({"status": "ok"}), 200
+# Importe 'app' e 'db' do seu módulo principal
+# Assumindo que app.py é o módulo principal e 'app' e 'db' estão definidos lá.
+from app import app, db # Ou de um módulo 'instance' ou 'extensions' se você tiver
 
+from flask import jsonify, current_app
+from sqlalchemy import text # Importe text para db.text("SELECT 1")
+
+# ... (Suas outras rotas existentes)
+
+@app.route('/healthz')
+def healthz():
+    """
+    Verifica a saúde do aplicativo e a conexão com o banco de dados (Supabase).
+    """
+    try:
+        db.session.execute(text("SELECT 1")).scalar() # Use text do sqlalchemy para raw SQL
+
+        return jsonify({
+            "status": "ok",
+            "message": "Application and database are healthy.",
+            "database_status": "connected"
+        }), 200
+
+    except Exception as e:
+        current_app.logger.error(f"Health check failed: {e}")
+        return jsonify({
+            "status": "error",
+            "message": "Application or database is unhealthy.",
+            "database_status": "disconnected",
+            "error_details": str(e)
+        }), 500
 # ... suas outras rotas ...
