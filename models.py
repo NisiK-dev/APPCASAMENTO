@@ -2,7 +2,7 @@ from app import db
 from datetime import datetime
 
 class Admin(db.Model):
-    __tablename__ = 'admin_user'  # ← Nome da tabela no banco
+    __tablename__ = 'user'  # ← Nome da tabela no banco
     
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
