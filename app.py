@@ -7,7 +7,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Configuração do banco de dados Supabase
+# Configuração do banco de dados
 database_url = os.environ.get('DATABASE_URL')
 
 if not database_url:
@@ -16,7 +16,6 @@ if not database_url:
 else:
     print(f"✅ Conectando ao banco: {database_url.split('@')[1] if '@' in database_url else 'local'}")
 
-# Ajusta URL do Postgres se necessário
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
@@ -24,7 +23,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
 
-# Configurações para melhor conexão com Supabase
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_pre_ping': True,
     'pool_recycle': 300,
@@ -32,23 +30,19 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'max_overflow': 0,
 }
 
-db = SQLAlchemy(app)
+# Inicializar DB
+from models import db
+db.init_app(app)
 
-# Importar modelos (se estiver em arquivo separado)
-try:
-    import models
-    print("✅ Modelos importados com sucesso!")
-except ImportError:
-    print("⚠️ Arquivo models.py não encontrado")
-
-# Importar rotas (se estiver em arquivo separado)
-try:
-    import routes
-    print("✅ Rotas importadas com sucesso!")
-except ImportError:
-    print("⚠️ Arquivo routes.py não encontrado")
+# Importar rotas DEPOIS de inicializar DB
+with app.app_context():
+    try:
+        import routes
+        print("✅ Rotas importadas com sucesso!")
+    except ImportError as e:
+        print(f"⚠️ Erro ao importar routes: {e}")
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
-
-# Final check for Render deploy
