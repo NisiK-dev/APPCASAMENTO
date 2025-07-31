@@ -357,88 +357,53 @@ def admin_venue():
 
 @app.route('/admin/update_venue', methods=['POST'])
 def update_venue():
-    """Atualizar informações do local"""
-    if 'admin_id' not in session:
-        flash('Acesso negado!', 'danger')
-        return redirect(url_for('admin_login'))
-    
-    venue = VenueInfo.query.first()
-    
+    venue = Venue.query.first()
     if not venue:
-        venue = VenueInfo()
-        db.session.add(venue)
-    
-    # Obtém os valores como strings do formulário
-    name = request.form.get('name')
-    address = request.form.get('address')
-    map_link = request.form.get('map_link')
-    description = request.form.get('description')
-    date_str = request.form.get('date')
-    time_str = request.form.get('time')
-    event_datetime_str = request.form.get('event_datetime')
-    
-    venue.name = name
-    venue.address = address
-    venue.map_link = map_link
-    venue.description = description
-    
-    # --- INÍCIO DAS CORREÇÕES PARA DATA E HORA ---
-    if date_str:
-        try:
-            # Tenta converter a string de data para um objeto date do Python
-            # Espera o formato "DD de Mês por Extenso de YYYY" (ex: "19 de Outubro de 2025")
-            venue.date = datetime.strptime(date_str, '%d de %B de %Y').date()
-        except ValueError as e:
-            flash(f"Formato de data inválido: '{date_str}'. Use o formato 'Dia de Mês por extenso de Ano'. Erro: {e}", 'danger')
-            return redirect(url_for('admin_venue'))
-    else:
-        venue.date = None # Limpa a data se o campo estiver vazio
-        
-    if time_str:
-        try:
-            # Lidar com o formato de hora. É CRÍTICO que o input do formulário seja consistente.
-            # Se você usa input type="time" no HTML, ele virá como "HH:MM".
-            # Se você ainda está recebendo "8:30 da manhã", a lógica precisa ser mais robusta.
-            # A lógica abaixo tenta converter "HH:MM da manhã/da tarde" para "HH:MM" (24h).
-            
+        venue = Venue()
+
+    venue.name = request.form.get('venue_name')
+    venue.address = request.form.get('venue_address')
+    date_str = request.form.get('venue_date')
+    time_str = request.form.get('venue_time')
+
+    # Parse da data no formato "15 de junho de 2024"
+    try:
+        if date_str:
+            # Normaliza a string: minúsculas e sem espaços
+            date_str = date_str.lower().strip()
+            venue.date = datetime.strptime(date_str, "%d de %B de %Y").date()
+        else:
+            venue.date = None
+    except ValueError as e:
+        flash(f"Formato de data inválido: '{date_str}'. Use '15 de junho de 2024'. Erro: {e}", 'danger')
+        return redirect(url_for('admin_venue'))
+
+    # Parse do horário
+    try:
+        if time_str:
             time_to_parse = time_str.lower().strip()
-            
-            # Se contiver "da manhã", remove e tenta parsear HH:MM
             if 'da manhã' in time_to_parse:
                 time_to_parse = time_to_parse.replace('da manhã', '').strip()
-            # Se contiver "da tarde", remove, converte para 24h e tenta parsear HH:MM
             elif 'da tarde' in time_to_parse:
                 parts = time_to_parse.replace('da tarde', '').strip().split(':')
                 if len(parts) == 2:
                     hour = int(parts[0])
-                    if hour < 12: # Adiciona 12 para converter para formato 24h se for PM
+                    if hour < 12:
                         hour += 12
                     time_to_parse = f"{hour:02d}:{parts[1]}"
                 else:
                     raise ValueError("Formato de hora da tarde inesperado.")
-            
-            # Tenta parsear o resultado final como HH:MM
+
             venue.time = datetime.strptime(time_to_parse, '%H:%M').time()
-        except ValueError as e:
-            flash(f"Formato de hora inválido: '{time_str}'. Use o formato 'HH:MM' (ex: 08:30 ou 14:00) ou 'HH:MM da manhã/da tarde'. Erro: {e}", 'danger')
-            return redirect(url_for('admin_venue'))
-    else:
-        venue.time = None # Limpa a hora se o campo estiver vazio
-        
-    if event_datetime_str:
-        try:
-            # Este já estava funcionando, pois ISO 8601 é um padrão robusto
-            venue.event_datetime = datetime.fromisoformat(event_datetime_str)
-        except ValueError as e:
-            flash(f"Formato de data e hora do evento inválido: '{event_datetime_str}'. Use o formato ISO (AAAA-MM-DDTHH:MM:SS). Erro: {e}", 'danger')
-            return redirect(url_for('admin_venue'))
-    else:
-        venue.event_datetime = None
-    # --- FIM DAS CORREÇÕES PARA DATA E HORA ---
-        
+        else:
+            venue.time = None
+    except ValueError as e:
+        flash(f"Formato de hora inválido: '{time_str}'. Use '08:30', '14:00' ou '8:30 da manhã'. Erro: {e}", 'danger')
+        return redirect(url_for('admin_venue'))
+
+    db.session.add(venue)
     db.session.commit()
-    
-    flash('Informações do local atualizadas com sucesso!', 'success')
+    flash('Local e horário do evento atualizados com sucesso!', 'success')
     return redirect(url_for('admin_venue'))
 
 @app.route('/admin/gifts')
