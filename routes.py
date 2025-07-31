@@ -361,49 +361,61 @@ def update_venue():
     if not venue:
         venue = Venue()
 
-    venue.name = request.form.get('venue_name')
-    venue.address = request.form.get('venue_address')
-    date_str = request.form.get('venue_date')
-    time_str = request.form.get('venue_time')
+    venue.name = request.form.get('name')
+    venue.address = request.form.get('address')
+    venue.map_link = request.form.get('map_link')
+    venue.description = request.form.get('description')
 
-    # Parse da data no formato "15 de junho de 2024"
+    date_str = request.form.get('date')
+    time_str = request.form.get('time')
+    event_datetime_str = request.form.get('event_datetime')
+
+    # Parse de data descritiva
     try:
         if date_str:
-            # Normaliza a string: minúsculas e sem espaços
             date_str = date_str.lower().strip()
             venue.date = datetime.strptime(date_str, "%d de %B de %Y").date()
         else:
             venue.date = None
     except ValueError as e:
-        flash(f"Formato de data inválido: '{date_str}'. Use '15 de junho de 2024'. Erro: {e}", 'danger')
+        flash(f"Formato de data inválido: '{date_str}'. Use '19 de Outubro de 2025'.", 'danger')
         return redirect(url_for('admin_venue'))
 
-    # Parse do horário
+    # Parse de hora descritiva
     try:
         if time_str:
-            time_to_parse = time_str.lower().strip()
-            if 'da manhã' in time_to_parse:
-                time_to_parse = time_to_parse.replace('da manhã', '').strip()
-            elif 'da tarde' in time_to_parse:
-                parts = time_to_parse.replace('da tarde', '').strip().split(':')
+            time_str = time_str.lower().strip()
+            if 'da manhã' in time_str:
+                time_str = time_str.replace('da manhã', '').strip()
+            elif 'da tarde' in time_str:
+                parts = time_str.replace('da tarde', '').strip().split(':')
                 if len(parts) == 2:
                     hour = int(parts[0])
                     if hour < 12:
                         hour += 12
-                    time_to_parse = f"{hour:02d}:{parts[1]}"
+                    time_str = f"{hour}:{parts[1]}"
                 else:
-                    raise ValueError("Formato de hora da tarde inesperado.")
-
-            venue.time = datetime.strptime(time_to_parse, '%H:%M').time()
+                    raise ValueError("Formato de hora inválido.")
+            venue.time = datetime.strptime(time_str, '%H:%M').time()
         else:
             venue.time = None
     except ValueError as e:
-        flash(f"Formato de hora inválido: '{time_str}'. Use '08:30', '14:00' ou '8:30 da manhã'. Erro: {e}", 'danger')
+        flash(f"Formato de horário inválido: '{time_str}'. Use '8:30 da manhã' ou '14:00'.", 'danger')
+        return redirect(url_for('admin_venue'))
+
+    # Parse da data/hora exata para countdown
+    try:
+        if event_datetime_str:
+            venue.event_datetime = datetime.strptime(event_datetime_str, "%Y-%m-%dT%H:%M")
+        else:
+            venue.event_datetime = None
+    except ValueError as e:
+        flash("Erro ao processar a data/hora exata. Formato esperado: 2025-10-19T08:30", 'danger')
         return redirect(url_for('admin_venue'))
 
     db.session.add(venue)
     db.session.commit()
-    flash('Local e horário do evento atualizados com sucesso!', 'success')
+    flash("Local do evento atualizado com sucesso!", "success")
     return redirect(url_for('admin_venue'))
 
 @app.route('/admin/gifts')
