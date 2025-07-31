@@ -357,9 +357,12 @@ def admin_venue():
 
 @app.route('/admin/update_venue', methods=['POST'])
 def update_venue():
-    venue = Venue.query.first()
+    # --- MODIFICAÇÃO AQUI ---
+    # A classe correta é VenueInfo, não 'Local'.
+    venue = VenueInfo.query.first()
     if not venue:
-        venue = Venue()
+        venue = VenueInfo()
+    # --- FIM DA MODIFICAÇÃO ---
 
     venue.name = request.form.get('name')
     venue.address = request.form.get('address')
