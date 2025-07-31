@@ -2,6 +2,8 @@ from flask import render_template, request, jsonify, session, redirect, url_for,
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import app
 from models import db, AdminUser, Admin, Guest, GuestGroup, GiftRegistry, VenueInfo
+from send_whatsapp import send_bulk_whatsapp_messages, get_wedding_message
+
 import logging
 
 # Resto do seu código...
