@@ -20,7 +20,6 @@
         </div>
 
         <div class="row">
-            <!-- Form de Edição -->
             <div class="col-lg-8 mb-4">
                 <div class="card">
                     <div class="card-header">
@@ -32,7 +31,6 @@
                     <div class="card-body">
                         <form method="POST" action="{{ url_for('update_venue') }}">
                             <div class="row">
-                                <!-- Nome do Local -->
                                 <div class="col-md-6 mb-3">
                                     <label for="name" class="form-label">
                                         <i class="fas fa-church me-2"></i>
@@ -43,7 +41,6 @@
                                         placeholder="Ex: Igreja Santa Maria">
                                 </div>
 
-                                <!-- Data e Hora do Evento -->
                                 <div class="col-md-6 mb-3">
                                     <label for="event_datetime" class="form-label">
                                         <i class="fas fa-calendar-clock me-2"></i>
@@ -59,7 +56,6 @@
                             </div>
 
                             <div class="row">
-                                <!-- Data (Texto Descritivo) -->
                                 <div class="col-md-6 mb-3">
                                     <label for="date" class="form-label">
                                         <i class="fas fa-calendar-alt me-2"></i>
@@ -71,7 +67,6 @@
                                     <div class="form-text">Como será exibido para os convidados</div>
                                 </div>
 
-                                <!-- Horário (Texto Descritivo) -->
                                 <div class="col-md-6 mb-3">
                                     <label for="time" class="form-label">
                                         <i class="fas fa-clock me-2"></i>
@@ -83,7 +78,6 @@
                                 </div>
                             </div>
 
-                            <!-- Endereço -->
                             <div class="mb-3">
                                 <label for="address" class="form-label">
                                     <i class="fas fa-map-marked-alt me-2"></i>
@@ -93,7 +87,6 @@
                                     placeholder="Ex: Rua das Flores, 123 - Centro - São Paulo - SP">{{ venue.address if venue else '' }}</textarea>
                             </div>
 
-                            <!-- Link do Google Maps -->
                             <div class="mb-3">
                                 <label for="map_link" class="form-label">
                                     <i class="fas fa-map me-2"></i>
@@ -105,7 +98,6 @@
                                 <div class="form-text">Permite que os convidados vejam a localização no mapa</div>
                             </div>
 
-                            <!-- Descrição -->
                             <div class="mb-3">
                                 <label for="description" class="form-label">
                                     <i class="fas fa-info-circle me-2"></i>
@@ -115,7 +107,6 @@
                                     placeholder="Ex: Informações sobre estacionamento, dress code, etc.">{{ venue.description if venue else '' }}</textarea>
                             </div>
 
-                            <!-- Botões -->
                             <div class="d-flex justify-content-between">
                                 <button type="button" class="btn btn-outline-info" onclick="autoFillDateTime()">
                                     <i class="fas fa-magic me-2"></i>
@@ -131,9 +122,7 @@
                 </div>
             </div>
 
-            <!-- Preview -->
             <div class="col-lg-4">
-                <!-- Preview da Contagem Regressiva -->
                 <div class="card mb-4">
                     <div class="card-header">
                         <h6 class="mb-0">
@@ -178,7 +167,6 @@
                     </div>
                 </div>
 
-                <!-- Informações Atuais -->
                 {% if venue %}
                 <div class="card">
                     <div class="card-header">
