@@ -1,10 +1,12 @@
 from flask import render_template, request, jsonify, session, redirect, url_for, flash
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import app
+# Importante: Certifique-se de que GiftRegistry está sendo importado corretamente
 from models import db, AdminUser, Admin, Guest, GuestGroup, GiftRegistry, VenueInfo
 from send_whatsapp import send_bulk_whatsapp_messages, get_wedding_message
 
 import logging
+from sqlalchemy import text # Necessário para o healthz e qualquer raw SQL
 
 # Resto do seu código...
 
@@ -13,12 +15,20 @@ import logging
 def index():
     try:
         venue = VenueInfo.query.first()
-        return render_template('index.html', venue=venue)
+        
+        # --- AQUI ESTÁ A MUDANÇA PRINCIPAL ---
+        # Busca todos os presentes ativos para exibir na prévia
+        gifts = GiftRegistry.query.filter_by(is_active=True).all()
+        # Se quiser limitar o número de presentes na prévia, você pode fazer:
+        # gifts = GiftRegistry.query.filter_by(is_active=True).order_by(GiftRegistry.id.desc()).limit(3).all()
+        
+        # Passa tanto 'venue' quanto 'gifts' para o template
+        return render_template('index.html', venue=venue, gifts=gifts)
     except Exception as e:
         db.session.rollback()  # Importante: fazer rollback em caso de erro
-        logging.error(f"Erro ao acessar venue_info: {e}")
-        # Retornar uma página de erro ou dados padrão
-        return render_template('index.html', venue=None)
+        logging.error(f"Erro ao acessar dados na rota principal: {e}")
+        # Retornar uma página de erro ou dados padrão, garantindo que 'gifts' também seja passado
+        return render_template('index.html', venue=None, gifts=[]) # Passe uma lista vazia para gifts
     finally:
         db.session.close()
 
@@ -74,15 +84,15 @@ def admin_dashboard():
     declined_guests = Guest.query.filter_by(rsvp_status='nao_confirmado').count()
     
     total_groups = GuestGroup.query.count()
-    total_gifts = GiftRegistry.query.count()
+    total_gifts = GiftRegistry.query.count() # Usando GiftRegistry
     
     return render_template('admin_dashboard.html', 
-                         total_guests=total_guests,
-                         confirmed_guests=confirmed_guests,
-                         pending_guests=pending_guests,
-                         declined_guests=declined_guests,
-                         total_groups=total_groups,
-                         total_gifts=total_gifts)
+                           total_guests=total_guests,
+                           confirmed_guests=confirmed_guests,
+                           pending_guests=pending_guests,
+                           declined_guests=declined_guests,
+                           total_groups=total_groups,
+                           total_gifts=total_gifts)
 
 @app.route('/admin/guests')
 def admin_guests():
@@ -101,12 +111,12 @@ def admin_guests():
     pending_guests = len([g for g in guests if g.rsvp_status == 'pendente'])
     
     return render_template('admin_guests.html', 
-                         guests=guests, 
-                         groups=groups,
-                         total_guests=total_guests,
-                         confirmed_guests=confirmed_guests,
-                         declined_guests=declined_guests,
-                         pending_guests=pending_guests)
+                           guests=guests, 
+                           groups=groups,
+                           total_guests=total_guests,
+                           confirmed_guests=confirmed_guests,
+                           declined_guests=declined_guests,
+                           pending_guests=pending_guests)
 
 @app.route('/admin/add_guest', methods=['POST'])
 def add_guest():
@@ -242,8 +252,8 @@ def confirm_rsvp():
     db.session.commit()
     
     return render_template('rsvp_success.html', 
-                         confirmed_guests=confirmed_guests,
-                         declined_guests=declined_guests)
+                           confirmed_guests=confirmed_guests,
+                           declined_guests=declined_guests)
 
 @app.route('/admin/groups')
 def admin_groups():
@@ -439,7 +449,7 @@ def edit_gift(gift_id):
     gift.pix_key = request.form.get('pix_key')
     gift.pix_link = request.form.get('pix_link')
     gift.credit_card_link = request.form.get('credit_card_link')
-    gift.is_active = bool(request.form.get('is_active'))
+    gift.is_active = bool(request.form.get('is_active')) # É bom garantir que is_active seja booleano
     
     db.session.commit()
     
@@ -480,7 +490,7 @@ def api_event_datetime():
     else:
         # Data padrão caso não esteja configurada
         return jsonify({
-            'datetime': '2025-10-19T08:30:00',
+            'datetime': '2025-10-19T08:30:00', # Certifique-se de que esta data é uma string válida
             'success': True
         })
 
@@ -585,12 +595,12 @@ def send_whatsapp():
         venue = VenueInfo.query.first()
         if venue:
             message = get_wedding_message(message_type,
-                                        date=venue.date,
-                                        time=venue.time,
-                                        venue=venue.name,
-                                        address=venue.address,
-                                        rsvp_link=request.url_root + 'rsvp',
-                                        gift_link=request.url_root + 'gifts')
+                                         date=venue.date,
+                                         time=venue.time,
+                                         venue=venue.name,
+                                         address=venue.address,
+                                         rsvp_link=request.url_root + 'rsvp',
+                                         gift_link=request.url_root + 'gifts')
     
     # Enviar mensagens
     results = send_bulk_whatsapp_messages(phone_numbers, message)
@@ -693,46 +703,9 @@ def create_admin():
     except Exception as e:
         print(f"Erro ao criar admin: {e}")
 
-# routes.py
-
-from flask import Flask, jsonify # Certifique-se de que 'jsonify' está importado
-# ... outras importações (render_template, request, etc.)
-
-# Importe a instância 'app' do seu app.py (assumindo que você a chamou de 'app')
-from app import app
-# ... outros imports (db, models)
-
-# ... suas outras rotas ...
-
-# routes.py
-
-# Importe 'app' e 'db' do seu módulo principal
-# Assumindo que app.py é o módulo principal e 'app' e 'db' estão definidos lá.
-from app import app, db # Ou de um módulo 'instance' ou 'extensions' se você tiver
-
-from flask import jsonify, current_app
-from sqlalchemy import text # Importe text para db.text("SELECT 1")
-
-# ... (Suas outras rotas existentes)
-
-# routes.py (ou um blueprint dedicado para health checks)
-
-
-
-
-
-
-
-# routes.py
-
-# Certifique-se de que 'app' e 'db' são importados corretamente do seu arquivo 'app.py'
-# Exemplo: from app import app, db
-# Ajuste conforme a estrutura do seu projeto.
-from app import app, db 
-
-from flask import jsonify, current_app
-from sqlalchemy import text # Necessário para db.session.execute(text("SELECT 1"))
-import os # Necessário se você quiser verificar variáveis de ambiente, mesmo que poucas
+# routes.py (healthz route needs to be part of the app instance)
+import os # Importe os se não estiver já importado no topo
+from flask import current_app # Importe current_app se não estiver já importado no topo
 
 @app.route('/healthz')
 def healthz():
