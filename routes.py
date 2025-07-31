@@ -1,16 +1,20 @@
-from flask import render_template, request, redirect, url_for, flash, session, jsonify
-from werkzeug.security import check_password_hash, generate_password_hash
-from app import app, db
-from models import Admin, Guest, GuestGroup, VenueInfo, GiftRegistry
-from send_whatsapp import send_whatsapp_message, send_bulk_whatsapp_messages, get_wedding_message
-import json
+from flask import Flask, request, jsonify, session
+from models import db, AdminUser, VenueInfo
+import logging
 
 @app.route('/')
 def index():
-    """Página inicial com informações do casamento"""
-    venue = VenueInfo.query.first()
-    gifts = GiftRegistry.query.filter_by(is_active=True).limit(3).all()
-    return render_template('index.html', venue=venue, gifts=gifts)
+    try:
+        venue = VenueInfo.query.first()
+        return render_template('index.html', venue=venue)
+    except Exception as e:
+        db.session.rollback()  # Importante: fazer rollback em caso de erro
+        logging.error(f"Erro ao acessar venue_info: {e}")
+        # Retornar uma página de erro ou dados padrão
+        return render_template('index.html', venue=None)
+    finally:
+        db.session.close()
+
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
