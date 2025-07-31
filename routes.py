@@ -1,6 +1,11 @@
-from flask import Flask, request, jsonify, session
-from models import db, AdminUser, VenueInfo
+from flask import render_template, request, jsonify, session, redirect, url_for, flash
+from werkzeug.security import check_password_hash, generate_password_hash
+from app import app
+from models import db, AdminUser, Admin, Guest, GuestGroup, GiftRegistry, VenueInfo
 import logging
+
+# Resto do seu código...
+
 
 @app.route('/')
 def index():
