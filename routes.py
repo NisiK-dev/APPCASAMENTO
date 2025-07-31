@@ -717,12 +717,11 @@ from sqlalchemy import text # Importe text para db.text("SELECT 1")
 
 # routes.py (ou um blueprint dedicado para health checks)
 
-from app import app, db # Importe seu app e db
-from flask import jsonify, current_app
-from sqlalchemy import text # Para db.text("SELECT 1")
-import os
-import redis # pip install redis
-import requests # pip install requests
+
+
+
+
+
 
 # routes.py
 
