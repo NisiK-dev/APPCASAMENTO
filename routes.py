@@ -7,26 +7,23 @@ from send_whatsapp import send_bulk_whatsapp_messages, get_wedding_message
 
 import logging
 from sqlalchemy import text # Necessário para o healthz e qualquer raw SQL
-from datetime import datetime, date, time # <<< Adicione 'date' e 'time' aqui
+from datetime import datetime, date, time # <<< 'date' e 'time' já estavam aqui, ótimo!
 import os # Importe os se não estiver já importado no topo
 from flask import current_app # Importe current_app se não estiver já importado no topo
 import uuid # Para o upload de imagens, se não estiver já importado
 from werkzeug.utils import secure_filename # Para o upload de imagens, se não estiver já importado
 
 # Importar locale para lidar com nomes de meses em português
+# NOTA: A configuração principal do locale agora está em app.py.
+# Esta importação e o bloco try-except para locale.setlocale(locale.LC_TIME...)
+# podem ser mantidos para fins de logging específico ou se houver necessidade
+# de um locale diferente para formatação de tempo aqui, mas a configuração
+# global já é feita em app.py.
 import locale
-
-# Definir o locale para português do Brasil (ajuste conforme o ambiente do Render)
-# No Linux (Render provavelmente), 'pt_BR.utf8' é comum. No Windows, pode ser 'Portuguese_Brazil'.
-# Tente 'pt_BR.utf8' primeiro. Se não funcionar, pode ser necessário remover esta linha
-# ou usar uma abordagem diferente para parsear datas com nomes de meses.
 try:
     locale.setlocale(locale.LC_TIME, 'pt_BR.utf8')
 except locale.Error:
-    logging.warning("Locale 'pt_BR.utf8' not available, date parsing for month names might fail.")
-    # Fallback ou ignora se não for crítico para outros pontos.
-    # No entanto, para '19 de Outubro de 2025', é crucial.
-    # Uma alternativa robusta é usar type="date" no HTML.
+    logging.warning("Locale 'pt_BR.utf8' not available in routes.py, date parsing for month names might fail.")
 
 
 # Resto do seu código...
@@ -80,7 +77,7 @@ def admin_login():
         except Exception as e:
             print(f"❌ Erro no login: {e}")
             flash(f'Erro interno: {str(e)}', 'danger')
-        
+            
     return render_template('admin_login.html')
 
 @app.route('/admin/logout')
@@ -108,12 +105,12 @@ def admin_dashboard():
     total_gifts = GiftRegistry.query.count() # Usando GiftRegistry
     
     return render_template('admin_dashboard.html', 
-                           total_guests=total_guests,
-                           confirmed_guests=confirmed_guests,
-                           pending_guests=pending_guests,
-                           declined_guests=declined_guests,
-                           total_groups=total_groups,
-                           total_gifts=total_gifts)
+                            total_guests=total_guests,
+                            confirmed_guests=confirmed_guests,
+                            pending_guests=pending_guests,
+                            declined_guests=declined_guests,
+                            total_groups=total_groups,
+                            total_gifts=total_gifts)
 
 @app.route('/admin/guests')
 def admin_guests():
@@ -132,12 +129,12 @@ def admin_guests():
     pending_guests = len([g for g in guests if g.rsvp_status == 'pendente'])
     
     return render_template('admin_guests.html', 
-                           guests=guests, 
-                           groups=groups,
-                           total_guests=total_guests,
-                           confirmed_guests=confirmed_guests,
-                           declined_guests=declined_guests,
-                           pending_guests=pending_guests)
+                            guests=guests, 
+                            groups=groups,
+                            total_guests=total_guests,
+                            confirmed_guests=confirmed_guests,
+                            declined_guests=declined_guests,
+                            pending_guests=pending_guests)
 
 @app.route('/admin/add_guest', methods=['POST'])
 def add_guest():
@@ -273,8 +270,8 @@ def confirm_rsvp():
     db.session.commit()
     
     return render_template('rsvp_success.html', 
-                           confirmed_guests=confirmed_guests,
-                           declined_guests=declined_guests)
+                            confirmed_guests=confirmed_guests,
+                            declined_guests=declined_guests)
 
 @app.route('/admin/groups')
 def admin_groups():
@@ -402,24 +399,28 @@ def update_venue():
             # Lidar com o formato de hora. É CRÍTICO que o input do formulário seja consistente.
             # Se você usa input type="time" no HTML, ele virá como "HH:MM".
             # Se você ainda está recebendo "8:30 da manhã", a lógica precisa ser mais robusta.
-            # Vou manter a solução para "HH:MM" que é o ideal com type="time".
-            # Se precisar de "8:30 da manhã", a conversão seria mais complexa e
-            # exigiria um parseamento ou regex para extrair a hora e minutos e ajustar para 24h.
+            # A lógica abaixo tenta converter "HH:MM da manhã/da tarde" para "HH:MM" (24h).
             
-            # Tentativa de limpar e parsear:
             time_to_parse = time_str.lower().strip()
+            
+            # Se contiver "da manhã", remove e tenta parsear HH:MM
             if 'da manhã' in time_to_parse:
                 time_to_parse = time_to_parse.replace('da manhã', '').strip()
+            # Se contiver "da tarde", remove, converte para 24h e tenta parsear HH:MM
             elif 'da tarde' in time_to_parse:
                 parts = time_to_parse.replace('da tarde', '').strip().split(':')
-                hour = int(parts[0])
-                if hour < 12: # Adiciona 12 para converter para formato 24h se for PM
-                    hour += 12
-                time_to_parse = f"{hour:02d}:{parts[1]}"
-            # Assumimos que, após as substituições, o que resta é "HH:MM"
+                if len(parts) == 2:
+                    hour = int(parts[0])
+                    if hour < 12: # Adiciona 12 para converter para formato 24h se for PM
+                        hour += 12
+                    time_to_parse = f"{hour:02d}:{parts[1]}"
+                else:
+                    raise ValueError("Formato de hora da tarde inesperado.")
+            
+            # Tenta parsear o resultado final como HH:MM
             venue.time = datetime.strptime(time_to_parse, '%H:%M').time()
         except ValueError as e:
-            flash(f"Formato de hora inválido: '{time_str}'. Use o formato 'HH:MM' (ex: 08:30 ou 14:00). Erro: {e}", 'danger')
+            flash(f"Formato de hora inválido: '{time_str}'. Use o formato 'HH:MM' (ex: 08:30 ou 14:00) ou 'HH:MM da manhã/da tarde'. Erro: {e}", 'danger')
             return redirect(url_for('admin_venue'))
     else:
         venue.time = None # Limpa a hora se o campo estiver vazio
@@ -604,7 +605,7 @@ def admin_settings():
         
         flash('Senha alterada com sucesso!', 'success')
         return redirect(url_for('admin_dashboard'))
-    
+        
     return render_template('admin_settings.html')
 
 @app.route('/admin/whatsapp')
