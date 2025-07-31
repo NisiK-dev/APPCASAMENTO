@@ -18,6 +18,45 @@ class AdminUser(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+# Alias para compatibilidade com routes.py
+Admin = AdminUser
+
+class GuestGroup(db.Model):
+    __tablename__ = 'guest_group'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relacionamento
+    guests = db.relationship('Guest', backref='group', lazy=True)
+
+class Guest(db.Model):
+    __tablename__ = 'hospede'  # Nome da tabela no seu banco
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    phone = db.Column(db.String(20))
+    rsvp_status = db.Column(db.String(20), default='pendente')
+    group_id = db.Column(db.Integer, db.ForeignKey('guest_group.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class GiftRegistry(db.Model):
+    __tablename__ = 'presente'  # Nome da tabela no seu banco
+    
+    id = db.Column(db.Integer, primary_key=True)
+    item_name = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    price = db.Column(db.String(50))
+    image_url = db.Column(db.String(500))
+    image_filename = db.Column(db.String(255))
+    pix_key = db.Column(db.String(255))
+    pix_link = db.Column(db.String(500))
+    credit_card_link = db.Column(db.String(500))
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 class VenueInfo(db.Model):
     __tablename__ = 'venue_info'
     
@@ -31,5 +70,3 @@ class VenueInfo(db.Model):
     event_datetime = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-# Demais modelos...
