@@ -7,6 +7,27 @@ from send_whatsapp import send_bulk_whatsapp_messages, get_wedding_message
 
 import logging
 from sqlalchemy import text # Necessário para o healthz e qualquer raw SQL
+from datetime import datetime, date, time # <<< Adicione 'date' e 'time' aqui
+import os # Importe os se não estiver já importado no topo
+from flask import current_app # Importe current_app se não estiver já importado no topo
+import uuid # Para o upload de imagens, se não estiver já importado
+from werkzeug.utils import secure_filename # Para o upload de imagens, se não estiver já importado
+
+# Importar locale para lidar com nomes de meses em português
+import locale
+
+# Definir o locale para português do Brasil (ajuste conforme o ambiente do Render)
+# No Linux (Render provavelmente), 'pt_BR.utf8' é comum. No Windows, pode ser 'Portuguese_Brazil'.
+# Tente 'pt_BR.utf8' primeiro. Se não funcionar, pode ser necessário remover esta linha
+# ou usar uma abordagem diferente para parsear datas com nomes de meses.
+try:
+    locale.setlocale(locale.LC_TIME, 'pt_BR.utf8')
+except locale.Error:
+    logging.warning("Locale 'pt_BR.utf8' not available, date parsing for month names might fail.")
+    # Fallback ou ignora se não for crítico para outros pontos.
+    # No entanto, para '19 de Outubro de 2025', é crucial.
+    # Uma alternativa robusta é usar type="date" no HTML.
+
 
 # Resto do seu código...
 
@@ -59,7 +80,7 @@ def admin_login():
         except Exception as e:
             print(f"❌ Erro no login: {e}")
             flash(f'Erro interno: {str(e)}', 'danger')
-    
+        
     return render_template('admin_login.html')
 
 @app.route('/admin/logout')
@@ -350,19 +371,70 @@ def update_venue():
         venue = VenueInfo()
         db.session.add(venue)
     
-    venue.name = request.form.get('name')
-    venue.address = request.form.get('address')
-    venue.map_link = request.form.get('map_link')
-    venue.description = request.form.get('description')
-    venue.date = request.form.get('date')
-    venue.time = request.form.get('time')
-    
-    # Lidar com event_datetime
+    # Obtém os valores como strings do formulário
+    name = request.form.get('name')
+    address = request.form.get('address')
+    map_link = request.form.get('map_link')
+    description = request.form.get('description')
+    date_str = request.form.get('date')
+    time_str = request.form.get('time')
     event_datetime_str = request.form.get('event_datetime')
-    if event_datetime_str:
-        from datetime import datetime
-        venue.event_datetime = datetime.fromisoformat(event_datetime_str)
     
+    venue.name = name
+    venue.address = address
+    venue.map_link = map_link
+    venue.description = description
+    
+    # --- INÍCIO DAS CORREÇÕES PARA DATA E HORA ---
+    if date_str:
+        try:
+            # Tenta converter a string de data para um objeto date do Python
+            # Espera o formato "DD de Mês por Extenso de YYYY" (ex: "19 de Outubro de 2025")
+            venue.date = datetime.strptime(date_str, '%d de %B de %Y').date()
+        except ValueError as e:
+            flash(f"Formato de data inválido: '{date_str}'. Use o formato 'Dia de Mês por extenso de Ano'. Erro: {e}", 'danger')
+            return redirect(url_for('admin_venue'))
+    else:
+        venue.date = None # Limpa a data se o campo estiver vazio
+        
+    if time_str:
+        try:
+            # Lidar com o formato de hora. É CRÍTICO que o input do formulário seja consistente.
+            # Se você usa input type="time" no HTML, ele virá como "HH:MM".
+            # Se você ainda está recebendo "8:30 da manhã", a lógica precisa ser mais robusta.
+            # Vou manter a solução para "HH:MM" que é o ideal com type="time".
+            # Se precisar de "8:30 da manhã", a conversão seria mais complexa e
+            # exigiria um parseamento ou regex para extrair a hora e minutos e ajustar para 24h.
+            
+            # Tentativa de limpar e parsear:
+            time_to_parse = time_str.lower().strip()
+            if 'da manhã' in time_to_parse:
+                time_to_parse = time_to_parse.replace('da manhã', '').strip()
+            elif 'da tarde' in time_to_parse:
+                parts = time_to_parse.replace('da tarde', '').strip().split(':')
+                hour = int(parts[0])
+                if hour < 12: # Adiciona 12 para converter para formato 24h se for PM
+                    hour += 12
+                time_to_parse = f"{hour:02d}:{parts[1]}"
+            # Assumimos que, após as substituições, o que resta é "HH:MM"
+            venue.time = datetime.strptime(time_to_parse, '%H:%M').time()
+        except ValueError as e:
+            flash(f"Formato de hora inválido: '{time_str}'. Use o formato 'HH:MM' (ex: 08:30 ou 14:00). Erro: {e}", 'danger')
+            return redirect(url_for('admin_venue'))
+    else:
+        venue.time = None # Limpa a hora se o campo estiver vazio
+        
+    if event_datetime_str:
+        try:
+            # Este já estava funcionando, pois ISO 8601 é um padrão robusto
+            venue.event_datetime = datetime.fromisoformat(event_datetime_str)
+        except ValueError as e:
+            flash(f"Formato de data e hora do evento inválido: '{event_datetime_str}'. Use o formato ISO (AAAA-MM-DDTHH:MM:SS). Erro: {e}", 'danger')
+            return redirect(url_for('admin_venue'))
+    else:
+        venue.event_datetime = None
+    # --- FIM DAS CORREÇÕES PARA DATA E HORA ---
+        
     db.session.commit()
     
     flash('Informações do local atualizadas com sucesso!', 'success')
@@ -402,9 +474,9 @@ def add_gift():
     if 'image' in request.files:
         file = request.files['image']
         if file and file.filename != '':
-            import os
-            import uuid
-            from werkzeug.utils import secure_filename
+            # import os # Já importado no topo
+            # import uuid # Já importado no topo
+            # from werkzeug.utils import secure_filename # Já importado no topo
             
             # Gerar nome único para o arquivo
             file_ext = os.path.splitext(secure_filename(file.filename))[1].lower()
@@ -595,12 +667,12 @@ def send_whatsapp():
         venue = VenueInfo.query.first()
         if venue:
             message = get_wedding_message(message_type,
-                                         date=venue.date,
-                                         time=venue.time,
-                                         venue=venue.name,
-                                         address=venue.address,
-                                         rsvp_link=request.url_root + 'rsvp',
-                                         gift_link=request.url_root + 'gifts')
+                                          date=venue.date,
+                                          time=venue.time,
+                                          venue=venue.name,
+                                          address=venue.address,
+                                          rsvp_link=request.url_root + 'rsvp',
+                                          gift_link=request.url_root + 'gifts')
     
     # Enviar mensagens
     results = send_bulk_whatsapp_messages(phone_numbers, message)
@@ -702,10 +774,6 @@ def create_admin():
             print("✅ Admin criado automaticamente")
     except Exception as e:
         print(f"Erro ao criar admin: {e}")
-
-# routes.py (healthz route needs to be part of the app instance)
-import os # Importe os se não estiver já importado no topo
-from flask import current_app # Importe current_app se não estiver já importado no topo
 
 @app.route('/healthz')
 def healthz():
