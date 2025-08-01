@@ -382,16 +382,18 @@ def update_venue():
     }
 
     try:
+        # **CORREÇÃO AQUI: Lendo todos os campos do formulário**
         venue.name = request.form.get('name')
         venue.address = request.form.get('address')
         venue.map_link = request.form.get('map_link')
         venue.description = request.form.get('description')
         
+        # Campos de data e hora
         date_str = request.form.get('date')
         time_str = request.form.get('time')
         event_datetime_str = request.form.get('event_datetime')
         
-        # Lógica de conversão de data sem depender do locale
+        # Conversão de data sem depender do locale
         if date_str:
             partes = date_str.lower().replace(' de ', ' ').split()
             if len(partes) == 3:
@@ -432,8 +434,6 @@ def update_venue():
         flash(f"Erro ao salvar as informações. Tente novamente. Detalhes: {str(e)}", "danger")
 
     return redirect(url_for('admin_venue'))
-
-# ... (o resto do seu código no arquivo routes.py)
     
 @app.route('/admin/gifts')
 def admin_gifts():
