@@ -357,33 +357,70 @@ def admin_venue():
 
 @app.route('/admin/update_venue', methods=['POST'])
 def update_venue():
+    """ATUALIZAÇÃO CORRIGIDA - Gerenciar informações do local (POST)"""
+    if 'admin_id' not in session:
+        flash('Acesso negado!', 'danger')
+        return redirect(url_for('admin_login'))
+
+    # Tenta encontrar o registro existente. Se não existir, cria um novo.
     venue = VenueInfo.query.first()
+    if venue is None:
+        venue = VenueInfo()
+        db.session.add(venue)  # Adiciona o novo objeto à sessão para que possa ser salvo.
     
-    # ...
+    # Processa os dados do formulário para o objeto 'venue'
+    venue.name = request.form.get('name')
+    venue.address = request.form.get('address')
+    venue.map_link = request.form.get('map_link')
+    venue.description = request.form.get('description')
+
     date_str = request.form.get('date')
-    print(f"Data recebida do formulário: {date_str}")
+    time_str = request.form.get('time')
+    event_datetime_str = request.form.get('event_datetime')
     
+    # Validação e conversão da data
     try:
         if date_str:
             date_str = date_str.title().strip() 
-            print(f"Data formatada para o banco: {date_str}")
             venue.date = datetime.strptime(date_str, "%d de %B de %Y").date()
-            print(f"Objeto date após a conversão: {venue.date}")
         else:
             venue.date = None
     except ValueError as e:
-        print(f"Erro de ValueError: {e}")
         flash(f"Formato de data inválido: '{date_str}'. Use '19 de Outubro de 2025'.", 'danger')
         return redirect(url_for('admin_venue'))
 
-    # ... (restante do código)
+    # Validação e conversão da hora
+    try:
+        if time_str:
+            venue.time = datetime.strptime(time_str, "%H:%M").time()
+        else:
+            venue.time = None
+    except ValueError:
+        flash("Formato de hora inválido. Use '18:30'.", 'danger')
+        return redirect(url_for('admin_venue'))
     
-    db.session.add(venue)
-    db.session.commit()
-    print("Dados salvos no banco de dados!")
-    
-    flash("Local do evento atualizado com sucesso!", "success")
-    return redirect(url_for('admin_venue'))    
+    # Validação e conversão da data e hora combinadas
+    if event_datetime_str:
+        try:
+            # Assumindo que o formato do input datetime-local é YYYY-MM-DDTHH:MM
+            venue.event_datetime = datetime.fromisoformat(event_datetime_str)
+        except ValueError:
+            flash("Formato de data e hora inválido para a contagem regressiva.", 'danger')
+            return redirect(url_for('admin_venue'))
+    else:
+        venue.event_datetime = None
+
+    # Salva as alterações ou o novo registro
+    try:
+        db.session.commit()
+        flash("Local do evento atualizado com sucesso!", "success")
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Erro ao salvar informações do local: {e}")
+        flash("Erro ao salvar as informações. Tente novamente.", "danger")
+
+    return redirect(url_for('admin_venue'))
+   
 
 @app.route('/admin/gifts')
 def admin_gifts():
