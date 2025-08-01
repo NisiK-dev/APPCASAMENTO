@@ -64,7 +64,8 @@
                                     <input type="text" class="form-control" id="date" name="date"
                                         value="{{ venue.date if venue else '' }}"
                                         placeholder="Ex: 19 de Outubro de 2025">
-                                    <div class="form-text">Como será exibido para os convidados</div>
+                                    <div class="form-text">Como será exibido para os convidados. Preenchido
+                                        automaticamente.</div>
                                 </div>
 
                                 <div class="col-md-6 mb-3">
@@ -74,7 +75,8 @@
                                     </label>
                                     <input type="text" class="form-control" id="time" name="time"
                                         value="{{ venue.time if venue else '' }}" placeholder="Ex: 8:30 da manhã">
-                                    <div class="form-text">Como será exibido para os convidados</div>
+                                    <div class="form-text">Como será exibido para os convidados. Preenchido
+                                        automaticamente.</div>
                                 </div>
                             </div>
 
@@ -251,37 +253,53 @@
         updatePreviewCountdown();
     }
 
-    // Atualizar preview quando a data mudar
+    // Atualizar preview e campos descritivos quando a data mudar
     document.getElementById('event_datetime').addEventListener('change', function () {
         updatePreviewCountdown();
 
-        // Atualizar campos descritivos automaticamente
+        // **INÍCIO DA ALTERAÇÃO**
+        // Lógica para preencher os campos de texto de forma segura
         if (this.value) {
             const date = new Date(this.value);
             const months = [
                 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
             ];
-
+            
             const day = date.getDate();
             const month = months[date.getMonth()];
             const year = date.getFullYear();
             const hour = date.getHours();
             const minute = date.getMinutes();
 
+            // Preenche o campo de texto descritivo da data
             document.getElementById('date').value = `${day} de ${month} de ${year}`;
 
+            // Preenche o campo de texto descritivo da hora
             let timeText = '';
+            // Usa 'pt-BR' para garantir o formato correto sem depender do locale do servidor
+            timeText = new Intl.DateTimeFormat('pt-BR', {
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: false
+            }).format(date);
+            
+            // Adiciona o texto "da manhã", "da tarde", etc.
             if (hour < 12) {
-                timeText = `${hour}:${minute.toString().padStart(2, '0')} da manhã`;
-            } else if (hour === 12) {
-                timeText = `${hour}:${minute.toString().padStart(2, '0')} do meio-dia`;
+                timeText += ' da manhã';
+            } else if (hour < 18) {
+                timeText += ' da tarde';
             } else {
-                timeText = `${hour - 12}:${minute.toString().padStart(2, '0')} da tarde`;
+                timeText += ' da noite';
             }
-
+            
             document.getElementById('time').value = timeText;
+
+        } else {
+            document.getElementById('date').value = '';
+            document.getElementById('time').value = '';
         }
+        // **FIM DA ALTERAÇÃO**
     });
 
     // Inicializar preview
