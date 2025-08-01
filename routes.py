@@ -355,7 +355,13 @@ def admin_venue():
     venue = VenueInfo.query.first()
     return render_template('admin_venue.html', venue=venue)
 
-# ... (restante do código acima)
+# ... (o resto do seu código no arquivo routes.py)
+
+from datetime import datetime, date, time
+import locale
+import logging
+
+# ... (o resto do seu código no arquivo routes.py)
 
 @app.route('/admin/update_venue', methods=['POST'])
 def update_venue():
@@ -369,6 +375,12 @@ def update_venue():
         venue = VenueInfo()
         db.session.add(venue)
 
+    # Mapeamento de meses para evitar dependência de locale
+    meses_map = {
+        'janeiro': 1, 'fevereiro': 2, 'março': 3, 'abril': 4, 'maio': 5, 'junho': 6,
+        'julho': 7, 'agosto': 8, 'setembro': 9, 'outubro': 10, 'novembro': 11, 'dezembro': 12
+    }
+
     try:
         venue.name = request.form.get('name')
         venue.address = request.form.get('address')
@@ -379,21 +391,25 @@ def update_venue():
         time_str = request.form.get('time')
         event_datetime_str = request.form.get('event_datetime')
         
-        # Converte a data e a hora para o formato correto
-        # A nova lógica usa o formato de string literal que o front-end está enviando
-        # e o local `pt_BR` para processar o nome do mês.
+        # Lógica de conversão de data sem depender do locale
         if date_str:
-            # O locale.setlocale(locale.LC_TIME, 'pt_BR.utf8') já deveria estar no app.py
-            # mas vamos garantir a conversão aqui para ser robusto.
-            venue.date = datetime.strptime(date_str, "%d de %B de %Y").date()
+            partes = date_str.lower().replace(' de ', ' ').split()
+            if len(partes) == 3:
+                dia = int(partes[0])
+                mes_nome = partes[1]
+                ano = int(partes[2])
+                mes = meses_map.get(mes_nome)
+                if mes:
+                    venue.date = date(ano, mes, dia)
+                else:
+                    raise ValueError("Nome do mês inválido.")
+            else:
+                raise ValueError("Formato de data inválido.")
         else:
             venue.date = None
         
         if time_str:
-            # O input do tempo pode conter "da manhã" ou "da noite"
-            # Precisamos remover isso antes de converter para um objeto time
             time_str_clean = time_str.replace(" da manhã", "").replace(" da noite", "").strip()
-            # O formato que o banco de dados espera é 'HH:MM'
             venue.time = datetime.strptime(time_str_clean, "%H:%M").time()
         else:
             venue.time = None
@@ -408,7 +424,6 @@ def update_venue():
     
     except ValueError as e:
         db.session.rollback()
-        # O erro mais comum aqui é ValueError. Vamos dar uma mensagem mais específica.
         logging.error(f"Erro de formato de data/hora: {e}")
         flash("Erro: verifique os formatos de Data (Ex: 19 de Outubro de 2025) e Hora (Ex: 18:30).", "danger")
     except Exception as e:
@@ -418,7 +433,7 @@ def update_venue():
 
     return redirect(url_for('admin_venue'))
 
-# ... (restante do código abaixo)
+# ... (o resto do seu código no arquivo routes.py)
     
 @app.route('/admin/gifts')
 def admin_gifts():
