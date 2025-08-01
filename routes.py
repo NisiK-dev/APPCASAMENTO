@@ -354,11 +354,17 @@ def admin_venue():
     
     venue = VenueInfo.query.first()
     return render_template('admin_venue.html', venue=venue)
-
+    
 @app.route('/admin/update_venue', methods=['POST'])
 def update_venue():
-    # ... (código existente da função)
+    # Adicione esta linha para buscar o objeto 'venue' do banco de dados
+    venue = VenueInfo.query.first()
     
+    # Se por algum motivo não houver dados, lide com isso
+    if not venue:
+        flash("Informações do local não encontradas para atualização.", 'danger')
+        return redirect(url_for('admin_venue'))
+        
     venue.name = request.form.get('name')
     venue.address = request.form.get('address')
     venue.map_link = request.form.get('map_link')
@@ -367,21 +373,8 @@ def update_venue():
     date_str = request.form.get('date')
     time_str = request.form.get('time')
     event_datetime_str = request.form.get('event_datetime')
-
-    # Parse de data descritiva
-    try:
-        if date_str:
-            # Capitaliza cada palavra na string.
-            # '19 de outubro de 2025' se torna '19 De Outubro De 2025'
-            date_str = date_str.title().strip() 
-            venue.date = datetime.strptime(date_str, "%d de %B de %Y").date()
-        else:
-            venue.date = None
-    except ValueError as e:
-        flash(f"Formato de data inválido: '{date_str}'. Use '19 de Outubro de 2025'.", 'danger')
-        return redirect(url_for('admin_venue'))
-
-    # ... (o restante do seu código para parse de hora e event_datetime)
+    
+    # ... (o restante do seu código para parse de data e hora)
 
     # Restante do código
     db.session.add(venue)
