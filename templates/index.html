@@ -1,164 +1,162 @@
 {% extends "base.html" %}
 
-{% block title %}Our Wedding - Welcome!{% endblock %}
+{% block title %}Nosso Casamento - Bem-vindos!{% endblock %}
 
 {% block content %}
 <div class="fixed-background"></div>
-
 <div class="hero-section text-center py-5 mb-5">
     <div class="container">
         <h1 class="text-1">
-            <span class="kelly">Kelly</span> & <span class="nisio">Nísio</span>
-        </h1>
-        <p class="text-3 mt-4">
-            "And whatever you do, in word or in deed, do everything in the name of the Lord Jesus, giving thanks to God the Father through him."
-        </p>
-        <p class="text-2">Colossians 3:17</p>
+            <p class="kelly"> Kelly</p>
+            <p class="e">&</p>
+            <p class="nisio">Nísio</p>
+        </h1><br>
 
-        <div class="countdown-container d-flex justify-content-center gap-3 my-4">
+        <p class="text-3">"E tudo quanto fizerdes, seja em palavra, seja em ação, fazei-o em nome
+            do Senhor Jesus, dando por ele graças a Deus Pai."</p>
+        <p class="text-2"> Colossenses 3:17</p>
+        <p class="text-4"> </p>
+
+        <div class="countdown-container mb-4">
             <div class="countdown-item">
                 <div class="countdown-number" id="days">00</div>
-                <div class="countdown-label">DAYS</div>
+                <div class="countdown-label">DIAS</div>
             </div>
             <div class="countdown-item">
                 <div class="countdown-number" id="hours">00</div>
-                <div class="countdown-label">HOURS</div>
+                <div class="countdown-label">HORAS</div>
             </div>
             <div class="countdown-item">
                 <div class="countdown-number" id="minutes">00</div>
-                <div class="countdown-label">MINUTES</div>
+                <div class="countdown-label">MINUTOS</div>
             </div>
             <div class="countdown-item">
                 <div class="countdown-number" id="seconds">00</div>
-                <div class="countdown-label">SECONDS</div>
+                <div class="countdown-label">SEGUNDOS</div>
             </div>
         </div>
 
-        <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-3">
+        <div class="buttons-container">
             <a href="{{ url_for('rsvp') }}" class="btn btn-primary btn-lg">
                 <i class="fas fa-calendar-check me-2"></i>
-                Confirm Attendance
+                Confirmar Presença
             </a>
             <a href="{{ url_for('gifts') }}" class="btn btn-outline-light btn-lg">
                 <i class="fas fa-gift me-2"></i>
-                Gift Registry
+                Lista de Presentes
             </a>
         </div>
     </div>
 </div>
 
-<div class="container">
-    <div class="row g-4">
-        <div class="col-lg-8">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-map-marker-alt me-2"></i>
-                        Event Information
-                    </h3>
-                </div>
-                <div class="card-body">
-                    {% if venue %}
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <h5><i class="fas fa-church me-2"></i>Venue</h5>
-                            <p class="mb-3">{{ venue.name }}</p>
-
-                            <h5><i class="fas fa-calendar-alt me-2"></i>Date</h5>
-                            <p class="mb-3">{{ venue.date }}</p>
-
-                            <h5><i class="fas fa-clock me-2"></i>Time</h5>
-                            <p class="mb-3">{{ venue.time }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            {% if venue.description %}
-                            <h5><i class="fas fa-info-circle me-2"></i>Description</h5>
-                            <p class="mb-3">{{ venue.description }}</p>
-                            {% endif %}
-                            
-                            {% if venue.address %}
-                            <h5><i class="fas fa-map-marked-alt me-2"></i>Address</h5>
-                            <p class="endereco-quebra">{{ venue.address }}</p>
-                            {% endif %}
-
-                            {% if venue.map_link %}
-                            <a href="{{ venue.map_link }}" target="_blank" class="btn btn-outline-primary mt-3">
-                                <i class="fas fa-map me-2"></i>
-                                View on Google Maps
-                            </a>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
-                        <h5>Information Coming Soon</h5>
-                        <p class="text-muted">Event details will be disclosed soon.</p>
-                    </div>
-                    {% endif %}
-                </div>
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-map-marker-alt me-2"></i>
+                    Informações do Evento
+                </h3>
             </div>
-        </div>
+            <div class="card-body">
+                {% if venue %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-church me-2"></i>Local</h5>
+                        <p class="mb-3">{{ venue.name }}</p>
 
-        <div class="col-lg-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-gift me-2"></i>
-                        Gift Registry
-                    </h3>
-                </div>
-                <div class="card-body d-flex flex-column">
-                    {% if gifts %}
-                    <div class="gift-preview">
-                        {% for gift in gifts %}
-                        <div class="gift-item mb-3 p-3 border rounded">
-                            <h6 class="mb-2 text-dark">{{ gift.item_name }}</h6>
-                            {% if gift.price %}
-                            <p class="text-dark mb-2">{{ gift.price }}</p>
-                            {% endif %}
-                            {% if gift.description %}
-                            <p class="small text-dark mb-0">
-                                {{ gift.description | truncate(50, True) }}
-                            </p>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
+                        <h5><i class="fas fa-calendar-alt me-2"></i>Data</h5>
+                        <p class="mb-3">{{ venue.date|format_date_br }}</p>
+
+                        <h5><i class="fas fa-clock me-2"></i>Horário</h5>
+                        <p class="mb-3">{{ venue.time.strftime('%H:%M') }}</p>
                     </div>
-                    <div class="text-center mt-auto">
-                        <a href="{{ url_for('gifts') }}" class="btn btn-outline-primary">
-                            <i class="fas fa-list me-2"></i>
-                            View Full List
+                    <div class="col-md-6">
+                        {% if venue.description %}
+                        <h5><i class="fas fa-info-circle me-2"></i>Descrição</h5>
+                        <p class="mb-3">{{ venue.description }}</p>
+                        <h5><i class="fas fa-map-marked-alt me-2"></i>Endereço</h5>
+                        <p class="endereco-quebra">{{ venue.address }}</p>
+                        {% endif %}
+
+                        {% if venue.map_link %}
+                        <a href="{{ venue.map_link }}" target="_blank" class="btn btn-outline-primary">
+                            <i class="fas fa-map me-2"></i>
+                            Ver no Google Maps
                         </a>
+                        {% endif %}
                     </div>
-                    {% else %}
-                    <div class="text-center py-4 my-auto">
-                        <i class="fas fa-gift fa-3x text-muted mb-3"></i>
-                        <h5>List Coming Soon</h5>
-                        <p class="text-muted">Our gift registry will be available soon.</p>
-                    </div>
-                    {% endif %}
                 </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+                    <h5>Informações em breve</h5>
+                    <p class="text-muted">As informações do local serão divulgadas em breve.</p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-center py-5">
-                    <h2 class="mb-4">
-                        <i class="fas fa-calendar-check me-2"></i>
-                        Confirm Your Attendance
-                    </h2>
-                    <p class="lead mb-4">
-                        Your presence is very important to us! Please confirm if you will be able to attend our wedding.
-                    </p>
-                    <a href="{{ url_for('rsvp') }}" class="btn btn-primary btn-lg">
-                        <i class="fas fa-check me-2"></i>
-                        Confirm Now
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-gift me-2"></i>
+                    Lista de Presentes
+                </h3>
+            </div>
+            <div class="card-body">
+                {% if gifts %}
+                <div class="gift-preview">
+                    {% for gift in gifts %}
+                    <div class="gift-item mb-3 p-3 border rounded">
+                        <h6 class="mb-2 text-dark">{{ gift.item_name }}</h6>
+                        {% if gift.price %}
+                        <p class="text-dark mb-2">{{ gift.price }}</p>
+                        {% endif %}
+                        {% if gift.description %}
+                        <p class="small text-dark mb-0">{{ gift.description[:50] + '...' if gift.description|length >
+                            50 else gift.description }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('gifts') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-2"></i>
+                        Ver Lista Completa
                     </a>
                 </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+                    <h5>Lista em breve</h5>
+                    <p class="text-muted">Nossa lista de presentes será divulgada em breve.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <h2 class="mb-4">
+                    <i class="fas fa-calendar-check me-2"></i>
+                    Confirme sua Presença
+                </h2>
+                <p class="lead mb-4">
+                    Sua presença é muito importante para nós! Por favor, confirme se poderá comparecer ao nosso
+                    casamento.
+                </p>
+                <a href="{{ url_for('rsvp') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-check me-2"></i>
+                    Confirmar Presença Agora
+                </a>
             </div>
         </div>
     </div>
@@ -167,10 +165,10 @@
 
 {% block scripts %}
 <script>
-    // Countdown to the wedding
-    let weddingDate = new Date('2025-10-19T08:30:00'); // Default value
+    // Contagem regressiva para o casamento
+    let weddingDate = new Date('2025-10-19T08:30:00'); // Valor padrão
 
-    // Fetch event date from the server
+    // Buscar data do evento do servidor
     fetch('/api/event-datetime')
         .then(response => response.json())
         .then(data => {
@@ -179,7 +177,7 @@
             }
         })
         .catch(error => {
-            console.log('Using default date for countdown');
+            console.log('Usando data padrão para contagem regressiva');
         });
 
     function updateCountdown() {
@@ -197,25 +195,25 @@
             document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
             document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
         } else {
-            // The wedding has already happened
+            // O casamento já aconteceu
             document.getElementById('days').textContent = '00';
             document.getElementById('hours').textContent = '00';
             document.getElementById('minutes').textContent = '00';
             document.getElementById('seconds').textContent = '00';
 
-            // Show a special message
+            // Mostrar mensagem especial
             document.querySelector('.countdown-container').innerHTML = `
-                <div class="alert alert-success text-center">
-                    <h4><i class="fas fa-heart me-2"></i>Thank you for celebrating with us!</h4>
-                    <p>Our wedding was a success thanks to your presence!</p>
-                </div>
-            `;
+            <div class="alert alert-success text-center">
+                <h4><i class="fas fa-heart me-2"></i>Obrigado por celebrar conosco!</h4>
+                <p>Nosso casamento foi um sucesso graças à presença de vocês!</p>
+            </div>
+        `;
         }
     }
 
-    // Add smooth animations to the cards
+    // Adicionar animações suaves aos cards
     document.addEventListener('DOMContentLoaded', function () {
-        // Initialize countdown
+        // Inicializar contagem regressiva
         updateCountdown();
         setInterval(updateCountdown, 1000);
 
