@@ -357,32 +357,33 @@ def admin_venue():
     
 @app.route('/admin/update_venue', methods=['POST'])
 def update_venue():
-    # Adicione esta linha para buscar o objeto 'venue' do banco de dados
     venue = VenueInfo.query.first()
     
-    # Se por algum motivo não houver dados, lide com isso
-    if not venue:
-        flash("Informações do local não encontradas para atualização.", 'danger')
-        return redirect(url_for('admin_venue'))
-        
-    venue.name = request.form.get('name')
-    venue.address = request.form.get('address')
-    venue.map_link = request.form.get('map_link')
-    venue.description = request.form.get('description')
-
+    # ...
     date_str = request.form.get('date')
-    time_str = request.form.get('time')
-    event_datetime_str = request.form.get('event_datetime')
+    print(f"Data recebida do formulário: {date_str}")
     
-    # ... (o restante do seu código para parse de data e hora)
+    try:
+        if date_str:
+            date_str = date_str.title().strip() 
+            print(f"Data formatada para o banco: {date_str}")
+            venue.date = datetime.strptime(date_str, "%d de %B de %Y").date()
+            print(f"Objeto date após a conversão: {venue.date}")
+        else:
+            venue.date = None
+    except ValueError as e:
+        print(f"Erro de ValueError: {e}")
+        flash(f"Formato de data inválido: '{date_str}'. Use '19 de Outubro de 2025'.", 'danger')
+        return redirect(url_for('admin_venue'))
 
-    # Restante do código
+    # ... (restante do código)
+    
     db.session.add(venue)
     db.session.commit()
+    print("Dados salvos no banco de dados!")
+    
     flash("Local do evento atualizado com sucesso!", "success")
     return redirect(url_for('admin_venue'))
-
-# ... (resto do seu código)
 @app.route('/admin/gifts')
 def admin_gifts():
     """Gerenciar lista de presentes"""
