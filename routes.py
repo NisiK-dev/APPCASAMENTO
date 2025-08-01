@@ -366,40 +366,22 @@ def update_venue():
     venue = VenueInfo.query.first()
     if venue is None:
         venue = VenueInfo()
-        db.session.add(venue)  # Adiciona o novo objeto à sessão para que possa ser salvo.
+        db.session.add(venue)
     
     # Processa os dados do formulário para o objeto 'venue'
     venue.name = request.form.get('name')
     venue.address = request.form.get('address')
     venue.map_link = request.form.get('map_link')
     venue.description = request.form.get('description')
-
-    date_str = request.form.get('date')
-    time_str = request.form.get('time')
+    
+    # O campo 'date' e 'time' agora são apenas strings descritivas
+    # e não precisam mais de conversão.
+    venue.date = request.form.get('date')
+    venue.time = request.form.get('time')
+    
     event_datetime_str = request.form.get('event_datetime')
     
-    # Validação e conversão da data
-    try:
-        if date_str:
-            date_str = date_str.title().strip() 
-            venue.date = datetime.strptime(date_str, "%d de %B de %Y").date()
-        else:
-            venue.date = None
-    except ValueError as e:
-        flash(f"Formato de data inválido: '{date_str}'. Use '19 de Outubro de 2025'.", 'danger')
-        return redirect(url_for('admin_venue'))
-
-    # Validação e conversão da hora
-    try:
-        if time_str:
-            venue.time = datetime.strptime(time_str, "%H:%M").time()
-        else:
-            venue.time = None
-    except ValueError:
-        flash("Formato de hora inválido. Use '18:30'.", 'danger')
-        return redirect(url_for('admin_venue'))
-    
-    # Validação e conversão da data e hora combinadas
+    # Validação e conversão da data e hora combinadas (fonte da verdade)
     if event_datetime_str:
         try:
             # Assumindo que o formato do input datetime-local é YYYY-MM-DDTHH:MM
@@ -420,8 +402,7 @@ def update_venue():
         flash("Erro ao salvar as informações. Tente novamente.", "danger")
 
     return redirect(url_for('admin_venue'))
-   
-
+    
 @app.route('/admin/gifts')
 def admin_gifts():
     """Gerenciar lista de presentes"""
