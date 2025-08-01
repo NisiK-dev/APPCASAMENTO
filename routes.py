@@ -26,6 +26,29 @@ except locale.Error:
     logging.warning("Locale 'pt_BR.utf8' not available in routes.py, date parsing for month names might fail.")
 
 
+# ====================================================================
+# --- FILTRO PERSONALIZADO DO JINJA2 PARA FORMATAR A DATA EM PT-BR ---
+# ====================================================================
+@app.template_filter('format_date_br')
+def format_date_br(value):
+    meses_map = {
+        1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril', 5: 'Maio', 6: 'Junho',
+        7: 'Julho', 8: 'Agosto', 9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
+    }
+    if not value:
+        return ""
+    
+    dia = value.day
+    mes = meses_map.get(value.month)
+    ano = value.year
+    
+    if mes:
+        return f"{dia} de {mes} de {ano}"
+    else:
+        # Se o mês não for encontrado no mapa (caso de erro), retorne a data original ou vazio.
+        return value.strftime('%Y-%m-%d') if isinstance(value, date) else ""
+
+
 # Resto do seu código...
 
 
@@ -662,12 +685,12 @@ def send_whatsapp():
         venue = VenueInfo.query.first()
         if venue:
             message = get_wedding_message(message_type,
-                                          date=venue.date,
-                                          time=venue.time,
-                                          venue=venue.name,
-                                          address=venue.address,
-                                          rsvp_link=request.url_root + 'rsvp',
-                                          gift_link=request.url_root + 'gifts')
+                                         date=venue.date,
+                                         time=venue.time,
+                                         venue=venue.name,
+                                         address=venue.address,
+                                         rsvp_link=request.url_root + 'rsvp',
+                                         gift_link=request.url_root + 'gifts')
     
     # Enviar mensagens
     results = send_bulk_whatsapp_messages(phone_numbers, message)
@@ -679,125 +702,4 @@ def send_whatsapp():
 
 @app.route('/admin/group_guests/<int:group_id>')
 def get_group_guests(group_id):
-    """API para obter convidados do grupo e disponíveis"""
-    if 'admin_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-    
-    group = GuestGroup.query.get_or_404(group_id)
-    
-    # Convidados do grupo
-    group_guests = [{
-        'id': guest.id,
-        'name': guest.name,
-        'rsvp_status': guest.rsvp_status
-    } for guest in group.guests]
-    
-    # Convidados disponíveis (sem grupo)
-    available_guests = [{
-        'id': guest.id,
-        'name': guest.name,
-        'rsvp_status': guest.rsvp_status
-    } for guest in Guest.query.filter_by(group_id=None).all()]
-    
-    return jsonify({
-        'group_guests': group_guests,
-        'available_guests': available_guests
-    })
-
-@app.route('/admin/add_guest_to_group', methods=['POST'])
-def add_guest_to_group():
-    """Adicionar convidado ao grupo"""
-    if 'admin_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-    
-    data = request.get_json()
-    guest_id = data.get('guest_id')
-    group_id = data.get('group_id')
-    
-    if not guest_id or not group_id:
-        return jsonify({'error': 'Missing data'}), 400
-    
-    guest = Guest.query.get_or_404(guest_id)
-    group = GuestGroup.query.get_or_404(group_id)
-    
-    # Adicionar convidado ao grupo
-    guest.group_id = group_id
-    db.session.commit()
-    
-    return jsonify({'success': True})
-
-@app.route('/admin/remove_guest_from_group', methods=['POST'])
-def remove_guest_from_group():
-    """Remover convidado do grupo"""
-    if 'admin_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-    
-    data = request.get_json()
-    guest_id = data.get('guest_id')
-    
-    if not guest_id:
-        return jsonify({'error': 'Missing data'}), 400
-    
-    guest = Guest.query.get_or_404(guest_id)
-    
-    # Remover convidado do grupo
-    guest.group_id = None
-    db.session.commit()
-    
-    return jsonify({'success': True})
-
-@app.errorhandler(404)
-def not_found(error):
-    return render_template('404.html'), 404
-
-@app.errorhandler(500)
-def internal_error(error):
-    db.session.rollback()
-    return render_template('500.html'), 500
-
-@app.before_request
-def create_admin():
-    """Criar admin se não existir"""
-    try:
-        if not Admin.query.first():
-            admin = Admin(
-                username='admin',
-                password_hash=generate_password_hash('admin123')
-            )
-            db.session.add(admin)
-            db.session.commit()
-            print("✅ Admin criado automaticamente")
-    except Exception as e:
-        print(f"Erro ao criar admin: {e}")
-
-@app.route('/healthz')
-def healthz():
-    """
-    Verifica a saúde básica do aplicativo e a conexão com o banco de dados (Supabase).
-    O objetivo principal é responder 200 OK para manter o serviço ativo e
-    verificar a conectividade crítica.
-    """
-    try:
-        # --- 1. Verificação de Conexão com o Banco de Dados (Supabase) ---
-        # Tenta executar uma consulta simples para verificar a conectividade do DB.
-        db.session.execute(text("SELECT 1")).scalar()
-        
-        # --- 2. Verificação de Variáveis de Ambiente Essenciais (Opcional, mas recomendado) ---
-        # Você pode listar algumas variáveis de ambiente críticas aqui.
-        # Se você usa a DATABASE_URL do Render, pode ser bom verificar.
-        if not os.environ.get("DATABASE_URL"):
-            raise ValueError("DATABASE_URL environment variable is missing.")
-
-        # Se todas as verificações passarem
-        return jsonify({
-            "status": "ok",
-            "message": "Application is healthy and database is connected."
-        }), 200
-
-    except Exception as e:
-        # Se qualquer parte da verificação falhar
-        current_app.logger.error(f"Health check failed: {e}")
-        return jsonify({
-            "status": "error",
-            "message": f"Application unhealthy or critical component failed: {str(e)}"
-        }), 500
+    """API para obter
