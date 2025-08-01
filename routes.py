@@ -702,4 +702,17 @@ def send_whatsapp():
 
 @app.route('/admin/group_guests/<int:group_id>')
 def get_group_guests(group_id):
-    """API para obter
+    """API para obter os convidados de um grupo específico."""
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Acesso negado'}), 403
+    
+    group = GuestGroup.query.get_or_404(group_id)
+    guests_data = [{
+        'id': guest.id,
+        'name': guest.name,
+        'phone': guest.phone,
+        'rsvp_status': guest.rsvp_status,
+        'group_name': group.name
+    } for guest in group.guests]
+    
+    return jsonify({'guests': guests_data})
