@@ -355,53 +355,70 @@ def admin_venue():
     venue = VenueInfo.query.first()
     return render_template('admin_venue.html', venue=venue)
 
+# ... (restante do código acima)
+
 @app.route('/admin/update_venue', methods=['POST'])
 def update_venue():
-    """ATUALIZAÇÃO CORRIGIDA - Gerenciar informações do local (POST)"""
+    """Gerenciar informações do local (POST)"""
     if 'admin_id' not in session:
         flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
 
-    # Tenta encontrar o registro existente. Se não existir, cria um novo.
     venue = VenueInfo.query.first()
     if venue is None:
         venue = VenueInfo()
         db.session.add(venue)
-    
-    # Processa os dados do formulário para o objeto 'venue'
-    venue.name = request.form.get('name')
-    venue.address = request.form.get('address')
-    venue.map_link = request.form.get('map_link')
-    venue.description = request.form.get('description')
-    
-    # O campo 'date' e 'time' agora são apenas strings descritivas
-    # e não precisam mais de conversão.
-    venue.date = request.form.get('date')
-    venue.time = request.form.get('time')
-    
-    event_datetime_str = request.form.get('event_datetime')
-    
-    # Validação e conversão da data e hora combinadas (fonte da verdade)
-    if event_datetime_str:
-        try:
-            # Assumindo que o formato do input datetime-local é YYYY-MM-DDTHH:MM
-            venue.event_datetime = datetime.fromisoformat(event_datetime_str)
-        except ValueError:
-            flash("Formato de data e hora inválido para a contagem regressiva.", 'danger')
-            return redirect(url_for('admin_venue'))
-    else:
-        venue.event_datetime = None
 
-    # Salva as alterações ou o novo registro
     try:
+        venue.name = request.form.get('name')
+        venue.address = request.form.get('address')
+        venue.map_link = request.form.get('map_link')
+        venue.description = request.form.get('description')
+        
+        date_str = request.form.get('date')
+        time_str = request.form.get('time')
+        event_datetime_str = request.form.get('event_datetime')
+        
+        # Converte a data e a hora para o formato correto
+        # A nova lógica usa o formato de string literal que o front-end está enviando
+        # e o local `pt_BR` para processar o nome do mês.
+        if date_str:
+            # O locale.setlocale(locale.LC_TIME, 'pt_BR.utf8') já deveria estar no app.py
+            # mas vamos garantir a conversão aqui para ser robusto.
+            venue.date = datetime.strptime(date_str, "%d de %B de %Y").date()
+        else:
+            venue.date = None
+        
+        if time_str:
+            # O input do tempo pode conter "da manhã" ou "da noite"
+            # Precisamos remover isso antes de converter para um objeto time
+            time_str_clean = time_str.replace(" da manhã", "").replace(" da noite", "").strip()
+            # O formato que o banco de dados espera é 'HH:MM'
+            venue.time = datetime.strptime(time_str_clean, "%H:%M").time()
+        else:
+            venue.time = None
+        
+        if event_datetime_str:
+            venue.event_datetime = datetime.fromisoformat(event_datetime_str)
+        else:
+            venue.event_datetime = None
+            
         db.session.commit()
         flash("Local do evento atualizado com sucesso!", "success")
+    
+    except ValueError as e:
+        db.session.rollback()
+        # O erro mais comum aqui é ValueError. Vamos dar uma mensagem mais específica.
+        logging.error(f"Erro de formato de data/hora: {e}")
+        flash("Erro: verifique os formatos de Data (Ex: 19 de Outubro de 2025) e Hora (Ex: 18:30).", "danger")
     except Exception as e:
         db.session.rollback()
         logging.error(f"Erro ao salvar informações do local: {e}")
-        flash("Erro ao salvar as informações. Tente novamente.", "danger")
+        flash(f"Erro ao salvar as informações. Tente novamente. Detalhes: {str(e)}", "danger")
 
     return redirect(url_for('admin_venue'))
+
+# ... (restante do código abaixo)
     
 @app.route('/admin/gifts')
 def admin_gifts():
