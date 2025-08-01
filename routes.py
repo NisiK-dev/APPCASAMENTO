@@ -354,7 +354,7 @@ def admin_venue():
     
     venue = VenueInfo.query.first()
     return render_template('admin_venue.html', venue=venue)
-    
+
 @app.route('/admin/update_venue', methods=['POST'])
 def update_venue():
     venue = VenueInfo.query.first()
@@ -383,7 +383,8 @@ def update_venue():
     print("Dados salvos no banco de dados!")
     
     flash("Local do evento atualizado com sucesso!", "success")
-    return redirect(url_for('admin_venue'))
+    return redirect(url_for('admin_venue'))    
+
 @app.route('/admin/gifts')
 def admin_gifts():
     """Gerenciar lista de presentes"""
