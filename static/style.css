@@ -1,3 +1,55 @@
+
+/* Estilos para o cronômetro responsivo */
+.countdown-container {
+    /* Garante que os itens fiquem em uma única linha e centralizados */
+    display: flex;
+    justify-content: center;
+    flex-wrap: nowrap; /* Impede que os itens quebrem para a próxima linha */
+    margin-bottom: 1.5rem; /* Espaçamento inferior */
+    padding: 0 10px; /* Pequeno padding horizontal para evitar que encoste nas bordas da tela */
+}
+
+.countdown-item {
+    flex: 1; /* Cada item ocupa uma parte igual do espaço disponível */
+    text-align: center;
+    padding: 0 5px; /* Espaçamento entre os itens */
+}
+
+.countdown-number {
+    /* Tamanho da fonte responsivo: mínimo de 2rem, ideal de 8vw, máximo de 4rem */
+    font-size: clamp(2rem, 8vw, 4rem);
+    font-weight: bold;
+    line-height: 1; /* Ajusta a altura da linha para evitar espaços extras */
+    color: #ffffff; /* Cor dos números */
+}
+
+.countdown-label {
+    /* Tamanho da fonte responsivo para os rótulos */
+    font-size: clamp(0.7rem, 2.5vw, 1rem);
+    text-transform: uppercase;
+    margin-top: 5px;
+    color: #ffffff; /* Cor dos rótulos */
+}
+
+/* Ajustes para telas muito pequenas, se necessário */
+@media (max-width: 400px) {
+    .countdown-item {
+        padding: 0 2px; /* Reduz ainda mais o padding em telas muito estreitas */
+    }
+}
+
+/* Efeito de hover para os cards na página inicial */
+.hover-effect {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-effect:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+
+
+
 /* Wedding RSVP System Custom Styles */
 @font-face {
     font-family: 'minhafont';
