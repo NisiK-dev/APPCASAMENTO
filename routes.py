@@ -7,18 +7,12 @@ from send_whatsapp import send_bulk_whatsapp_messages, get_wedding_message
 
 import logging
 from sqlalchemy import text # Necessário para o healthz e qualquer raw SQL
-from datetime import datetime, date, time # <<< 'date' e 'time' já estavam aqui, ótimo!
-import os # Importe os se não estiver já importado no topo
-from flask import current_app # Importe current_app se não estiver já importado no topo
-import uuid # Para o upload de imagens, se não estiver já importado
-from werkzeug.utils import secure_filename # Para o upload de imagens, se não estiver já importado
+from datetime import datetime, date, time
+import os
+from flask import current_app
+import uuid
+from werkzeug.utils import secure_filename
 
-# Importar locale para lidar com nomes de meses em português
-# NOTA: A configuração principal do locale agora está em app.py.
-# Esta importação e o bloco try-except para locale.setlocale(locale.LC_TIME...)
-# podem ser mantidos para fins de logging específico ou se houver necessidade
-# de um locale diferente para formatação de tempo aqui, mas a configuração
-# global já é feita em app.py.
 import locale
 try:
     locale.setlocale(locale.LC_TIME, 'pt_BR.utf8')
@@ -26,9 +20,6 @@ except locale.Error:
     logging.warning("Locale 'pt_BR.utf8' not available in routes.py, date parsing for month names might fail.")
 
 
-# ====================================================================
-# --- FILTRO PERSONALIZADO DO JINJA2 PARA FORMATAR A DATA EM PT-BR ---
-# ====================================================================
 @app.template_filter('format_date_br')
 def format_date_br(value):
     meses_map = {
@@ -45,11 +36,7 @@ def format_date_br(value):
     if mes:
         return f"{dia} de {mes} de {ano}"
     else:
-        # Se o mês não for encontrado no mapa (caso de erro), retorne a data original ou vazio.
         return value.strftime('%Y-%m-%d') if isinstance(value, date) else ""
-
-
-# Resto do seu código...
 
 
 @app.route('/')
@@ -57,19 +44,18 @@ def index():
     try:
         venue = VenueInfo.query.first()
         
-        # --- AQUI ESTÁ A MUDANÇA PRINCIPAL ---
-        # Busca todos os presentes ativos para exibir na prévia
-        gifts = GiftRegistry.query.filter_by(is_active=True).all()
-        # Se quiser limitar o número de presentes na prévia, você pode fazer:
-        # gifts = GiftRegistry.query.filter_by(is_active=True).order_by(GiftRegistry.id.desc()).limit(3).all()
+        # PASSO 1: AQUI ESTÁ A MUDANÇA PRINCIPAL PARA LIMITAR OS PRESENTES
+        # Antes: gifts = GiftRegistry.query.filter_by(is_active=True).all()
+        # Agora: Usamos .limit(N) para buscar apenas N presentes.
+        # Também é uma boa prática ordenar para garantir quais itens serão exibidos.
+        gifts = GiftRegistry.query.filter_by(is_active=True).order_by(GiftRegistry.id.desc()).limit(3).all()
         
         # Passa tanto 'venue' quanto 'gifts' para o template
         return render_template('index.html', venue=venue, gifts=gifts)
     except Exception as e:
-        db.session.rollback()  # Importante: fazer rollback em caso de erro
+        db.session.rollback()
         logging.error(f"Erro ao acessar dados na rota principal: {e}")
-        # Retornar uma página de erro ou dados padrão, garantindo que 'gifts' também seja passado
-        return render_template('index.html', venue=None, gifts=[]) # Passe uma lista vazia para gifts
+        return render_template('index.html', venue=None, gifts=[])
     finally:
         db.session.close()
 
@@ -378,14 +364,6 @@ def admin_venue():
     venue = VenueInfo.query.first()
     return render_template('admin_venue.html', venue=venue)
 
-# ... (o resto do seu código no arquivo routes.py)
-
-from datetime import datetime, date, time
-import locale
-import logging
-
-# ... (o resto do seu código no arquivo routes.py)
-
 @app.route('/admin/update_venue', methods=['POST'])
 def update_venue():
     """Gerenciar informações do local (POST)"""
@@ -401,11 +379,10 @@ def update_venue():
     # Mapeamento de meses para evitar dependência de locale
     meses_map = {
         'janeiro': 1, 'fevereiro': 2, 'março': 3, 'abril': 4, 'maio': 5, 'junho': 6,
-        'julho': 7, 'agosto': 8, 'setembro': 9, 'outubro': 10, 'novembro': 11, 'dezembro': 12
+        'julho': 7, 'agosto': 8, 9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
     }
 
     try:
-        # **CORREÇÃO AQUI: Lendo todos os campos do formulário**
         venue.name = request.form.get('name')
         venue.address = request.form.get('address')
         venue.map_link = request.form.get('map_link')
@@ -492,17 +469,11 @@ def add_gift():
     if 'image' in request.files:
         file = request.files['image']
         if file and file.filename != '':
-            # import os # Já importado no topo
-            # import uuid # Já importado no topo
-            # from werkzeug.utils import secure_filename # Já importado no topo
-            
-            # Gerar nome único para o arquivo
             file_ext = os.path.splitext(secure_filename(file.filename))[1].lower()
             if file_ext in ['.jpg', '.jpeg', '.png', '.gif']:
                 image_filename = f"{uuid.uuid4().hex}{file_ext}"
                 file_path = os.path.join('static/uploads/gifts', image_filename)
                 
-                # Criar diretório se não existir
                 os.makedirs(os.path.dirname(file_path), exist_ok=True)
                 file.save(file_path)
     
@@ -539,7 +510,7 @@ def edit_gift(gift_id):
     gift.pix_key = request.form.get('pix_key')
     gift.pix_link = request.form.get('pix_link')
     gift.credit_card_link = request.form.get('credit_card_link')
-    gift.is_active = bool(request.form.get('is_active')) # É bom garantir que is_active seja booleano
+    gift.is_active = bool(request.form.get('is_active'))
     
     db.session.commit()
     
@@ -578,9 +549,8 @@ def api_event_datetime():
             'success': True
         })
     else:
-        # Data padrão caso não esteja configurada
         return jsonify({
-            'datetime': '2025-10-19T08:30:00', # Certifique-se de que esta data é uma string válida
+            'datetime': '2025-10-19T08:30:00',
             'success': True
         })
 
@@ -600,23 +570,19 @@ def admin_settings():
             flash('Todos os campos são obrigatórios!', 'danger')
             return render_template('admin_settings.html')
         
-        # Verificar senha atual
         admin = Admin.query.get(session['admin_id'])
         if not check_password_hash(admin.password_hash, current_password):
             flash('Senha atual incorreta!', 'danger')
             return render_template('admin_settings.html')
         
-        # Verificar se as novas senhas coincidem
         if new_password != confirm_password:
             flash('As novas senhas não coincidem!', 'danger')
             return render_template('admin_settings.html')
         
-        # Verificar se a nova senha tem pelo menos 6 caracteres
         if len(new_password) < 6:
             flash('A nova senha deve ter pelo menos 6 caracteres!', 'danger')
             return render_template('admin_settings.html')
         
-        # Atualizar senha
         admin.password_hash = generate_password_hash(new_password)
         db.session.commit()
         
@@ -647,7 +613,7 @@ def send_whatsapp():
     
     data = request.get_json()
     
-    recipient_type = data.get('recipient_type')  # 'individual', 'group', 'all'
+    recipient_type = data.get('recipient_type')
     message = data.get('message')
     message_type = data.get('message_type', 'custom')
     
@@ -680,7 +646,6 @@ def send_whatsapp():
     if not phone_numbers:
         return jsonify({'error': 'Nenhum número de telefone encontrado'}), 400
     
-    # Formatar mensagem se for pré-definida
     if message_type != 'custom':
         venue = VenueInfo.query.first()
         if venue:
@@ -692,7 +657,6 @@ def send_whatsapp():
                                          rsvp_link=request.url_root + 'rsvp',
                                          gift_link=request.url_root + 'gifts')
     
-    # Enviar mensagens
     results = send_bulk_whatsapp_messages(phone_numbers, message)
     
     return jsonify({
@@ -716,3 +680,52 @@ def get_group_guests(group_id):
     } for guest in group.guests]
     
     return jsonify({'guests': guests_data})
+
+@app.errorhandler(404)
+def not_found(error):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('500.html'), 500
+
+@app.before_request
+def create_admin():
+    """Criar admin se não existir"""
+    try:
+        if not Admin.query.first():
+            admin = Admin(
+                username='admin',
+                password_hash=generate_password_hash('admin123')
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print("✅ Admin criado automaticamente")
+    except Exception as e:
+        print(f"Erro ao criar admin: {e}")
+
+@app.route('/healthz')
+def healthz():
+    """
+    Verifica a saúde básica do aplicativo e a conexão com o banco de dados (Supabase).
+    O objetivo principal é responder 200 OK para manter o serviço ativo e
+    verificar a conectividade crítica.
+    """
+    try:
+        db.session.execute(text("SELECT 1")).scalar()
+        
+        if not os.environ.get("DATABASE_URL"):
+            raise ValueError("DATABASE_URL environment variable is missing.")
+
+        return jsonify({
+            "status": "ok",
+            "message": "Application is healthy and database is connected."
+        }), 200
+
+    except Exception as e:
+        current_app.logger.error(f"Health check failed: {e}")
+        return jsonify({
+            "status": "error",
+            "message": f"Application unhealthy or critical component failed: {str(e)}"
+        }), 500
