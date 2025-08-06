@@ -18,7 +18,8 @@
         {% if gifts %}
         <div class="row">
             {% for gift in gifts %}
-            <div class="col-md-6 col-lg-4 mb-4">
+            {# PASSO 1: Adicionar um ID único para cada presente. O ID será "gift-" seguido do ID do presente. #}
+            <div class="col-md-6 col-lg-4 mb-4" id="gift-{{ gift.id }}">
                 <div class="card h-100 border-0 shadow-sm gift-card">
                     {% if gift.image_url %}
                     <div class="card-img-top-wrapper" style="height: 200px; overflow: hidden;">
@@ -112,7 +113,9 @@
 {% endblock %}
 
 {% block scripts %}
+{{ super() }} {# Mantém os scripts do base.html e quaisquer outros scripts existentes #}
 <style>
+    /* Seu CSS existente para gift-card, se houver */
     .gift-card {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
@@ -123,30 +126,43 @@
     }
 </style>
 <script>
-function copiarPix(giftId) {
-    const chavePix = document.getElementById(`pixKey${giftId}`).textContent;
-    navigator.clipboard.writeText(chavePix).then(() => {
-        const msg = document.getElementById(`copiedMsg${giftId}`);
-        msg.style.display = "block";
-        setTimeout(() => {
-            msg.style.display = "none";
-        }, 2000);
-    }).catch(err => {
-        console.error('Erro ao copiar PIX: ', err);
-        // Fallback for browsers that don't support clipboard API
-        const textArea = document.createElement('textarea');
-        textArea.value = chavePix;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        
-        const msg = document.getElementById(`copiedMsg${giftId}`);
-        msg.style.display = "block";
-        setTimeout(() => {
-            msg.style.display = "none";
-        }, 2000);
+    // Função para copiar a chave PIX (já existente)
+    function copiarPix(giftId) {
+        const chavePix = document.getElementById(`pixKey${giftId}`).textContent;
+        navigator.clipboard.writeText(chavePix).then(() => {
+            const msg = document.getElementById(`copiedMsg${giftId}`);
+            msg.style.display = "block";
+            setTimeout(() => {
+                msg.style.display = "none";
+            }, 2000);
+        }).catch(err => {
+            console.error('Erro ao copiar PIX: ', err);
+            // Fallback para navegadores que não suportam a API de clipboard
+            const textArea = document.createElement('textarea');
+            textArea.value = chavePix;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            const msg = document.getElementById(`copiedMsg${giftId}`);
+            msg.style.display = "block";
+            setTimeout(() => {
+                msg.style.display = "none";
+            }, 2000);
+        });
+    }
+
+    // PASSO 2: Lógica para rolar até o presente específico ao carregar a página
+    document.addEventListener('DOMContentLoaded', function() {
+        const hash = window.location.hash; // Obtém o fragmento da URL (ex: #gift-123)
+        if (hash) {
+            const element = document.querySelector(hash); // Encontra o elemento com o ID correspondente
+            if (element) {
+                // Rola suavemente até o elemento
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
     });
-}
 </script>
 {% endblock %}
