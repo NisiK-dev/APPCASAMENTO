@@ -4,6 +4,7 @@
 
 {% block content %}
 <div class="fixed-background"></div>
+<!-- Hero Section -->
 <div class="hero-section text-center py-5 mb-5">
     <div class="container">
         <h1 class="text-1">
@@ -17,6 +18,7 @@
         <p class="text-2"> Colossenses 3:17</p>
         <p class="text-4"> </p>
 
+        <!-- Countdown Timer -->
         <div class="countdown-container mb-4">
             <div class="countdown-item">
                 <div class="countdown-number" id="days">00</div>
@@ -50,6 +52,7 @@
 </div>
 
 <div class="row">
+    <!-- Venue Information -->
     <div class="col-lg-8 mb-4">
         <div class="card h-100">
             <div class="card-header">
@@ -98,6 +101,7 @@
         </div>
     </div>
 
+    <!-- Gift Preview -->
     <div class="col-lg-4 mb-4">
         <div class="card h-100">
             <div class="card-header">
@@ -110,16 +114,19 @@
                 {% if gifts %}
                 <div class="gift-preview">
                     {% for gift in gifts %}
-                    <div class="gift-item mb-3 p-3 border rounded">
-                        <h6 class="mb-2 text-dark">{{ gift.item_name }}</h6>
-                        {% if gift.price %}
-                        <p class="text-dark mb-2">{{ gift.price }}</p>
-                        {% endif %}
-                        {% if gift.description %}
-                        <p class="small text-dark mb-0">{{ gift.description[:50] + '...' if gift.description|length >
-                            50 else gift.description }}</p>
-                        {% endif %}
-                    </div>
+                    {# PASSO 1: Adicionar um link ao item do presente #}
+                    <a href="{{ url_for('gifts') }}#gift-{{ gift.id }}" class="text-decoration-none text-dark">
+                        <div class="gift-item mb-3 p-3 border rounded shadow-sm hover-effect">
+                            <h6 class="mb-2 text-dark">{{ gift.item_name }}</h6>
+                            {% if gift.price %}
+                            <p class="text-dark mb-2">{{ gift.price }}</p>
+                            {% endif %}
+                            {% if gift.description %}
+                            <p class="small text-dark mb-0">{{ gift.description[:50] + '...' if gift.description|length >
+                                50 else gift.description }}</p>
+                            {% endif %}
+                        </div>
+                    </a>
                     {% endfor %}
                 </div>
 
@@ -141,6 +148,7 @@
     </div>
 </div>
 
+<!-- RSVP Section -->
 <div class="row mt-4">
     <div class="col-12">
         <div class="card">
