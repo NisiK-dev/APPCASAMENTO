@@ -225,19 +225,21 @@ def search_guest():
         return jsonify({'error': 'Nome é obrigatório'}), 400
     
     # Busca por nome (case-insensitive)
-    guest = Guest.query.filter(Guest.name.ilike(f'%{name}%')).all()
+    guests = Guest.query.filter(Guest.name.ilike(f'%{name}%')).all()
     
-    if not guest:
+    if not guests:
         return jsonify({'error': 'Convidado não encontrado'}), 404
     
-    # Se o convidado pertence a um grupo, busca todos os membros do grupo
-    if guest.group_id:
-        group_guests = Guest.query.filter_by(group_id=guest.group_id).all()
-        group_name = guest.group.name if guest.group else None
-    else:
-        group_guests = [guest]
-        group_name = None
+    # Verifica se o primeiro da lista tem group_id
+    first_guest = guests[0]
     
+    if first_guest.group_id:
+        group_guests = Guest.query.filter_by(group_id=first_guest.group_id).all()
+        group_name = first_guest.group.name if first_guest.group else None
+    else:
+        group_guests = guests
+        group_name = None
+
     guests_data = [{
         'id': g.id,
         'name': g.name,
