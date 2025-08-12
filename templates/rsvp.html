@@ -24,14 +24,15 @@
                 Encontre seu nome na lista
             </h5>
         </div>
-        <div class="card-body">
-            <div class="mb-3">
-                <label for="guestSearch" class="form-label">Digite seu nome</label>
-                <input type="text" class="form-control form-control-lg" id="guestSearch" placeholder="Ex: João Silva"
-                    autocomplete="off">
-                <div class="form-text">Digite pelo menos 2 caracteres para buscar</div>
-            </div>
 
+<div class="card-body">
+    <div class="mb-3">
+        <label for="guestSearch" class="form-label">Digite seu nome</label>
+        <input type="text" class="form-control form-control-lg" id="guestSearch" placeholder="Ex: João Silva"
+            autocomplete="off" minlength="4">
+        <div class="form-text">Digite pelo menos 4 caracteres para buscar</div>
+    </div>
+</div>
             <!-- Search Results -->
             <div id="searchResults" style="display: none;">
                 <h6 class="mb-3">Resultados da busca:</h6>
