@@ -12,6 +12,7 @@ import os
 from flask import current_app
 import uuid
 from werkzeug.utils import secure_filename
+from sqlalchemy.orm import joinedload # Importação para otimização de consulta
 
 import locale
 try:
@@ -108,12 +109,12 @@ def admin_dashboard():
     total_gifts = GiftRegistry.query.count()
     
     return render_template('admin_dashboard.html', 
-                           total_guests=total_guests,
-                           confirmed_guests=confirmed_guests,
-                           pending_guests=pending_guests,
-                           declined_guests=declined_guests,
-                           total_groups=total_groups,
-                           total_gifts=total_gifts)
+                            total_guests=total_guests,
+                            confirmed_guests=confirmed_guests,
+                            pending_guests=pending_guests,
+                            declined_guests=declined_guests,
+                            total_groups=total_groups,
+                            total_gifts=total_gifts)
 
 @app.route('/admin/guests')
 def admin_guests():
@@ -132,12 +133,12 @@ def admin_guests():
     pending_guests = len([g for g in guests if g.rsvp_status == 'pendente'])
     
     return render_template('admin_guests.html', 
-                           guests=guests, 
-                           groups=groups,
-                           total_guests=total_guests,
-                           confirmed_guests=confirmed_guests,
-                           declined_guests=declined_guests,
-                           pending_guests=pending_guests)
+                            guests=guests, 
+                            groups=groups,
+                            total_guests=total_guests,
+                            confirmed_guests=confirmed_guests,
+                            declined_guests=declined_guests,
+                            pending_guests=pending_guests)
 
 @app.route('/admin/add_guest', methods=['POST'])
 def add_guest():
@@ -276,17 +277,18 @@ def confirm_rsvp():
     db.session.commit()
     
     return render_template('rsvp_success.html', 
-                           confirmed_guests=confirmed_guests,
-                           declined_guests=declined_guests)
+                            confirmed_guests=confirmed_guests,
+                            declined_guests=declined_guests)
 
 @app.route('/admin/groups')
 def admin_groups():
-    """Gerenciar grupos de convidados"""
+    """Gerenciar grupos de convidados."""
     if 'admin_id' not in session:
         flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
-    groups = GuestGroup.query.all()
+    # Use 'joinedload' para otimizar a consulta e buscar os convidados de cada grupo de uma só vez
+    groups = GuestGroup.query.options(joinedload(GuestGroup.guests)).all()
     return render_template('admin_groups.html', groups=groups)
 
 @app.route('/admin/add_group', methods=['POST'])
@@ -647,12 +649,12 @@ def send_whatsapp():
         venue = VenueInfo.query.first()
         if venue:
             message = get_wedding_message(message_type,
-                                         date=venue.date,
-                                         time=venue.time,
-                                         venue=venue.name,
-                                         address=venue.address,
-                                         rsvp_link=request.url_root + 'rsvp',
-                                         gift_link=request.url_root + 'gifts')
+                                            date=venue.date,
+                                            time=venue.time,
+                                            venue=venue.name,
+                                            address=venue.address,
+                                            rsvp_link=request.url_root + 'rsvp',
+                                            gift_link=request.url_root + 'gifts')
     
     results = send_bulk_whatsapp_messages(phone_numbers, message)
     
@@ -663,20 +665,95 @@ def send_whatsapp():
 
 @app.route('/admin/group_guests/<int:group_id>')
 def get_group_guests(group_id):
-    """API para obter os convidados de um grupo específico."""
+    """
+    Rota API para buscar convidados para o modal de gerenciamento.
+    Retorna os convidados disponíveis (sem grupo) e os convidados do grupo.
+    """
     if 'admin_id' not in session:
         return jsonify({'error': 'Acesso negado'}), 403
-    
+
     group = GuestGroup.query.get_or_404(group_id)
-    guests_data = [{
-        'id': guest_obj.id,
-        'name': guest_obj.name,
-        'phone': guest_obj.phone,
-        'rsvp_status': guest_obj.rsvp_status,
-        'group_name': group.name
-    } for guest_obj in group.guests]
-    
-    return jsonify({'guests': guests_data})
+
+    # Obtenha todos os convidados sem grupo
+    available_guests = Guest.query.filter_by(guest_group_id=None).all()
+
+    # Obtenha os convidados do grupo atual
+    group_guests = group.guests
+
+    # Converte os objetos Guest para dicionários para serialização JSON
+    available_guests_list = [{
+        'id': guest.id,
+        'name': guest.name
+    } for guest in available_guests]
+
+    group_guests_list = [{
+        'id': guest.id,
+        'name': guest.name,
+        'rsvp_status': guest.rsvp_status
+    } for guest in group_guests]
+
+    return jsonify({
+        'available_guests': available_guests_list,
+        'group_guests': group_guests_list
+    })
+
+@app.route('/admin/add_guest_to_group', methods=['POST'])
+def add_guest_to_group():
+    """Rota para adicionar um convidado a um grupo via POST."""
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Acesso negado'}), 403
+
+    data = request.json
+    guest_id = data.get('guest_id')
+    group_id = data.get('group_id')
+
+    if not guest_id or not group_id:
+        return jsonify({'success': False, 'message': 'Dados de convidado ou grupo ausentes'}), 400
+
+    guest = Guest.query.get(guest_id)
+    group = GuestGroup.query.get(group_id)
+
+    if not guest or not group:
+        return jsonify({'success': False, 'message': 'Convidado ou grupo não encontrado'}), 404
+
+    try:
+        # Define a group_id para o convidado
+        guest.group_id = group_id
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Convidado adicionado ao grupo com sucesso.'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erro ao adicionar convidado ao grupo: {e}")
+        return jsonify({'success': False, 'message': 'Erro interno do servidor.'}), 500
+
+@app.route('/admin/remove_guest_from_group', methods=['POST'])
+def remove_guest_from_group():
+    """Rota para remover um convidado de um grupo via POST."""
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Acesso negado'}), 403
+
+    data = request.json
+    guest_id = data.get('guest_id')
+    group_id = data.get('group_id')
+
+    if not guest_id or not group_id:
+        return jsonify({'success': False, 'message': 'Dados de convidado ou grupo ausentes'}), 400
+
+    guest = Guest.query.get(guest_id)
+    group = GuestGroup.query.get(group_id)
+
+    if not guest or not group or guest.group_id != group_id:
+        return jsonify({'success': False, 'message': 'Convidado não pertence a este grupo ou não foi encontrado'}), 404
+
+    try:
+        # Define a group_id do convidado como None
+        guest.group_id = None
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Convidado removido do grupo com sucesso.'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erro ao remover convidado do grupo: {e}")
+        return jsonify({'success': False, 'message': 'Erro interno do servidor.'}), 500
 
 @app.errorhandler(404)
 def not_found(error):
