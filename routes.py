@@ -1,3 +1,5 @@
+# routes.py
+
 from flask import render_template, request, jsonify, session, redirect, url_for, flash
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import app
@@ -649,12 +651,12 @@ def send_whatsapp():
         venue = VenueInfo.query.first()
         if venue:
             message = get_wedding_message(message_type,
-                                            date=venue.date,
-                                            time=venue.time,
-                                            venue=venue.name,
-                                            address=venue.address,
-                                            rsvp_link=request.url_root + 'rsvp',
-                                            gift_link=request.url_root + 'gifts')
+                                          date=venue.date,
+                                          time=venue.time,
+                                          venue=venue.name,
+                                          address=venue.address,
+                                          rsvp_link=request.url_root + 'rsvp',
+                                          gift_link=request.url_root + 'gifts')
     
     results = send_bulk_whatsapp_messages(phone_numbers, message)
     
@@ -674,8 +676,9 @@ def get_group_guests(group_id):
 
     group = GuestGroup.query.get_or_404(group_id)
 
+    # CORREÇÃO: A propriedade foi alterada para 'group_id' para corresponder ao models.py.
     # Obtenha todos os convidados sem grupo
-    available_guests = Guest.query.filter_by(guest_group_id=None).all()
+    available_guests = Guest.query.filter_by(group_id=None).all()
 
     # Obtenha os convidados do grupo atual
     group_guests = group.guests
