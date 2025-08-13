@@ -1,9 +1,8 @@
 from flask import render_template, request, jsonify, session, redirect, url_for, flash
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import app
-# Correção: A classe 'hospede' deve ser importada como 'Hospede' (com H maiúsculo),
-# de acordo com as convenções de nomenclatura de classes em Python.
-from models import db, AdminUser, Admin, Hospede, GuestGroup, GiftRegistry, VenueInfo
+# Correção: A classe 'Hospede' foi substituída por 'Guest' para corresponder ao models.py mais recente
+from models import db, AdminUser, Admin, Guest, GuestGroup, GiftRegistry, VenueInfo
 from send_whatsapp import send_bulk_whatsapp_messages, get_wedding_message
 
 import logging
@@ -18,9 +17,6 @@ import locale
 try:
     locale.setlocale(locale.LC_TIME, 'pt_BR.utf8')
 except locale.Error:
-    # Este aviso aparece em ambientes como o Render, onde o pacote de localidade não está instalado.
-    # O código continua a funcionar, mas a formatação de datas com nomes de meses pode não funcionar
-    # para todos os formatos se o locale for necessário.
     logging.warning("Locale 'pt_BR.utf8' not available in routes.py, date parsing for month names might fail.")
 
 
@@ -47,7 +43,6 @@ def format_date_br(value):
 def index():
     try:
         venue = VenueInfo.query.first()
-        
         gifts = GiftRegistry.query.filter_by(is_active=True).order_by(GiftRegistry.id.desc()).limit(3).all()
         
         return render_template('index.html', venue=venue, gifts=gifts)
@@ -103,49 +98,49 @@ def admin_dashboard():
         flash('Acesso negado! Faça login primeiro.', 'danger')
         return redirect(url_for('admin_login'))
     
-    # Usando o nome de classe correto, 'Hospede'
-    total_hospedes = Hospede.query.count()
-    confirmed_hospedes = Hospede.query.filter_by(rsvp_status='confirmado').count()
-    pending_hospedes = Hospede.query.filter_by(rsvp_status='pendente').count()
-    declined_hospedes = Hospede.query.filter_by(rsvp_status='nao_confirmado').count()
+    # Usando o nome de classe correto, 'Guest'
+    total_guests = Guest.query.count()
+    confirmed_guests = Guest.query.filter_by(rsvp_status='confirmado').count()
+    pending_guests = Guest.query.filter_by(rsvp_status='pendente').count()
+    declined_guests = Guest.query.filter_by(rsvp_status='nao_confirmado').count()
     
     total_groups = GuestGroup.query.count()
     total_gifts = GiftRegistry.query.count()
     
     return render_template('admin_dashboard.html', 
-                           total_hospedes=total_hospedes,
-                           confirmed_hospedes=confirmed_hospedes,
-                           pending_hospedes=pending_hospedes,
-                           declined_hospedes=declined_hospedes,
+                           total_guests=total_guests,
+                           confirmed_guests=confirmed_guests,
+                           pending_guests=pending_guests,
+                           declined_guests=declined_guests,
                            total_groups=total_groups,
                            total_gifts=total_gifts)
 
-@app.route('/admin/hospedes')
-def admin_hospedes():
+@app.route('/admin/guests')
+def admin_guests():
     """Gerenciar lista de convidados"""
     if 'admin_id' not in session:
         flash('Acesso negado! Faça login primeiro.', 'danger')
         return redirect(url_for('admin_login'))
     
-    # Usando o nome de classe correto, 'Hospede'
-    hospedes = Hospede.query.all()
+    # Usando o nome de classe correto, 'Guest'
+    guests = Guest.query.all()
     groups = GuestGroup.query.all()
     
-    total_hospedes = len(hospedes)
-    confirmed_hospedes = len([g for g in hospedes if g.rsvp_status == 'confirmado'])
-    declined_hospedes = len([g for g in hospedes if g.rsvp_status == 'nao_confirmado'])
-    pending_hospedes = len([g for g in hospedes if g.rsvp_status == 'pendente'])
+    total_guests = len(guests)
+    confirmed_guests = len([g for g in guests if g.rsvp_status == 'confirmado'])
+    declined_guests = len([g for g in guests if g.rsvp_status == 'nao_confirmado'])
+    pending_guests = len([g for g in guests if g.rsvp_status == 'pendente'])
     
-    return render_template('admin_hospedes.html', 
-                           hospedes=hospedes, 
+    return render_template('admin_guests.html', 
+                           guests=guests, 
                            groups=groups,
-                           total_hospedes=total_hospedes,
-                           confirmed_hospedes=confirmed_hospedes,
-                           declined_hospedes=declined_hospedes,
-                           pending_hospedes=pending_hospedes)
+                           total_guests=total_guests,
+                           confirmed_guests=confirmed_guests,
+                           declined_guests=declined_guests,
+                           pending_guests=pending_guests)
 
-@app.route('/admin/add_hospede', methods=['POST'])
-def add_hospede():
+@app.route('/admin/add_guest', methods=['POST'])
+def add_guest():
     """Adicionar novo convidado"""
     if 'admin_id' not in session:
         flash('Acesso negado!', 'danger')
@@ -157,132 +152,132 @@ def add_hospede():
     
     if not name:
         flash('Nome é obrigatório!', 'danger')
-        return redirect(url_for('admin_hospedes'))
+        return redirect(url_for('admin_guests'))
     
     group_id = int(group_id) if group_id and group_id != '' else None
     
-    # Usando o nome de classe correto, 'Hospede'
-    novo_hospede = Hospede(
+    # Usando o nome de classe correto, 'Guest'
+    new_guest = Guest(
         name=name,
         phone=phone,
         group_id=group_id
     )
     
-    db.session.add(novo_hospede)
+    db.session.add(new_guest)
     db.session.commit()
     
     flash(f'Convidado {name} adicionado com sucesso!', 'success')
-    return redirect(url_for('admin_hospedes'))
+    return redirect(url_for('admin_guests'))
 
-@app.route('/admin/edit_hospede/<int:hospede_id>', methods=['POST'])
-def edit_hospede(hospede_id):
+@app.route('/admin/edit_guest/<int:guest_id>', methods=['POST'])
+def edit_guest(guest_id):
     """Editar convidado"""
     if 'admin_id' not in session:
         flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
-    # Usando o nome de classe correto, 'Hospede'
-    hospede_a_editar = Hospede.query.get_or_404(hospede_id)
+    # Usando o nome de classe correto, 'Guest'
+    guest_to_edit = Guest.query.get_or_404(guest_id)
     
-    hospede_a_editar.name = request.form.get('name')
-    hospede_a_editar.phone = request.form.get('phone')
+    guest_to_edit.name = request.form.get('name')
+    guest_to_edit.phone = request.form.get('phone')
     group_id = request.form.get('group_id')
-    hospede_a_editar.group_id = int(group_id) if group_id and group_id != '' else None
+    guest_to_edit.group_id = int(group_id) if group_id and group_id != '' else None
     
     db.session.commit()
     
-    flash(f'Convidado {hospede_a_editar.name} atualizado com sucesso!', 'success')
-    return redirect(url_for('admin_hospedes'))
+    flash(f'Convidado {guest_to_edit.name} atualizado com sucesso!', 'success')
+    return redirect(url_for('admin_guests'))
 
-@app.route('/admin/delete_hospede/<int:hospede_id>', methods=['POST'])
-def delete_hospede(hospede_id):
+@app.route('/admin/delete_guest/<int:guest_id>', methods=['POST'])
+def delete_guest(guest_id):
     """Deletar convidado"""
     if 'admin_id' not in session:
         flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
-    # Usando o nome de classe correto, 'Hospede'
-    hospede_a_deletar = Hospede.query.get_or_404(hospede_id)
-    name = hospede_a_deletar.name
+    # Usando o nome de classe correto, 'Guest'
+    guest_to_delete = Guest.query.get_or_404(guest_id)
+    name = guest_to_delete.name
     
-    db.session.delete(hospede_a_deletar)
+    db.session.delete(guest_to_delete)
     db.session.commit()
     
     flash(f'Convidado {name} removido com sucesso!', 'success')
-    return redirect(url_for('admin_hospedes'))
+    return redirect(url_for('admin_guests'))
 
 @app.route('/rsvp')
 def rsvp():
     """Página de confirmação de presença"""
     return render_template('rsvp.html')
 
-@app.route('/search_hospede', methods=['POST'])
-def search_hospede():
+@app.route('/search_guest', methods=['POST'])
+def search_guest():
     """Busca convidado por nome e retorna o grupo ou os indivíduos."""
     name = request.form.get('name', '').strip()
     
     if not name:
         return jsonify({'error': 'Nome é obrigatório'}), 400
     
-    # Usando o nome de classe correto, 'Hospede'
-    hospedes_list = Hospede.query.filter(Hospede.name.ilike(f'%{name}%')).all()
+    # Usando o nome de classe correto, 'Guest'
+    guests_list = Guest.query.filter(Guest.name.ilike(f'%{name}%')).all()
     
-    if not hospedes_list:
+    if not guests_list:
         return jsonify({'error': 'Convidado não encontrado'}), 404
     
-    unique_group_ids = {h.group_id for h in hospedes_list}
+    unique_group_ids = {g.group_id for g in guests_list}
     
-    if len(unique_group_ids) == 1 and hospedes_list[0].group_id is not None:
-        hospede_reference = hospedes_list[0]
-        # Usando o nome de classe correto, 'Hospede'
-        group_hospedes = Hospede.query.filter_by(group_id=hospede_reference.group_id).all()
-        group_name = hospede_reference.group.name if hospede_reference.group else None
+    if len(unique_group_ids) == 1 and guests_list[0].group_id is not None:
+        guest_reference = guests_list[0]
+        # Usando o nome de classe correto, 'Guest'
+        group_guests = Guest.query.filter_by(group_id=guest_reference.group_id).all()
+        group_name = guest_reference.group.name if guest_reference.group else None
     else:
-        group_hospedes = hospedes_list
+        group_guests = guests_list
         group_name = None
     
-    hospedes_data = [{
-        'id': h.id,
-        'name': h.name,
-        'phone': h.phone,
-        'rsvp_status': h.rsvp_status
-    } for h in group_hospedes]
+    guests_data = [{
+        'id': g.id,
+        'name': g.name,
+        'phone': g.phone,
+        'rsvp_status': g.rsvp_status
+    } for g in group_guests]
     
     return jsonify({
-        'hospedes': hospedes_data,
+        'guests': guests_data,
         'group_name': group_name
     })
 
 @app.route('/confirm_rsvp', methods=['POST'])
 def confirm_rsvp():
     """Confirmar presença dos convidados"""
-    hospede_ids = request.form.getlist('hospede_ids')
+    guest_ids = request.form.getlist('guest_ids')
     
-    if not hospede_ids:
+    if not guest_ids:
         flash('Nenhum convidado selecionado!', 'danger')
         return redirect(url_for('rsvp'))
     
-    confirmed_hospedes = []
-    declined_hospedes = []
+    confirmed_guests = []
+    declined_guests = []
     
-    for hospede_id in hospede_ids:
-        # Usando o nome de classe correto, 'Hospede'
-        hospede_obj = Hospede.query.get(hospede_id)
-        if hospede_obj:
-            rsvp_choice = request.form.get(f'rsvp_{hospede_id}')
+    for guest_id in guest_ids:
+        # Usando o nome de classe correto, 'Guest'
+        guest_obj = Guest.query.get(guest_id)
+        if guest_obj:
+            rsvp_choice = request.form.get(f'rsvp_{guest_id}')
             
             if rsvp_choice in ['confirmado', 'nao_confirmado']:
-                hospede_obj.rsvp_status = rsvp_choice
+                guest_obj.rsvp_status = rsvp_choice
                 if rsvp_choice == 'confirmado':
-                    confirmed_hospedes.append(hospede_obj)
+                    confirmed_guests.append(guest_obj)
                 else:
-                    declined_hospedes.append(hospede_obj)
+                    declined_guests.append(guest_obj)
     
     db.session.commit()
     
     return render_template('rsvp_success.html', 
-                           confirmed_hospedes=confirmed_hospedes,
-                           declined_hospedes=declined_hospedes)
+                           confirmed_guests=confirmed_guests,
+                           declined_guests=declined_guests)
 
 @app.route('/admin/groups')
 def admin_groups():
@@ -346,9 +341,9 @@ def delete_group(group_id):
     group = GuestGroup.query.get_or_404(group_id)
     name = group.name
     
-    # Usando o relacionamento 'hospedes' que já está definido no modelo
-    for hospede_obj in group.hospedes:
-        hospede_obj.group_id = None
+    # Usando o relacionamento 'guests' que já está definido no modelo
+    for guest_obj in group.guests:
+        guest_obj.group_id = None
     
     db.session.delete(group)
     db.session.commit()
@@ -596,12 +591,12 @@ def admin_whatsapp():
         flash('Acesso negado!', 'danger')
         return redirect(url_for('admin_login'))
     
-    # Usando o nome de classe correto, 'Hospede'
-    hospedes = Hospede.query.filter(Hospede.phone.isnot(None)).all()
+    # Usando o nome de classe correto, 'Guest'
+    guests = Guest.query.filter(Guest.phone.isnot(None)).all()
     groups = GuestGroup.query.all()
     venue = VenueInfo.query.first()
     
-    return render_template('admin_whatsapp.html', hospedes=hospedes, groups=groups, venue=venue)
+    return render_template('admin_whatsapp.html', guests=guests, groups=groups, venue=venue)
 
 @app.route('/admin/send_whatsapp', methods=['POST'])
 def send_whatsapp():
@@ -622,28 +617,28 @@ def send_whatsapp():
     phone_numbers = []
     
     if recipient_type == 'individual':
-        hospede_id = data.get('hospede_id')
-        # Usando o nome de classe correto, 'Hospede'
-        hospede_obj = Hospede.query.get(hospede_id)
-        if hospede_obj and hospede_obj.phone:
-            phone_numbers.append(hospede_obj.phone)
+        guest_id = data.get('guest_id')
+        # Usando o nome de classe correto, 'Guest'
+        guest_obj = Guest.query.get(guest_id)
+        if guest_obj and guest_obj.phone:
+            phone_numbers.append(guest_obj.phone)
     
     elif recipient_type == 'group':
         group_id = data.get('group_id')
         group = GuestGroup.query.get(group_id)
         if group:
-            phone_numbers = [h.phone for h in group.hospedes if h.phone]
+            phone_numbers = [g.phone for g in group.guests if g.phone]
     
     elif recipient_type == 'all':
-        # Usando o nome de classe correto, 'Hospede'
-        hospedes_with_phone = Hospede.query.filter(Hospede.phone.isnot(None)).all()
-        phone_numbers = [h.phone for h in hospedes_with_phone]
+        # Usando o nome de classe correto, 'Guest'
+        guests_with_phone = Guest.query.filter(Guest.phone.isnot(None)).all()
+        phone_numbers = [g.phone for g in guests_with_phone]
     
     elif recipient_type == 'status':
         status = data.get('status')
-        # Usando o nome de classe correto, 'Hospede'
-        hospedes_with_status = Hospede.query.filter(Hospede.rsvp_status == status, Hospede.phone.isnot(None)).all()
-        phone_numbers = [h.phone for h in hospedes_with_status]
+        # Usando o nome de classe correto, 'Guest'
+        guests_with_status = Guest.query.filter(Guest.rsvp_status == status, Guest.phone.isnot(None)).all()
+        phone_numbers = [g.phone for g in guests_with_status]
     
     if not phone_numbers:
         return jsonify({'error': 'Nenhum número de telefone encontrado'}), 400
@@ -666,22 +661,22 @@ def send_whatsapp():
         'results': results
     })
 
-@app.route('/admin/group_hospedes/<int:group_id>')
-def get_group_hospedes(group_id):
+@app.route('/admin/group_guests/<int:group_id>')
+def get_group_guests(group_id):
     """API para obter os convidados de um grupo específico."""
     if 'admin_id' not in session:
         return jsonify({'error': 'Acesso negado'}), 403
     
     group = GuestGroup.query.get_or_404(group_id)
-    hospedes_data = [{
-        'id': hospede_obj.id,
-        'name': hospede_obj.name,
-        'phone': hospede_obj.phone,
-        'rsvp_status': hospede_obj.rsvp_status,
+    guests_data = [{
+        'id': guest_obj.id,
+        'name': guest_obj.name,
+        'phone': guest_obj.phone,
+        'rsvp_status': guest_obj.rsvp_status,
         'group_name': group.name
-    } for hospede_obj in group.hospedes]
+    } for guest_obj in group.guests]
     
-    return jsonify({'hospedes': hospedes_data})
+    return jsonify({'guests': guests_data})
 
 @app.errorhandler(404)
 def not_found(error):
