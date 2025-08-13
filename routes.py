@@ -218,30 +218,31 @@ def rsvp():
 
 @app.route('/search_guest', methods=['POST'])
 def search_guest():
-    """Buscar convidado por nome (API)"""
+    """Busca convidado por nome e retorna o grupo ou os indivíduos."""
     name = request.form.get('name', '').strip()
     
     if not name:
         return jsonify({'error': 'Nome é obrigatório'}), 400
     
-    # Busca por nome (case-insensitive) e retorna uma lista de convidados.
-    # Esta é a parte que você solicitou manter.
+    # Busca todos os convidados que correspondem ao nome fornecido
     guests_list = Guest.query.filter(Guest.name.ilike(f'%{name}%')).all()
     
     if not guests_list:
         return jsonify({'error': 'Convidado não encontrado'}), 404
     
-    # Pegamos o primeiro convidado da lista para usar como referência
-    # para encontrar o grupo. Isso evita o erro de atributo.
-    guest = guests_list[0]
-
-    # Se o convidado de referência pertence a um grupo, busca todos os membros do grupo
-    if guest.group_id:
-        group_guests = Guest.query.filter_by(group_id=guest.group_id).all()
-        group_name = guest.group.name if guest.group else None
+    # Verifica se todos os convidados encontrados pertencem ao mesmo grupo.
+    # O set() garante que contaremos IDs de grupo únicos.
+    unique_group_ids = {g.group_id for g in guests_list}
+    
+    # Se houver apenas um grupo (ou nenhum), processamos todos os membros desse grupo.
+    if len(unique_group_ids) == 1 and guests_list[0].group_id is not None:
+        guest_reference = guests_list[0]
+        group_guests = Guest.query.filter_by(group_id=guest_reference.group_id).all()
+        group_name = guest_reference.group.name if guest_reference.group else None
     else:
-        # Se não pertence a um grupo, o convidado é seu próprio "grupo"
-        group_guests = [guest]
+        # Se os convidados pertencem a grupos diferentes ou não têm grupo,
+        # exibimos cada um individualmente.
+        group_guests = guests_list
         group_name = None
     
     guests_data = [{
