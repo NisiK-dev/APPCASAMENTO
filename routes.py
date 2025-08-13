@@ -220,35 +220,41 @@ def rsvp():
 def search_guest():
     """Buscar convidado por nome (API)"""
     name = request.form.get('name', '').strip()
-    
-    if not name:
-        return jsonify({'error': 'Nome é obrigatório'}), 400
-    
-    # Busca por nome (case-insensitive)
+
+    if not name or len(name) < 4:
+        return jsonify({'error': 'Digite pelo menos 4 caracteres'}), 400
+
+    # Busca todos os convidados com nome semelhante (case-insensitive)
     guests = Guest.query.filter(Guest.name.ilike(f'%{name}%')).all()
-    
+
     if not guests:
         return jsonify({'error': 'Convidado não encontrado'}), 404
-    
-    # Verifica se o primeiro da lista tem group_id
-    first_guest = guests[0]
-    
-    if first_guest.group_id:
-        group_guests = Guest.query.filter_by(group_id=first_guest.group_id).all()
-        group_name = first_guest.group.name if first_guest.group else None
-    else:
-        group_guests = guests
-        group_name = None
 
-    guests_data = [{
+    # Coleta todos os convidados do(s) grupo(s)
+    guests_data = []
+    group_name = None
+
+    for g in guests:
+        if g.group_id:
+            group = Guest.query.filter_by(group_id=g.group_id).all()
+            guests_data.extend(group)
+            if g.group:
+                group_name = g.group.name
+        else:
+            guests_data.append(g)
+
+    # Remove duplicados, se houver
+unique_guests = {g.id: g for g in guests_data}.values()
+
+    result = [{
         'id': g.id,
         'name': g.name,
         'phone': g.phone,
         'rsvp_status': g.rsvp_status
-    } for g in group_guests]
-    
+    } for g in unique_guests]
+
     return jsonify({
-        'guests': guests_data,
+        'guests': result,
         'group_name': group_name
     })
 
