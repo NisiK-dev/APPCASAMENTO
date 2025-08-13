@@ -1,3 +1,4 @@
+# Importa a instância do banco de dados (db) e as classes de modelo do SQLAlchemy.
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
@@ -33,7 +34,8 @@ class GuestGroup(db.Model):
     guests = db.relationship('Guest', backref='group', lazy=True)
 
 class Guest(db.Model):
-    __tablename__ = 'hospede'  # Nome da tabela no seu banco
+    # Tabela renomeada para 'guest' para consistência
+    __tablename__ = 'guest'
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
@@ -43,7 +45,7 @@ class Guest(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class GiftRegistry(db.Model):
-    __tablename__ = 'presente'  # Nome da tabela no seu banco
+    __tablename__ = 'presente'
     
     id = db.Column(db.Integer, primary_key=True)
     item_name = db.Column(db.String(200), nullable=False)
