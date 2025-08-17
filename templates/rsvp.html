@@ -25,64 +25,68 @@
             </h5>
         </div>
 
-<div class="card-body">
-    <div class="mb-3">
-        <label for="guestSearch" class="form-label">Digite seu nome</label>
-        <input type="text" class="form-control form-control-lg" id="guestSearch" placeholder="Ex: João Silva"
-            autocomplete="on" minlength="4">
-        <div class="form-text">Digite pelo menos 4 caracteres para buscar</div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="guestSearch" class="form-label">Digite seu nome</label>
+                <input type="text" class="form-control form-control-lg" id="guestSearch" placeholder="Ex: João Silva"
+                    autocomplete="on" minlength="4">
+                <div class="form-text">Digite pelo menos 4 caracteres para buscar</div>
+            </div>
+        </div>
+        <!-- Search Results -->
+        <div id="searchResults" style="display: none;">
+            <h6 class="mb-3">Resultados da busca:</h6>
+            <div id="guestList"></div>
+        </div>
+
+        <!-- Loading -->
+        <div id="searchLoading" class="text-center" style="display: none;">
+            <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+            <p class="mt-2">Procurando...</p>
+        </div>
     </div>
 </div>
-            <!-- Search Results -->
-            <div id="searchResults" style="display: none;">
-                <h6 class="mb-3">Resultados da busca:</h6>
-                <div id="guestList"></div>
-            </div>
 
-            <!-- Loading -->
-            <div id="searchLoading" class="text-center" style="display: none;">
-                <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
-                <p class="mt-2">Procurando...</p>
-            </div>
-        </div>
+<!-- Step 2: Confirm Guests -->
+<div class="card" id="confirmStep" style="display: none;">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-users me-2"></i>
+            Confirme a presença
+        </h5>
     </div>
+    <div class="card-body">
+        <form id="rsvpForm" method="POST" action="{{ url_for('confirm_rsvp') }}">
+            <div id="selectedGuestsList"></div>
 
-    <!-- Step 2: Confirm Guests -->
-    <div class="card" id="confirmStep" style="display: none;">
-        <div class="card-header">
-            <h5 class="mb-0">
-                <i class="fas fa-users me-2"></i>
-                Confirme a presença
-            </h5>
-        </div>
-        <div class="card-body">
-            <form id="rsvpForm" method="POST" action="{{ url_for('confirm_rsvp') }}">
-                <div id="selectedGuestsList"></div>
-
-                <div class="text-center mt-4">
-                    <button type="button" class="btn btn-outline-secondary me-3" onclick="goBackToSearch()">
+            <div class="row mt-4">
+                <div class="col-md-6 mb-3">
+                    <button type="button" class="btn btn-outline-secondary w-100" onclick="goBackToSearch()">
                         <i class="fas fa-arrow-left me-2"></i>
-                        Voltar
-                    </button>
-                    <button type="button" class="btn btn-success btn-lg" onclick="confirmRSVP()">
-                        <i class="fas fa-check me-2"></i>
-                        Confirmar
+                        Voltar à Busca
                     </button>
                 </div>
-            </form>
-        </div>
+                <div class="col-md-6 mb-3">
+                    <button type="button" class="btn btn-success btn-lg w-100" onclick="confirmRSVP()">
+                        <i class="fas fa-check me-2"></i>
+                        Confirmar Presenças
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
+</div>
 
-    <!-- Help Section -->
-    <div class="text-center mt-5">
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle me-2"></i>
-            <p class="mb-0">
-                Se você não encontrar seu nome na lista, entre em contato conosco.
-                Você pode confirmar a presença de toda sua família de uma vez.
-            </p>
-        </div>
+<!-- Help Section -->
+<div class="text-center mt-5">
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        <p class="mb-0">
+            Se você não encontrar seu nome na lista, entre em contato conosco.
+            Você pode confirmar a presença de toda sua família de uma vez.
+        </p>
     </div>
+</div>
 </div>
 {% endblock %}
 
@@ -196,30 +200,38 @@
                 badgeText = 'Pendente';
             }
 
-            html += '<div class="guest-card mb-3 p-3">';
-            html += '<div class="d-flex justify-content-between align-items-center mb-2">';
-            html += '<h6 class="mb-0">' + guest.name + '</h6>';
-            html += '<span class="badge bg-' + badgeClass + '">' + badgeText + '</span>';
+            html += '<div class="guest-card mb-4 p-4 border rounded-3 shadow-sm">';
+            html += '<div class="d-flex justify-content-between align-items-center mb-3">';
+            html += '<h5 class="mb-0 fw-bold text-dark">' + guest.name + '</h5>';
+            html += '<span class="badge bg-' + badgeClass + ' fs-6 px-3 py-2">' + badgeText + '</span>';
             html += '</div>';
-            html += '<div class="row">';
-            html += '<div class="col-6">';
-            html += '<div class="form-check">';
-            html += '<input class="form-check-input" type="radio" name="rsvp_' + guest.id + '" id="confirm_' + guest.id + '" value="confirmado"';
+            html += '<div class="rsvp-options-container">';
+            html += '<div class="rsvp-option ' + (currentStatus === 'confirmado' ? 'selected' : '') + '" data-value="confirmado" data-guest="' + guest.id + '">';
+            html += '<input type="radio" name="rsvp_' + guest.id + '" id="confirm_' + guest.id + '" value="confirmado" style="display: none;"';
             if (currentStatus === 'confirmado') {
                 html += ' checked';
             }
             html += '>';
-            html += '<label class="form-check-label text-success" for="confirm_' + guest.id + '"><i class="fas fa-check me-1"></i>Confirmo presença</label>';
+            html += '<div class="option-content">';
+            html += '<div class="option-icon success"><i class="fas fa-check"></i></div>';
+            html += '<div class="option-text">';
+            html += '<h6 class="option-title">Confirmo Presença</h6>';
+            html += '<p class="option-subtitle">Estarei presente no casamento</p>';
             html += '</div>';
             html += '</div>';
-            html += '<div class="col-6">';
-            html += '<div class="form-check">';
-            html += '<input class="form-check-input" type="radio" name="rsvp_' + guest.id + '" id="decline_' + guest.id + '" value="nao_confirmado"';
+            html += '</div>';
+            html += '<div class="rsvp-option ' + (currentStatus === 'nao_confirmado' ? 'selected' : '') + '" data-value="nao_confirmado" data-guest="' + guest.id + '">';
+            html += '<input type="radio" name="rsvp_' + guest.id + '" id="decline_' + guest.id + '" value="nao_confirmado" style="display: none;"';
             if (currentStatus === 'nao_confirmado') {
                 html += ' checked';
             }
             html += '>';
-            html += '<label class="form-check-label text-danger" for="decline_' + guest.id + '"><i class="fas fa-times me-1"></i>Não poderei comparecer</label>';
+            html += '<div class="option-content">';
+            html += '<div class="option-icon danger"><i class="fas fa-times"></i></div>';
+            html += '<div class="option-text">';
+            html += '<h6 class="option-title">Não Poderei Comparecer</h6>';
+            html += '<p class="option-subtitle">Infelizmente não conseguirei ir</p>';
+            html += '</div>';
             html += '</div>';
             html += '</div>';
             html += '</div>';
@@ -228,6 +240,26 @@
         }
 
         guestsList.innerHTML = html;
+        
+        // Add click handlers for new RSVP options
+        document.querySelectorAll('.rsvp-option').forEach(function(option) {
+            option.addEventListener('click', function() {
+                var guestId = this.dataset.guest;
+                var value = this.dataset.value;
+                var radioInput = document.getElementById((value === 'confirmado' ? 'confirm_' : 'decline_') + guestId);
+                
+                // Remove selected class from all options for this guest
+                document.querySelectorAll('.rsvp-option[data-guest="' + guestId + '"]').forEach(function(opt) {
+                    opt.classList.remove('selected');
+                });
+                
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                
+                // Check the radio input
+                radioInput.checked = true;
+            });
+        });
     }
 
     function goBackToSearch() {
@@ -249,6 +281,7 @@
                     break;
                 }
             }
+
 
             if (hasSelection) break;
         }
