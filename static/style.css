@@ -321,6 +321,14 @@ body {
     border-radius: 15px;
 }
 
+/* Compact badges for guest cards */
+.guest-card .badge {
+    font-size: 0.65rem !important;
+    padding: 0.3em 0.6em !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+}
+
 /* Forms */
 .form-control,
 .form-select {
