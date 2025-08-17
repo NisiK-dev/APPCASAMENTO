@@ -587,19 +587,28 @@ body {
     margin: 0 auto;
 }
 
-/* New RSVP Options Styling */
+/* Enhanced Guest Name Styling */
+.guest-card h5.fw-bold.text-dark {
+    font-size: 1.8rem !important;
+    font-weight: 900 !important;
+    color: #2c3e50 !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.5px;
+}
+
+/* New RSVP Options Styling - Compact Version */
 .rsvp-options-container {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    margin-top: 20px;
+    gap: 10px;
+    margin-top: 15px;
 }
 
 .rsvp-option {
     background: #ffffff;
-    border: 3px solid #e9ecef;
-    border-radius: 15px;
-    padding: 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 12px 16px;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
@@ -608,23 +617,23 @@ body {
 
 .rsvp-option:hover {
     border-color: #dee2e6;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .rsvp-option.selected {
     border-color: #0d6efd;
-    background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(13, 110, 253, 0.05));
-    box-shadow: 0 8px 25px rgba(13, 110, 253, 0.2);
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.08), rgba(13, 110, 253, 0.03));
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.15);
 }
 
 .rsvp-option.selected::before {
     content: '';
     position: absolute;
-    top: 15px;
-    right: 15px;
-    width: 20px;
-    height: 20px;
+    top: 10px;
+    right: 12px;
+    width: 16px;
+    height: 16px;
     background: #0d6efd;
     border-radius: 50%;
     display: flex;
@@ -635,10 +644,10 @@ body {
 .rsvp-option.selected::after {
     content: '✓';
     position: absolute;
-    top: 18px;
-    right: 18px;
+    top: 12px;
+    right: 14px;
     color: white;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: bold;
     z-index: 1;
 }
@@ -646,17 +655,17 @@ body {
 .option-content {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 12px;
 }
 
 .option-icon {
-    width: 50px;
-    height: 50px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 16px;
     flex-shrink: 0;
 }
 
@@ -675,28 +684,28 @@ body {
 }
 
 .option-title {
-    margin: 0 0 5px 0;
-    font-size: 16px;
+    margin: 0 0 3px 0;
+    font-size: 14px;
     font-weight: 700;
     color: #333;
 }
 
 .option-subtitle {
     margin: 0;
-    font-size: 14px;
+    font-size: 12px;
     color: #6c757d;
-    line-height: 1.4;
+    line-height: 1.3;
 }
 
 /* Selected state styling */
 .rsvp-option.selected .option-icon.success {
     background: linear-gradient(135deg, #198754, #20c997);
-    box-shadow: 0 4px 15px rgba(25, 135, 84, 0.3);
+    box-shadow: 0 2px 8px rgba(25, 135, 84, 0.25);
 }
 
 .rsvp-option.selected .option-icon.danger {
     background: linear-gradient(135deg, #dc3545, #fd7e14);
-    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.25);
 }
 
 .rsvp-option.selected .option-title {
@@ -706,30 +715,34 @@ body {
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
+    .guest-card h5.fw-bold.text-dark {
+        font-size: 1.6rem !important;
+    }
+    
     .rsvp-options-container {
-        gap: 12px;
+        gap: 8px;
     }
     
     .rsvp-option {
-        padding: 15px;
+        padding: 10px 14px;
     }
     
     .option-content {
-        gap: 15px;
+        gap: 10px;
     }
     
     .option-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
     }
     
     .option-title {
-        font-size: 15px;
+        font-size: 13px;
     }
     
     .option-subtitle {
-        font-size: 13px;
+        font-size: 11px;
     }
 }
 
