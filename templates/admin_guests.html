@@ -6,244 +6,250 @@
 <div class="fixed-background"></div>
 
 <div class="row">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>
-                <i class="fas fa-users me-2"></i>
-                Gerenciar Convidados
-            </h2>
-            <div>
-                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary me-2">
-                    <i class="fas fa-arrow-left me-2"></i>
-                    Voltar ao Dashboard
-                </a>
-                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addGuestModal">
-                    <i class="fas fa-plus me-2"></i>
-                    Adicionar Convidado
-                </button>
-            </div>
-        </div>
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-users me-2"></i>
+                Gerenciar Convidados
+            </h2>
+            <div>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Voltar ao Dashboard
+                </a>
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addGuestModal">
+                    <i class="fas fa-plus me-2"></i>
+                    Adicionar Convidado
+                </button>
+            </div>
+        </div>
 
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card bg-primary text-white">
-                    <div class="card-body">
-                        <h5>{{ total_guests }}</h5>
-                        <p class="mb-0">Total de Convidados</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card bg-success text-white">
-                    <div class="card-body">
-                        <h5>{{ confirmed_guests }}</h5>
-                        <p class="mb-0">Confirmados</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card bg-danger text-white">
-                    <div class="card-body">
-                        <h5>{{ declined_guests }}</h5>
-                        <p class="mb-0">Não Confirmados</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card bg-warning text-white">
-                    <div class="card-body">
-                        <h5>{{ pending_guests }}</h5>
-                        <p class="mb-0">Pendentes</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5>{{ total_guests }}</h5>
+                        <p class="mb-0">Total de Convidados</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5>{{ confirmed_guests }}</h5>
+                        <p class="mb-0">Confirmados</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <h5>{{ declined_guests }}</h5>
+                        <p class="mb-0">Não Confirmados</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h5>{{ pending_guests }}</h5>
+                        <p class="mb-0">Pendentes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <!-- Guests Table -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-list me-2"></i>
-                    Lista de Convidados
-                </h5>
-            </div>
-            <div class="card-body">
-                {% if guests %}
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Telefone</th>
-                                <th>Grupo</th>
-                                <th>Status</th>
-                                <th>Data de Criação</th>
-                                <th class="text-white fw-bold">AÇÕES</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for guest in guests %}
-                            <tr>
-                                <td>{{ guest.name }}</td>
-                                <td>{{ guest.phone or '-' }}</td>
-                                <td>
-                                    {% if guest.group %}
-                                    <span class="badge bg-info">{{ guest.group.name }}</span>
+        <!-- Guests Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Lista de Convidados
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if guests %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Telefone</th>
+                                <th>Grupo</th>
+                                <th>Status</th>
+                                <th>Data de Criação</th>
+                                <th class="text-white fw-bold">AÇÕES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for guest in guests %}
+                            <tr>
+                                <td>{{ guest.name }}</td>
+                                <td>{{ guest.phone or '-' }}</td>
+                                <td>
+                                    {% if guest.group %}
+                                    <span class="badge bg-info">{{ guest.group.name }}</span>
+                                    {% else %}
+                                    <span class="text-muted">Sem grupo</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if guest.rsvp_status == 'confirmado' %}
+                                    <span class="badge bg-success">Confirmado</span>
+                                    {% elif guest.rsvp_status == 'nao_confirmado' %}
+                                    <span class="badge bg-danger">Não Confirmado</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Pendente</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if guest.created_at %}
+                                        {{ guest.created_at.strftime('%d/%m/%Y') }}
                                     {% else %}
-                                    <span class="text-muted">Sem grupo</span>
+                                        N/A
                                     {% endif %}
                                 </td>
-                                <td>
-                                    {% if guest.rsvp_status == 'confirmado' %}
-                                    <span class="badge bg-success">Confirmado</span>
-                                    {% elif guest.rsvp_status == 'nao_confirmado' %}
-                                    <span class="badge bg-danger">Não Confirmado</span>
-                                    {% else %}
-                                    <span class="badge bg-warning">Pendente</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ guest.created_at.strftime('%d/%m/%Y') }}</td>
-                                <td>
-                                    <button type="button" class="btn btn-sm btn-outline-primary me-1"
-                                        onclick="editGuest({{ guest.id }}, '{{ guest.name }}', '{{ guest.phone or '' }}', {{ guest.group_id or 'null' }})">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger"
-                                        onclick="deleteGuest({{ guest.id }}, '{{ guest.name }}')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center py-4">
-                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                    <h5>Nenhum convidado cadastrado</h5>
-                    <p class="text-muted">Adicione o primeiro convidado para começar</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                        onclick="editGuest({{ guest.id }}, '{{ guest.name }}', '{{ guest.phone or '' }}', {{ guest.group_id or 'null' }})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                        onclick="deleteGuest({{ guest.id }}, '{{ guest.name }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5>Nenhum convidado cadastrado</h5>
+                    <p class="text-muted">Adicione o primeiro convidado para começar</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Add Guest Modal -->
 <div class="modal fade" id="addGuestModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Adicionar Convidado</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" action="{{ url_for('add_guest') }}">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Nome *</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="phone" class="form-label">Telefone</label>
-                        <input type="tel" class="form-control" id="phone" name="phone" placeholder="(11) 99999-9999">
-                    </div>
-                    <div class="mb-3">
-                        <label for="group_id" class="form-label">Grupo</label>
-                        <select class="form-select" id="group_id" name="group_id">
-                            <option value="">Sem grupo</option>
-                            {% for group in groups %}
-                            <option value="{{ group.id }}">{{ group.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">Adicionar</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Adicionar Convidado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_guest') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nome *</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Telefone</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" placeholder="(11) 99999-9999">
+                    </div>
+                    <div class="mb-3">
+                        <label for="group_id" class="form-label">Grupo</label>
+                        <select class="form-select" id="group_id" name="group_id">
+                            <option value="">Sem grupo</option>
+                            {% for group in groups %}
+                            <option value="{{ group.id }}">{{ group.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <!-- Edit Guest Modal -->
 <div class="modal fade" id="editGuestModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Editar Convidado</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" id="editGuestForm">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="edit_name" class="form-label">Nome *</label>
-                        <input type="text" class="form-control" id="edit_name" name="name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit_phone" class="form-label">Telefone</label>
-                        <input type="tel" class="form-control" id="edit_phone" name="phone">
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit_group_id" class="form-label">Grupo</label>
-                        <select class="form-select" id="edit_group_id" name="group_id">
-                            <option value="">Sem grupo</option>
-                            {% for group in groups %}
-                            <option value="{{ group.id }}">{{ group.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Salvar</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Convidado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="editGuestForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_name" class="form-label">Nome *</label>
+                        <input type="text" class="form-control" id="edit_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_phone" class="form-label">Telefone</label>
+                        <input type="tel" class="form-control" id="edit_phone" name="phone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_group_id" class="form-label">Grupo</label>
+                        <select class="form-select" id="edit_group_id" name="group_id">
+                            <option value="">Sem grupo</option>
+                            {% for group in groups %}
+                            <option value="{{ group.id }}">{{ group.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <!-- Delete Guest Modal -->
 <div class="modal fade" id="deleteGuestModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmar Exclusão</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Tem certeza que deseja excluir o convidado <strong id="deleteGuestName"></strong>?</p>
-                <p class="text-muted">Esta ação não pode ser desfeita.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <form method="POST" id="deleteGuestForm" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">Excluir</button>
-                </form>
-            </div>
-        </div>
-    </div>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir o convidado <strong id="deleteGuestName"></strong>?</p>
+                <p class="text-muted">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" id="deleteGuestForm" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Excluir</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    function editGuest(id, name, phone, groupId) {
-        document.getElementById('edit_name').value = name;
-        document.getElementById('edit_phone').value = phone;
-        document.getElementById('edit_group_id').value = groupId || '';
-        document.getElementById('editGuestForm').action = '/admin/edit_guest/' + id;
+    function editGuest(id, name, phone, groupId) {
+        document.getElementById('edit_name').value = name;
+        document.getElementById('edit_phone').value = phone;
+        document.getElementById('edit_group_id').value = groupId || '';
+        document.getElementById('editGuestForm').action = '/admin/edit_guest/' + id;
 
-        new bootstrap.Modal(document.getElementById('editGuestModal')).show();
-    }
+        new bootstrap.Modal(document.getElementById('editGuestModal')).show();
+    }
 
-    function deleteGuest(id, name) {
-        document.getElementById('deleteGuestName').textContent = name;
-        document.getElementById('deleteGuestForm').action = '/admin/delete_guest/' + id;
+    function deleteGuest(id, name) {
+        document.getElementById('deleteGuestName').textContent = name;
+        document.getElementById('deleteGuestForm').action = '/admin/delete_guest/' + id;
 
-        new bootstrap.Modal(document.getElementById('deleteGuestModal')).show();
-    }
+        new bootstrap.Modal(document.getElementById('deleteGuestModal')).show();
+    }
 </script>
 {% endblock %}
