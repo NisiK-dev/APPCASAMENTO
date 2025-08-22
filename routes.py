@@ -806,3 +806,62 @@ def healthz():
             "status": "error",
             "message": f"Application unhealthy or critical component failed: {str(e)}"
         }), 500
+
+@app.route('/search_guest_individual', methods=['POST'])
+def search_guest_individual():
+    """Busca convidados individuais por nome para seleção específica"""
+    name = request.form.get('name', '').strip()
+    
+    if not name or len(name) < 4:
+        return jsonify({'error': 'Nome deve ter pelo menos 4 caracteres'}), 400
+    
+    # Buscar todos os convidados com nomes similares
+    guests_list = Guest.query.filter(Guest.name.ilike(f'%{name}%')).all()
+    
+    if not guests_list:
+        return jsonify({'error': 'Nenhum convidado encontrado'}), 404
+    
+    # Retornar lista de convidados individuais para seleção
+    guests_data = []
+    for guest in guests_list:
+        guests_data.append({
+            'id': guest.id,
+            'name': guest.name,
+            'phone': guest.phone,
+            'rsvp_status': guest.rsvp_status,
+            'group_id': guest.group_id,
+            'group_name': guest.group.name if guest.group else None
+        })
+    
+    return jsonify({
+        'guests': guests_data,
+        'total_found': len(guests_data)
+    })
+
+@app.route('/get_guest_group/<int:guest_id>')
+def get_guest_group(guest_id):
+    """Busca o grupo completo de um convidado específico"""
+    selected_guest = Guest.query.get_or_404(guest_id)
+    
+    if selected_guest.group_id:
+        # Se tem grupo, buscar todos do grupo
+        group_guests = Guest.query.filter_by(group_id=selected_guest.group_id).all()
+        group_name = selected_guest.group.name
+    else:
+        # Se não tem grupo, retornar apenas ele
+        group_guests = [selected_guest]
+        group_name = None
+    
+    guests_data = [{
+        'id': g.id,
+        'name': g.name,
+        'phone': g.phone,
+        'rsvp_status': g.rsvp_status
+    } for g in group_guests]
+    
+    return jsonify({
+        'guests': guests_data,
+        'group_name': group_name,
+        'selected_guest_name': selected_guest.name
+    })
+
