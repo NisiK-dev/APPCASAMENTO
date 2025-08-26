@@ -216,3 +216,16 @@ def healthz():
     except Exception as e:
         current_app.logger.error(f"Health check failed: {e}")
         return jsonify({"status": "error"}), 500
+
+@app.route('/agradecimento')
+def agradecimento():
+    """Página de agradecimento pelo presente"""
+    return render_template('agradecimento.html')
+
+@app.route('/agradecimento/<int:guest_id>')
+def agradecimento_personalizado(guest_id):
+    """Página de agradecimento personalizada (opcional)"""
+    # Se quiser personalizar com nome do convidado
+    guest = Guest.query.get_or_404(guest_id)
+    return render_template('agradecimento.html', guest_name=guest.name)
+
