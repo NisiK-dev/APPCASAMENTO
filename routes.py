@@ -247,64 +247,42 @@ def confirm_rsvp():
 
 
 @app.route('/search_guest', methods=['POST'])
-def search_guest():
+def search_guest_individual():
     name = request.form.get('name', '').strip()
-    if not name or len(name) < 3:
-        return jsonify({"guests": []})
+    if not name or len(name) < 2:
+        return jsonify({'error': 'Digite pelo menos 2 letras'}), 400
+    
+    guests_list = Guest.query.filter(func.lower(Guest.name).like(f"%{name.lower()}%")).all()
+    if not guests_list:
+        return jsonify({'error': 'Nenhum convidado encontrado'}), 404
 
-    guests = Guest.query.filter(Guest.name.ilike(f"%{name}%")).all()
+    guests_data = [{
+        'id': g.id,
+        'name': g.name,
+        'phone': g.phone,
+        'rsvp_status': g.rsvp_status,
+        'group_id': g.group_id,
+        'group_name': g.group.name if g.group else None
+    } for g in guests_list]
 
-    results = []
-    for g in guests:
-        results.append({
-            "id": g.id,
-            "name": g.name,
-            "rsvp_status": g.rsvp_status,
-            "group_name": g.group.name if g.group else None
-        })
+    return jsonify({'guests': guests_data, 'total_found': len(guests_data)})
 
-    return jsonify({"guests": results})
 
-# Pegar grupo do convidado selecionado
 @app.route('/get_guest_group/<int:guest_id>')
 def get_guest_group(guest_id):
-    guest = Guest.query.get_or_404(guest_id)
-
-    if guest.group_id:
-        group = GuestGroup.query.get(guest.group_id)
-        guests = group.guests if group else [guest]
+    selected_guest = Guest.query.get_or_404(guest_id)
+    if selected_guest.group_id:
+        group_guests = Guest.query.filter_by(group_id=selected_guest.group_id).all()
+        group_name = selected_guest.group.name
     else:
-        guests = [guest]
+        group_guests = [selected_guest]
+        group_name = None
 
-    guests_data = [
-        {
-            "id": g.id,
-            "name": g.name,
-            "rsvp_status": g.rsvp_status
-        } for g in guests
-    ]
-
-    return jsonify({
-        "selected_guest_name": guest.name,
-        "guests": guests_data
-    })
-
-# Confirmar RSVP
-@app.route('/confirm_rsvp', methods=['POST'])
-def confirm_rsvp():
-    guest_ids = request.form.getlist('guest_ids')
-    if not guest_ids:
-        flash("Nenhum convidado selecionado.", "danger")
-        return redirect(url_for('rsvp'))
-
-    for guest_id in guest_ids:
-        guest = Guest.query.get(int(guest_id))
-        if guest:
-            status = request.form.get(f"rsvp_{guest.id}")
-            if status in ['confirmado', 'nao_confirmado']:
-                guest.rsvp_status = status
-                db.session.add(guest)
-
-    db.session.commit()
-    flash("Confirmação registrada com sucesso!", "success")
-    return redirect(url_for('rsvp'))
+    guests_data = [{
+        'id': g.id,
+        'name': g.name,
+        'phone': g.phone,
+        'rsvp_status': g.rsvp_status
+    } for g in group_guests]
+    
+    return jsonify({'guests': guests_data, 'group_name': group_name, 'selected_guest_name': selected_guest.name})
