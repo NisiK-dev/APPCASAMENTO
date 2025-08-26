@@ -1,4 +1,3 @@
-# Importa a instância do banco de dados (db) e as classes de modelo do SQLAlchemy.
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
@@ -7,36 +6,31 @@ db = SQLAlchemy()
 
 class AdminUser(db.Model):
     __tablename__ = 'admin_user'
-    
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-# Alias para compatibilidade com routes.py
+# Alias para compatibilidade
 Admin = AdminUser
 
 class GuestGroup(db.Model):
     __tablename__ = 'guest_group'
-    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relacionamento
+
     guests = db.relationship('Guest', backref='group', lazy=True)
 
 class Guest(db.Model):
-    # Tabela renomeada para 'guest' para consistência
     __tablename__ = 'guest'
-    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     phone = db.Column(db.String(20))
@@ -46,7 +40,6 @@ class Guest(db.Model):
 
 class GiftRegistry(db.Model):
     __tablename__ = 'presente'
-    
     id = db.Column(db.Integer, primary_key=True)
     item_name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
@@ -61,7 +54,6 @@ class GiftRegistry(db.Model):
 
 class VenueInfo(db.Model):
     __tablename__ = 'venue_info'
-    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     address = db.Column(db.Text)
