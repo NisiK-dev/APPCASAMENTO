@@ -808,107 +808,161 @@ def healthz():
             "message": f"Application unhealthy or critical component failed: {str(e)}"
         }), 500
 
-# 🔧 ROTA CORRIGIDA - BUSCA INDIVIDUAL DE CONVIDADOS
+# 🔧 ROTA SUPER CORRIGIDA - BUSCA INDIVIDUAL COM MÚLTIPLAS ESTRATÉGIAS
 @app.route('/search_guest_individual', methods=['POST'])
 def search_guest_individual():
-    """Busca convidados individuais por nome para seleção específica - VERSÃO CORRIGIDA"""
+    """Busca convidados individuais por nome - VERSÃO SUPER MELHORADA"""
     try:
-        # Validação melhorada do input
+        # Obter e validar o nome
         name = request.form.get('name', '').strip()
         
-        if not name:
-            return jsonify({'error': 'Nome é obrigatório', 'success': False}), 400
-            
-        if len(name) < 3:  # Reduzido de 4 para 3 caracteres
-            return jsonify({'error': 'Digite pelo menos 3 caracteres para buscar', 'success': False}), 400
-            
-        if len(name) > 100:  # Evitar consultas muito longas
-            return jsonify({'error': 'Nome muito longo', 'success': False}), 400
-        
-        # Sanitização básica - remove caracteres especiais perigosos
-        name = re.sub(r'[^\w\s\u00C0-\u017F]', '', name)
-        
-        if not name:  # Se após sanitização não sobrou nada
-            return jsonify({'error': 'Nome inválido', 'success': False}), 400
-        
         # Log para debug
-        current_app.logger.info(f"Buscando convidado com nome: '{name}'")
+        print(f"🔍 Recebida busca por: '{name}'")
         
-        # Buscar todos os convidados com nomes similares (melhorada a busca)
-        guests_list = Guest.query.filter(
+        if not name:
+            return jsonify({
+                'error': 'Nome é obrigatório', 
+                'success': False
+            }), 400
+            
+        if len(name) < 3:  # Mínimo 3 caracteres
+            return jsonify({
+                'error': 'Digite pelo menos 3 caracteres para buscar', 
+                'success': False
+            }), 400
+        
+        # Busca MELHORADA - múltiplas estratégias
+        print(f"🔍 Iniciando busca no banco de dados...")
+        
+        # Estratégia 1: Busca exata (case insensitive)
+        guests_exact = Guest.query.filter(
+            Guest.name.ilike(name)
+        ).all()
+        
+        # Estratégia 2: Busca que começa com o termo
+        guests_starts = Guest.query.filter(
+            Guest.name.ilike(f'{name}%')
+        ).all()
+        
+        # Estratégia 3: Busca que contém o termo
+        guests_contains = Guest.query.filter(
             Guest.name.ilike(f'%{name}%')
-        ).order_by(Guest.name).all()
+        ).all()
         
-        current_app.logger.info(f"Encontrados {len(guests_list)} convidados")
+        # Estratégia 4: Busca por palavras individuais
+        words = name.split()
+        guests_words = []
+        if len(words) > 1:
+            for word in words:
+                if len(word) >= 2:  # Palavras com pelo menos 2 caracteres
+                    word_guests = Guest.query.filter(
+                        Guest.name.ilike(f'%{word}%')
+                    ).all()
+                    guests_words.extend(word_guests)
         
-        if not guests_list:
+        # Combinar todos os resultados e remover duplicatas
+        all_guests = guests_exact + guests_starts + guests_contains + guests_words
+        unique_guests = []
+        seen_ids = set()
+        
+        for guest in all_guests:
+            if guest.id not in seen_ids:
+                unique_guests.append(guest)
+                seen_ids.add(guest.id)
+        
+        # Ordenar por relevância (exatos primeiro, depois que começam, depois que contêm)
+        def get_relevance_score(guest):
+            guest_name_lower = guest.name.lower()
+            name_lower = name.lower()
+            
+            if guest_name_lower == name_lower:
+                return 1  # Exato
+            elif guest_name_lower.startswith(name_lower):
+                return 2  # Começa com
+            elif name_lower in guest_name_lower:
+                return 3  # Contém
+            else:
+                return 4  # Palavras individuais
+        
+        unique_guests.sort(key=get_relevance_score)
+        
+        print(f"🔍 Encontrados {len(unique_guests)} convidados:")
+        for guest in unique_guests:
+            print(f"  - {guest.name} (ID: {guest.id})")
+        
+        if not unique_guests:
+            print("❌ Nenhum convidado encontrado")
             return jsonify({
                 'guests': [],
                 'total_found': 0,
-                'message': 'Nenhum convidado encontrado',
+                'message': f'Nenhum convidado encontrado com "{name}"',
                 'success': True
             })
         
-        # Retornar lista de convidados individuais para seleção
+        # Preparar dados dos convidados
         guests_data = []
-        for guest in guests_list:
+        for guest in unique_guests:
             try:
                 guest_data = {
                     'id': guest.id,
                     'name': guest.name,
                     'phone': guest.phone or '',
-                    'rsvp_status': guest.rsvp_status,
+                    'rsvp_status': guest.rsvp_status or 'pendente',
                     'group_id': guest.group_id,
                     'group_name': guest.group.name if guest.group else None
                 }
                 guests_data.append(guest_data)
+                print(f"  ✅ Processado: {guest.name}")
             except Exception as e:
-                current_app.logger.error(f"Erro ao processar convidado {guest.id}: {str(e)}")
+                print(f"  ❌ Erro ao processar {guest.name}: {e}")
                 continue
+        
+        print(f"✅ Retornando {len(guests_data)} convidados processados")
         
         return jsonify({
             'guests': guests_data,
             'total_found': len(guests_data),
-            'success': True
+            'success': True,
+            'search_term': name
         })
         
     except Exception as e:
-        # Log detalhado do erro
-        current_app.logger.error(f"Erro na busca individual de convidados: {str(e)}", exc_info=True)
-        db.session.rollback()  # Rollback em caso de erro
+        print(f"❌ ERRO CRÍTICO na busca: {str(e)}")
+        import traceback
+        traceback.print_exc()
         
         return jsonify({
-            'error': 'Erro interno do servidor ao buscar convidados',
-            'success': False,
-            'debug_info': str(e) if current_app.debug else None  # Só mostra detalhes em modo debug
+            'error': f'Erro interno: {str(e)}',
+            'success': False
         }), 500
 
-# 🔧 ROTA CORRIGIDA - BUSCA DE GRUPO DO CONVIDADO
 @app.route('/get_guest_group/<int:guest_id>')
 def get_guest_group(guest_id):
-    """Busca o grupo completo de um convidado específico - VERSÃO CORRIGIDA"""
+    """Busca o grupo completo de um convidado específico"""
     try:
-        # Validação do ID
-        if guest_id <= 0:
-            return jsonify({'error': 'ID de convidado inválido', 'success': False}), 400
+        print(f"🔍 Buscando grupo para convidado ID: {guest_id}")
         
         selected_guest = Guest.query.get(guest_id)
         
         if not selected_guest:
-            return jsonify({'error': 'Convidado não encontrado', 'success': False}), 404
+            print(f"❌ Convidado {guest_id} não encontrado")
+            return jsonify({
+                'error': 'Convidado não encontrado',
+                'success': False
+            }), 404
         
-        current_app.logger.info(f"Buscando grupo para convidado: {selected_guest.name}")
+        print(f"✅ Convidado encontrado: {selected_guest.name}")
         
         if selected_guest.group_id:
             # Se tem grupo, buscar todos do grupo
             group_guests = Guest.query.filter_by(group_id=selected_guest.group_id).all()
             group_name = selected_guest.group.name if selected_guest.group else None
-            current_app.logger.info(f"Convidado pertence ao grupo '{group_name}' com {len(group_guests)} membros")
+            print(f"📋 Convidado pertence ao grupo '{group_name}' com {len(group_guests)} membros")
         else:
             # Se não tem grupo, retornar apenas ele
             group_guests = [selected_guest]
             group_name = None
-            current_app.logger.info("Convidado não pertence a nenhum grupo")
+            print(f"👤 Convidado individual (sem grupo)")
         
         guests_data = []
         for g in group_guests:
@@ -917,11 +971,12 @@ def get_guest_group(guest_id):
                     'id': g.id,
                     'name': g.name,
                     'phone': g.phone or '',
-                    'rsvp_status': g.rsvp_status
+                    'rsvp_status': g.rsvp_status or 'pendente'
                 }
                 guests_data.append(guest_data)
+                print(f"  ✅ {g.name} - Status: {g.rsvp_status}")
             except Exception as e:
-                current_app.logger.error(f"Erro ao processar convidado do grupo {g.id}: {str(e)}")
+                print(f"  ❌ Erro ao processar {g.name}: {e}")
                 continue
         
         return jsonify({
@@ -932,10 +987,11 @@ def get_guest_group(guest_id):
         })
         
     except Exception as e:
-        current_app.logger.error(f"Erro ao buscar grupo do convidado {guest_id}: {str(e)}", exc_info=True)
-        db.session.rollback()
+        print(f"❌ ERRO ao buscar grupo: {str(e)}")
+        import traceback
+        traceback.print_exc()
         
         return jsonify({
-            'error': 'Erro ao carregar informações do convidado',
+            'error': f'Erro ao carregar grupo: {str(e)}',
             'success': False
         }), 500
