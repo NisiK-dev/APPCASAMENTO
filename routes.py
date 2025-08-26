@@ -15,6 +15,7 @@ from flask import current_app
 import uuid
 from werkzeug.utils import secure_filename
 from sqlalchemy.orm import joinedload # Importação para otimização de consulta
+import re  # Adicionado para sanitização
 
 import locale
 try:
@@ -807,61 +808,134 @@ def healthz():
             "message": f"Application unhealthy or critical component failed: {str(e)}"
         }), 500
 
+# 🔧 ROTA CORRIGIDA - BUSCA INDIVIDUAL DE CONVIDADOS
 @app.route('/search_guest_individual', methods=['POST'])
 def search_guest_individual():
-    """Busca convidados individuais por nome para seleção específica"""
-    name = request.form.get('name', '').strip()
-    
-    if not name or len(name) < 4:
-        return jsonify({'error': 'Nome deve ter pelo menos 4 caracteres'}), 400
-    
-    # Buscar todos os convidados com nomes similares
-    guests_list = Guest.query.filter(Guest.name.ilike(f'%{name}%')).all()
-    
-    if not guests_list:
-        return jsonify({'error': 'Nenhum convidado encontrado'}), 404
-    
-    # Retornar lista de convidados individuais para seleção
-    guests_data = []
-    for guest in guests_list:
-        guests_data.append({
-            'id': guest.id,
-            'name': guest.name,
-            'phone': guest.phone,
-            'rsvp_status': guest.rsvp_status,
-            'group_id': guest.group_id,
-            'group_name': guest.group.name if guest.group else None
+    """Busca convidados individuais por nome para seleção específica - VERSÃO CORRIGIDA"""
+    try:
+        # Validação melhorada do input
+        name = request.form.get('name', '').strip()
+        
+        if not name:
+            return jsonify({'error': 'Nome é obrigatório', 'success': False}), 400
+            
+        if len(name) < 3:  # Reduzido de 4 para 3 caracteres
+            return jsonify({'error': 'Digite pelo menos 3 caracteres para buscar', 'success': False}), 400
+            
+        if len(name) > 100:  # Evitar consultas muito longas
+            return jsonify({'error': 'Nome muito longo', 'success': False}), 400
+        
+        # Sanitização básica - remove caracteres especiais perigosos
+        name = re.sub(r'[^\w\s\u00C0-\u017F]', '', name)
+        
+        if not name:  # Se após sanitização não sobrou nada
+            return jsonify({'error': 'Nome inválido', 'success': False}), 400
+        
+        # Log para debug
+        current_app.logger.info(f"Buscando convidado com nome: '{name}'")
+        
+        # Buscar todos os convidados com nomes similares (melhorada a busca)
+        guests_list = Guest.query.filter(
+            Guest.name.ilike(f'%{name}%')
+        ).order_by(Guest.name).all()
+        
+        current_app.logger.info(f"Encontrados {len(guests_list)} convidados")
+        
+        if not guests_list:
+            return jsonify({
+                'guests': [],
+                'total_found': 0,
+                'message': 'Nenhum convidado encontrado',
+                'success': True
+            })
+        
+        # Retornar lista de convidados individuais para seleção
+        guests_data = []
+        for guest in guests_list:
+            try:
+                guest_data = {
+                    'id': guest.id,
+                    'name': guest.name,
+                    'phone': guest.phone or '',
+                    'rsvp_status': guest.rsvp_status,
+                    'group_id': guest.group_id,
+                    'group_name': guest.group.name if guest.group else None
+                }
+                guests_data.append(guest_data)
+            except Exception as e:
+                current_app.logger.error(f"Erro ao processar convidado {guest.id}: {str(e)}")
+                continue
+        
+        return jsonify({
+            'guests': guests_data,
+            'total_found': len(guests_data),
+            'success': True
         })
-    
-    return jsonify({
-        'guests': guests_data,
-        'total_found': len(guests_data)
-    })
+        
+    except Exception as e:
+        # Log detalhado do erro
+        current_app.logger.error(f"Erro na busca individual de convidados: {str(e)}", exc_info=True)
+        db.session.rollback()  # Rollback em caso de erro
+        
+        return jsonify({
+            'error': 'Erro interno do servidor ao buscar convidados',
+            'success': False,
+            'debug_info': str(e) if current_app.debug else None  # Só mostra detalhes em modo debug
+        }), 500
 
+# 🔧 ROTA CORRIGIDA - BUSCA DE GRUPO DO CONVIDADO
 @app.route('/get_guest_group/<int:guest_id>')
 def get_guest_group(guest_id):
-    """Busca o grupo completo de um convidado específico"""
-    selected_guest = Guest.query.get_or_404(guest_id)
-    
-    if selected_guest.group_id:
-        # Se tem grupo, buscar todos do grupo
-        group_guests = Guest.query.filter_by(group_id=selected_guest.group_id).all()
-        group_name = selected_guest.group.name
-    else:
-        # Se não tem grupo, retornar apenas ele
-        group_guests = [selected_guest]
-        group_name = None
-    
-    guests_data = [{
-        'id': g.id,
-        'name': g.name,
-        'phone': g.phone,
-        'rsvp_status': g.rsvp_status
-    } for g in group_guests]
-    
-    return jsonify({
-        'guests': guests_data,
-        'group_name': group_name,
-        'selected_guest_name': selected_guest.name
-    })
-
+    """Busca o grupo completo de um convidado específico - VERSÃO CORRIGIDA"""
+    try:
+        # Validação do ID
+        if guest_id <= 0:
+            return jsonify({'error': 'ID de convidado inválido', 'success': False}), 400
+        
+        selected_guest = Guest.query.get(guest_id)
+        
+        if not selected_guest:
+            return jsonify({'error': 'Convidado não encontrado', 'success': False}), 404
+        
+        current_app.logger.info(f"Buscando grupo para convidado: {selected_guest.name}")
+        
+        if selected_guest.group_id:
+            # Se tem grupo, buscar todos do grupo
+            group_guests = Guest.query.filter_by(group_id=selected_guest.group_id).all()
+            group_name = selected_guest.group.name if selected_guest.group else None
+            current_app.logger.info(f"Convidado pertence ao grupo '{group_name}' com {len(group_guests)} membros")
+        else:
+            # Se não tem grupo, retornar apenas ele
+            group_guests = [selected_guest]
+            group_name = None
+            current_app.logger.info("Convidado não pertence a nenhum grupo")
+        
+        guests_data = []
+        for g in group_guests:
+            try:
+                guest_data = {
+                    'id': g.id,
+                    'name': g.name,
+                    'phone': g.phone or '',
+                    'rsvp_status': g.rsvp_status
+                }
+                guests_data.append(guest_data)
+            except Exception as e:
+                current_app.logger.error(f"Erro ao processar convidado do grupo {g.id}: {str(e)}")
+                continue
+        
+        return jsonify({
+            'guests': guests_data,
+            'group_name': group_name,
+            'selected_guest_name': selected_guest.name,
+            'success': True
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f"Erro ao buscar grupo do convidado {guest_id}: {str(e)}", exc_info=True)
+        db.session.rollback()
+        
+        return jsonify({
+            'error': 'Erro ao carregar informações do convidado',
+            'success': False
+        }), 500
