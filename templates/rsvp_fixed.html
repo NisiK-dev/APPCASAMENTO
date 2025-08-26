@@ -84,149 +84,345 @@
     </div>
 </div>
 {% endblock %}
-
 {% block scripts %}
 <script>
-    let selectedGuests = [];
-    let searchTimeout;
+    var selectedGuests = [];
+    var searchTimeout;
 
-    // Buscar convidados
+    // Função para debug
+    function logDebug(message, data = null) {
+        console.log(`[RSVP Debug] ${message}`, data || '');
+    }
+
     document.getElementById('guestSearch').addEventListener('input', function () {
-        const query = this.value.trim();
-
+        var query = this.value.trim();
         clearTimeout(searchTimeout);
 
-        if (query.length < 4) {
-            document.getElementById('searchResults').style.display = 'none';
+        logDebug(`Input detectado: "${query}"`);
+
+        // Mínimo 3 caracteres
+        if (query.length < 3) {
+            document.getElementById('guestSelectionResults').style.display = 'none';
+            logDebug('Query muito curta, ocultando resultados');
             return;
         }
 
+        // Mostrar loading
         document.getElementById('searchLoading').style.display = 'block';
-        document.getElementById('searchResults').style.display = 'none';
+        document.getElementById('guestSelectionResults').style.display = 'none';
+        logDebug('Mostrando loading...');
 
-        searchTimeout = setTimeout(() => {
-            const formData = new FormData();
+        // Debounce de 300ms
+        searchTimeout = setTimeout(function () {
+            logDebug(`Executando busca para: "${query}"`);
+            
+            var formData = new FormData();
             formData.append('name', query);
 
-            fetch('/search_guest', {
+            fetch('/search_guest_individual', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             })
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('searchLoading').style.display = 'none';
+            .then(response => {
+                logDebug(`Response status: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
+                }
+                return response.text();
+            })
+            .then(text => {
+                logDebug('Response text:', text);
+                
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    throw new Error(`Erro ao parsear JSON: ${e.message}. Response: ${text}`);
+                }
+                
+                document.getElementById('searchLoading').style.display = 'none';
+                logDebug('Dados recebidos:', data);
 
+                if (data.success) {
                     if (data.guests && data.guests.length > 0) {
-                        displaySearchResults(data.guests, data.group_name);
+                        logDebug(`${data.guests.length} convidados encontrados`);
+                        displayIndividualGuests(data.guests);
                     } else {
-                        document.getElementById('guestList').innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>Nenhum convidado encontrado com este nome.</div>';
-                        document.getElementById('searchResults').style.display = 'block';
+                        logDebug('Nenhum convidado encontrado');
+                        displayNoResults(data.message || 'Nenhum convidado encontrado');
                     }
-                })
-                .catch(error => {
-                    console.error('Erro na busca:', error);
-                    document.getElementById('searchLoading').style.display = 'none';
-                    document.getElementById('guestList').innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>Erro ao buscar convidados. Tente novamente.</div>';
-                    document.getElementById('searchResults').style.display = 'block';
-                });
-        }, 500);
+                } else {
+                    throw new Error(data.error || 'Erro desconhecido na busca');
+                }
+            })
+            .catch(error => {
+                logDebug('ERRO na busca:', error);
+                document.getElementById('searchLoading').style.display = 'none';
+                displaySearchError(error.message);
+            });
+        }, 300);
     });
 
-    function displaySearchResults(guests, groupName) {
-        const guestList = document.getElementById('guestList');
+    function displayIndividualGuests(guests) {
+        logDebug('Exibindo convidados:', guests);
+        
+        var guestsList = document.getElementById('individualGuestsList');
+        var html = '';
 
-        let html = '';
-
-        if (groupName) {
-            html += '<div class="alert alert-info"><i class="fas fa-users me-2"></i><strong>Grupo encontrado:</strong> ' + groupName + '</div>';
+        if (guests.length === 1) {
+            logDebug('Apenas 1 convidado encontrado, selecionando automaticamente');
+            selectSpecificGuest(guests[0].id);
+            return;
         }
 
-        html += '<div class="guest-group mb-3"><div class="card"><div class="card-header"><h6 class="mb-0">' + (groupName || 'Convidados') + '</h6></div><div class="card-body">';
+        guests.forEach((guest, index) => {
+            logDebug(`Processando convidado ${index + 1}:`, guest);
+            
+            var statusClass = 'status-pending';
+            var statusText = 'Pendente';
+            
+            if (guest.rsvp_status === 'confirmado') {
+                statusClass = 'status-confirmed';
+                statusText = 'Confirmado';
+            } else if (guest.rsvp_status === 'nao_confirmado') {
+                statusClass = 'status-declined';
+                statusText = 'Não Confirmado';
+            }
 
-        guests.forEach(guest => {
-            const statusBadge = guest.rsvp_status === 'confirmado' ?
-                '<span class="badge bg-success ms-2">Confirmado</span>' :
-                guest.rsvp_status === 'nao_confirmado' ?
-                    '<span class="badge bg-danger ms-2">Não Confirmado</span>' :
-                    '<span class="badge bg-warning ms-2">Pendente</span>';
+            var groupInfo = guest.group_name ? 
+                `<div class="guest-details"><i class="fas fa-users me-1"></i>Grupo: ${guest.group_name}</div>` : 
+                '<div class="guest-details"><i class="fas fa-user me-1"></i>Convidado individual</div>';
 
-            html += '<div class="guest-item d-flex justify-content-between align-items-center mb-2"><span>' + guest.name + statusBadge + '</span></div>';
-        });
-
-        html += '<div class="text-center mt-3"><button type="button" class="btn btn-primary" onclick="selectGuestGroup(' + JSON.stringify(guests) + ')"><i class="fas fa-check me-2"></i>Confirmar Presenças</button></div></div></div></div>';
-
-        guestList.innerHTML = html;
-        document.getElementById('searchResults').style.display = 'block';
-    }
-
-    function selectGuestGroup(guests) {
-        selectedGuests = guests;
-        showConfirmStep();
-    }
-
-    function showConfirmStep() {
-        document.getElementById('searchStep').style.display = 'none';
-        document.getElementById('confirmStep').style.display = 'block';
-
-        const guestsList = document.getElementById('selectedGuestsList');
-        let html = '<h6 class="mb-3">Confirme a presença para:</h6>';
-
-        selectedGuests.forEach(guest => {
-            const currentStatus = guest.rsvp_status;
-            const badgeClass = currentStatus === 'confirmado' ? 'success' :
-                currentStatus === 'nao_confirmado' ? 'danger' : 'warning';
-            const badgeText = currentStatus === 'confirmado' ? 'Confirmado' :
-                currentStatus === 'nao_confirmado' ? 'Não Confirmado' : 'Pendente';
-
-            html += '<div class="guest-card mb-3 p-3">';
-            html += '<div class="d-flex justify-content-between align-items-center mb-2">';
-            html += '<h6 class="mb-0">' + guest.name + '</h6>';
-            html += '<span class="badge bg-' + badgeClass + '">' + badgeText + '</span>';
-            html += '</div>';
-            html += '<div class="row">';
-            html += '<div class="col-6">';
-            html += '<div class="form-check">';
-            html += '<input class="form-check-input" type="radio" name="rsvp_' + guest.id + '" id="confirm_' + guest.id + '" value="confirmado"' + (currentStatus === 'confirmado' ? ' checked' : '') + '>';
-            html += '<label class="form-check-label text-success" for="confirm_' + guest.id + '"><i class="fas fa-check me-1"></i>Confirmo presença</label>';
-            html += '</div>';
-            html += '</div>';
-            html += '<div class="col-6">';
-            html += '<div class="form-check">';
-            html += '<input class="form-check-input" type="radio" name="rsvp_' + guest.id + '" id="decline_' + guest.id + '" value="nao_confirmado"' + (currentStatus === 'nao_confirmado' ? ' checked' : '') + '>';
-            html += '<label class="form-check-label text-danger" for="decline_' + guest.id + '"><i class="fas fa-times me-1"></i>Não poderei comparecer</label>';
-            html += '</div>';
-            html += '</div>';
-            html += '</div>';
-            html += '<input type="hidden" name="guest_ids" value="' + guest.id + '">';
-            html += '</div>';
+            html += `
+                <div class="guest-selection-card">
+                    <div class="guest-info">
+                        <h5 class="guest-name">${guest.name}</h5>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                    ${groupInfo}
+                    <div class="text-center">
+                        <button type="button" class="btn select-guest-btn" data-guest-id="${guest.id}">
+                            <i class="fas fa-check me-2"></i>
+                            Este sou eu
+                        </button>
+                    </div>
+                </div>
+            `;
         });
 
         guestsList.innerHTML = html;
+
+        // 🔧 CORREÇÃO DO EVENT LISTENER PARA BOTÕES
+        document.querySelectorAll('.select-guest-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                var guestId = this.getAttribute('data-guest-id');
+                selectSpecificGuest(guestId, this);
+            });
+        });
+
+        document.getElementById('guestSelectionResults').style.display = 'block';
+        logDebug('Lista de convidados exibida com sucesso');
+    }
+
+    // 🔧 FUNÇÃO CORRIGIDA PARA SELEÇÃO
+    function selectSpecificGuest(guestId, buttonElement = null) {
+        logDebug(`Selecionando convidado ID: ${guestId}`);
+        
+        // Mostrar loading no botão
+        var button = buttonElement;
+        var originalText = '';
+        
+        if (button) {
+            originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Carregando...';
+            button.disabled = true;
+        }
+
+        fetch(`/get_guest_group/${guestId}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            logDebug(`Response status para grupo: ${response.status}`);
+            
+            if (!response.ok) {
+                throw new Error(`Erro HTTP: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(text => {
+            logDebug('Response do grupo:', text);
+            
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                throw new Error(`Erro ao parsear JSON do grupo: ${e.message}`);
+            }
+            
+            if (data.success && data.guests) {
+                logDebug('Dados do grupo recebidos:', data);
+                selectedGuests = data.guests;
+                document.getElementById('selectedGuestName').textContent = data.selected_guest_name;
+                showConfirmStep();
+            } else {
+                throw new Error(data.error || 'Erro ao carregar grupo');
+            }
+        })
+        .catch(error => {
+            logDebug('ERRO ao carregar grupo:', error);
+            alert('Erro ao carregar informações: ' + error.message);
+            
+            if (button && originalText) {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        });
+    }
+
+    function displayNoResults(message = 'Nenhum convidado encontrado com este nome.') {
+        logDebug('Exibindo "sem resultados":', message);
+        
+        document.getElementById('individualGuestsList').innerHTML = `
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${message}
+                <br><small class="text-muted mt-2">
+                    ✓ Verifique se digitou o nome corretamente<br>
+                    ✓ Tente usar apenas o primeiro nome<br>
+                    ✓ Verifique se você está na lista de convidados
+                </small>
+            </div>
+        `;
+        document.getElementById('guestSelectionResults').style.display = 'block';
+    }
+
+    function displaySearchError(errorMessage) {
+        logDebug('Exibindo erro:', errorMessage);
+        
+        document.getElementById('individualGuestsList').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <strong>Erro na busca:</strong><br>
+                ${errorMessage}
+                <br><small class="text-muted mt-2">
+                    Por favor, tente novamente. Se o problema persistir, entre em contato conosco.
+                </small>
+            </div>
+        `;
+        document.getElementById('guestSelectionResults').style.display = 'block';
+    }
+
+    function showConfirmStep() {
+        logDebug('Mostrando step de confirmação para:', selectedGuests);
+        
+        document.getElementById('searchStep').style.display = 'none';
+        document.getElementById('confirmStep').style.display = 'block';
+
+        var guestsList = document.getElementById('selectedGuestsList');
+        var html = '<h6 class="mb-3">Confirme a presença para:</h6>';
+
+        selectedGuests.forEach(guest => {
+            var currentStatus = guest.rsvp_status;
+            var badgeClass = '';
+            var badgeText = '';
+
+            if (currentStatus === 'confirmado') {
+                badgeClass = 'success';
+                badgeText = 'Confirmado';
+            } else if (currentStatus === 'nao_confirmado') {
+                badgeClass = 'danger';
+                badgeText = 'Não Confirmado';
+            } else {
+                badgeClass = 'warning';
+                badgeText = 'Pendente';
+            }
+
+            html += `
+                <div class="guest-card mb-4 p-4 border rounded-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0 fw-bold text-dark">${guest.name}</h5>
+                        <span class="badge bg-${badgeClass} fs-6 px-3 py-2">${badgeText}</span>
+                    </div>
+                    <div class="rsvp-options-container">
+                        <div class="rsvp-option ${currentStatus === 'confirmado' ? 'selected' : ''}" 
+                             data-value="confirmado" data-guest="${guest.id}">
+                            <input type="radio" name="rsvp_${guest.id}" id="confirm_${guest.id}" 
+                                   value="confirmado" style="display: none;" ${currentStatus === 'confirmado' ? 'checked' : ''}>
+                            <div class="option-content">
+                                <div class="option-icon success"><i class="fas fa-check"></i></div>
+                                <div class="option-text">
+                                    <h6 class="option-title">Confirmo Presença</h6>
+                                    <p class="option-subtitle">Estarei presente no casamento</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rsvp-option ${currentStatus === 'nao_confirmado' ? 'selected' : ''}" 
+                             data-value="nao_confirmado" data-guest="${guest.id}">
+                            <input type="radio" name="rsvp_${guest.id}" id="decline_${guest.id}" 
+                                   value="nao_confirmado" style="display: none;" ${currentStatus === 'nao_confirmado' ? 'checked' : ''}>
+                            <div class="option-content">
+                                <div class="option-icon danger"><i class="fas fa-times"></i></div>
+                                <div class="option-text">
+                                    <h6 class="option-title">Não Poderei Comparecer</h6>
+                                    <p class="option-subtitle">Infelizmente não conseguirei ir</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="guest_ids" value="${guest.id}">
+                </div>
+            `;
+        });
+
+        guestsList.innerHTML = html;
+        
+        // Add click handlers for RSVP options
+        document.querySelectorAll('.rsvp-option').forEach(option => {
+            option.addEventListener('click', function() {
+                var guestId = this.dataset.guest;
+                var value = this.dataset.value;
+                var radioInput = document.getElementById((value === 'confirmado' ? 'confirm_' : 'decline_') + guestId);
+                
+                // Remove selected class from all options for this guest
+                document.querySelectorAll('.rsvp-option[data-guest="' + guestId + '"]').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                
+                // Check the radio input
+                radioInput.checked = true;
+            });
+        });
     }
 
     function goBackToSearch() {
+        logDebug('Voltando para busca');
         document.getElementById('confirmStep').style.display = 'none';
         document.getElementById('searchStep').style.display = 'block';
+        document.getElementById('guestSelectionResults').style.display = 'none';
+        document.getElementById('guestSearch').value = '';
         selectedGuests = [];
     }
 
-    // Form submission
-    document.getElementById('rsvpForm').addEventListener('submit', function (e) {
-        e.preventDefault();
+    function confirmRSVP() {
+        var hasSelection = false;
 
-        const button = this.querySelector('button[type="submit"]');
-        const originalText = button.innerHTML;
-
-        // Verificar se pelo menos um convidado foi selecionado
-        let hasSelection = false;
         selectedGuests.forEach(guest => {
-            const radios = document.querySelectorAll('input[name="rsvp_' + guest.id + '"]');
-            for (let radio of radios) {
+            var radios = document.querySelectorAll(`input[name="rsvp_${guest.id}"]`);
+            radios.forEach(radio => {
                 if (radio.checked) {
                     hasSelection = true;
-                    break;
                 }
-            }
+            });
         });
 
         if (!hasSelection) {
@@ -234,18 +430,24 @@
             return;
         }
 
-        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvando...';
-        button.disabled = true;
+        var button = document.querySelector('button[onclick="confirmRSVP()"]');
+        if (button) {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvando...';
+            button.disabled = true;
+        }
 
-        // Submeter o formulário normalmente
-        this.submit();
-    });
+        logDebug('Enviando confirmações...');
+        document.getElementById('rsvpForm').submit();
+    }
 
-    // Enter key on search
     document.getElementById('guestSearch').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             e.preventDefault();
         }
     });
+
+    // Debug inicial
+    logDebug('Script RSVP carregado com sucesso');
 </script>
 {% endblock %}
+
