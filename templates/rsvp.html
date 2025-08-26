@@ -28,8 +28,8 @@
             <div class="mb-3">
                 <label for="guestSearch" class="form-label">Digite seu nome</label>
                 <input type="text" class="form-control form-control-lg" id="guestSearch" 
-                       placeholder="Ex: João Silva" autocomplete="on" minlength="4">
-                <div class="form-text">Digite pelo menos 4 caracteres para buscar</div>
+                       placeholder="Ex: João Silva" autocomplete="on" minlength="3">
+                <div class="form-text">Digite pelo menos 3 caracteres para buscar</div>
             </div>
         </div>
         
@@ -243,11 +243,13 @@
     var selectedGuests = [];
     var searchTimeout;
 
+    // 🔧 EVENT LISTENER MELHORADO
     document.getElementById('guestSearch').addEventListener('input', function () {
         var query = this.value.trim();
         clearTimeout(searchTimeout);
 
-        if (query.length < 4) {
+        // Mudança: agora aceita 3 caracteres em vez de 4
+        if (query.length < 3) {
             document.getElementById('guestSelectionResults').style.display = 'none';
             return;
         }
@@ -255,6 +257,7 @@
         document.getElementById('searchLoading').style.display = 'block';
         document.getElementById('guestSelectionResults').style.display = 'none';
 
+        // Timeout reduzido para resposta mais rápida
         searchTimeout = setTimeout(function () {
             var formData = new FormData();
             formData.append('name', query);
@@ -263,22 +266,31 @@
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                // 🔧 MELHOR TRATAMENTO DE RESPOSTA
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 document.getElementById('searchLoading').style.display = 'none';
 
-                if (data.guests && data.guests.length > 0) {
+                // 🔧 VERIFICAÇÃO MELHORADA DOS DADOS
+                if (data.success && data.guests && data.guests.length > 0) {
                     displayIndividualGuests(data.guests);
+                } else if (data.total_found === 0) {
+                    displayNoResults(data.message || 'Nenhum convidado encontrado');
                 } else {
-                    displayNoResults();
+                    throw new Error(data.error || 'Erro desconhecido na busca');
                 }
             })
             .catch(error => {
                 console.error('Erro na busca:', error);
                 document.getElementById('searchLoading').style.display = 'none';
-                displaySearchError();
+                displaySearchError(error.message || 'Erro ao buscar convidados. Tente novamente.');
             });
-        }, 500);
+        }, 300); // Reduzido de 500ms para 300ms
     });
 
     function displayIndividualGuests(guests) {
@@ -337,15 +349,26 @@
         }
 
         fetch(`/get_guest_group/${guestId}`)
-            .then(response => response.json())
+            .then(response => {
+                // 🔧 VERIFICAÇÃO MELHORADA
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
-                selectedGuests = data.guests;
-                document.getElementById('selectedGuestName').textContent = data.selected_guest_name;
-                showConfirmStep();
+                // 🔧 VERIFICAÇÃO DE SUCESSO
+                if (data.success && data.guests) {
+                    selectedGuests = data.guests;
+                    document.getElementById('selectedGuestName').textContent = data.selected_guest_name;
+                    showConfirmStep();
+                } else {
+                    throw new Error(data.error || 'Erro ao carregar informações do convidado');
+                }
             })
             .catch(error => {
                 console.error('Erro ao carregar grupo:', error);
-                alert('Erro ao carregar informações. Tente novamente.');
+                alert('Erro ao carregar informações: ' + (error.message || 'Tente novamente.'));
                 if (button) {
                     button.innerHTML = '<i class="fas fa-check me-2"></i>Este sou eu';
                     button.disabled = false;
@@ -353,21 +376,25 @@
             });
     }
 
-    function displayNoResults() {
+    // 🔧 FUNÇÃO MELHORADA PARA EXIBIR "SEM RESULTADOS"
+    function displayNoResults(message = 'Nenhum convidado encontrado com este nome.') {
         document.getElementById('individualGuestsList').innerHTML = `
             <div class="alert alert-warning">
                 <i class="fas fa-exclamation-triangle me-2"></i>
-                Nenhum convidado encontrado com este nome.
+                ${message}
+                <br><small class="text-muted mt-2">Tente usar um nome mais curto ou verifique a grafia.</small>
             </div>
         `;
         document.getElementById('guestSelectionResults').style.display = 'block';
     }
 
-    function displaySearchError() {
+    // 🔧 FUNÇÃO MELHORADA PARA EXIBIR ERROS
+    function displaySearchError(errorMessage = 'Erro ao buscar convidados. Tente novamente.') {
         document.getElementById('individualGuestsList').innerHTML = `
             <div class="alert alert-danger">
                 <i class="fas fa-exclamation-circle me-2"></i>
-                Erro ao buscar convidados. Tente novamente.
+                ${errorMessage}
+                <br><small class="text-muted mt-2">Se o problema persistir, entre em contato conosco.</small>
             </div>
         `;
         document.getElementById('guestSelectionResults').style.display = 'block';
