@@ -243,67 +243,99 @@
     var selectedGuests = [];
     var searchTimeout;
 
-    // 🔧 EVENT LISTENER MELHORADO
+    // Função para debug
+    function logDebug(message, data = null) {
+        console.log(`[RSVP Debug] ${message}`, data || '');
+    }
+
     document.getElementById('guestSearch').addEventListener('input', function () {
         var query = this.value.trim();
         clearTimeout(searchTimeout);
 
-        // Mudança: agora aceita 3 caracteres em vez de 4
+        logDebug(`Input detectado: "${query}"`);
+
+        // Mínimo 3 caracteres
         if (query.length < 3) {
             document.getElementById('guestSelectionResults').style.display = 'none';
+            logDebug('Query muito curta, ocultando resultados');
             return;
         }
 
+        // Mostrar loading
         document.getElementById('searchLoading').style.display = 'block';
         document.getElementById('guestSelectionResults').style.display = 'none';
+        logDebug('Mostrando loading...');
 
-        // Timeout reduzido para resposta mais rápida
+        // Debounce de 300ms
         searchTimeout = setTimeout(function () {
+            logDebug(`Executando busca para: "${query}"`);
+            
             var formData = new FormData();
             formData.append('name', query);
 
             fetch('/search_guest_individual', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             })
             .then(response => {
-                // 🔧 MELHOR TRATAMENTO DE RESPOSTA
+                logDebug(`Response status: ${response.status}`);
+                
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
                 }
-                return response.json();
+                return response.text(); // Primeiro como text para debug
             })
-            .then(data => {
+            .then(text => {
+                logDebug('Response text:', text);
+                
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    throw new Error(`Erro ao parsear JSON: ${e.message}. Response: ${text}`);
+                }
+                
                 document.getElementById('searchLoading').style.display = 'none';
+                logDebug('Dados recebidos:', data);
 
-                // 🔧 VERIFICAÇÃO MELHORADA DOS DADOS
-                if (data.success && data.guests && data.guests.length > 0) {
-                    displayIndividualGuests(data.guests);
-                } else if (data.total_found === 0) {
-                    displayNoResults(data.message || 'Nenhum convidado encontrado');
+                if (data.success) {
+                    if (data.guests && data.guests.length > 0) {
+                        logDebug(`${data.guests.length} convidados encontrados`);
+                        displayIndividualGuests(data.guests);
+                    } else {
+                        logDebug('Nenhum convidado encontrado');
+                        displayNoResults(data.message || 'Nenhum convidado encontrado');
+                    }
                 } else {
                     throw new Error(data.error || 'Erro desconhecido na busca');
                 }
             })
             .catch(error => {
-                console.error('Erro na busca:', error);
+                logDebug('ERRO na busca:', error);
                 document.getElementById('searchLoading').style.display = 'none';
-                displaySearchError(error.message || 'Erro ao buscar convidados. Tente novamente.');
+                displaySearchError(error.message);
             });
-        }, 300); // Reduzido de 500ms para 300ms
+        }, 300);
     });
 
     function displayIndividualGuests(guests) {
+        logDebug('Exibindo convidados:', guests);
+        
         var guestsList = document.getElementById('individualGuestsList');
         var html = '';
 
         if (guests.length === 1) {
-            // Se só tem um resultado, selecionar automaticamente
+            logDebug('Apenas 1 convidado encontrado, selecionando automaticamente');
             selectSpecificGuest(guests[0].id);
             return;
         }
 
-        guests.forEach(guest => {
+        guests.forEach((guest, index) => {
+            logDebug(`Processando convidado ${index + 1}:`, guest);
+            
             var statusClass = 'status-pending';
             var statusText = 'Pendente';
             
@@ -338,69 +370,99 @@
 
         guestsList.innerHTML = html;
         document.getElementById('guestSelectionResults').style.display = 'block';
+        logDebug('Lista de convidados exibida com sucesso');
     }
 
     function selectSpecificGuest(guestId) {
-        // Mostrar loading
+        logDebug(`Selecionando convidado ID: ${guestId}`);
+        
+        // Mostrar loading no botão
         var button = event.target;
+        var originalText = button.innerHTML;
         if (button) {
             button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Carregando...';
             button.disabled = true;
         }
 
-        fetch(`/get_guest_group/${guestId}`)
-            .then(response => {
-                // 🔧 VERIFICAÇÃO MELHORADA
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                // 🔧 VERIFICAÇÃO DE SUCESSO
-                if (data.success && data.guests) {
-                    selectedGuests = data.guests;
-                    document.getElementById('selectedGuestName').textContent = data.selected_guest_name;
-                    showConfirmStep();
-                } else {
-                    throw new Error(data.error || 'Erro ao carregar informações do convidado');
-                }
-            })
-            .catch(error => {
-                console.error('Erro ao carregar grupo:', error);
-                alert('Erro ao carregar informações: ' + (error.message || 'Tente novamente.'));
-                if (button) {
-                    button.innerHTML = '<i class="fas fa-check me-2"></i>Este sou eu';
-                    button.disabled = false;
-                }
-            });
+        fetch(`/get_guest_group/${guestId}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            logDebug(`Response status para grupo: ${response.status}`);
+            
+            if (!response.ok) {
+                throw new Error(`Erro HTTP: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(text => {
+            logDebug('Response do grupo:', text);
+            
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                throw new Error(`Erro ao parsear JSON do grupo: ${e.message}`);
+            }
+            
+            if (data.success && data.guests) {
+                logDebug('Dados do grupo recebidos:', data);
+                selectedGuests = data.guests;
+                document.getElementById('selectedGuestName').textContent = data.selected_guest_name;
+                showConfirmStep();
+            } else {
+                throw new Error(data.error || 'Erro ao carregar grupo');
+            }
+        })
+        .catch(error => {
+            logDebug('ERRO ao carregar grupo:', error);
+            alert('Erro ao carregar informações: ' + error.message);
+            
+            if (button) {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        });
     }
 
-    // 🔧 FUNÇÃO MELHORADA PARA EXIBIR "SEM RESULTADOS"
     function displayNoResults(message = 'Nenhum convidado encontrado com este nome.') {
+        logDebug('Exibindo "sem resultados":', message);
+        
         document.getElementById('individualGuestsList').innerHTML = `
             <div class="alert alert-warning">
                 <i class="fas fa-exclamation-triangle me-2"></i>
                 ${message}
-                <br><small class="text-muted mt-2">Tente usar um nome mais curto ou verifique a grafia.</small>
+                <br><small class="text-muted mt-2">
+                    ✓ Verifique se digitou o nome corretamente<br>
+                    ✓ Tente usar apenas o primeiro nome<br>
+                    ✓ Verifique se você está na lista de convidados
+                </small>
             </div>
         `;
         document.getElementById('guestSelectionResults').style.display = 'block';
     }
 
-    // 🔧 FUNÇÃO MELHORADA PARA EXIBIR ERROS
-    function displaySearchError(errorMessage = 'Erro ao buscar convidados. Tente novamente.') {
+    function displaySearchError(errorMessage) {
+        logDebug('Exibindo erro:', errorMessage);
+        
         document.getElementById('individualGuestsList').innerHTML = `
             <div class="alert alert-danger">
                 <i class="fas fa-exclamation-circle me-2"></i>
+                <strong>Erro na busca:</strong><br>
                 ${errorMessage}
-                <br><small class="text-muted mt-2">Se o problema persistir, entre em contato conosco.</small>
+                <br><small class="text-muted mt-2">
+                    Por favor, tente novamente. Se o problema persistir, entre em contato conosco.
+                </small>
             </div>
         `;
         document.getElementById('guestSelectionResults').style.display = 'block';
     }
 
     function showConfirmStep() {
+        logDebug('Mostrando step de confirmação para:', selectedGuests);
+        
         document.getElementById('searchStep').style.display = 'none';
         document.getElementById('confirmStep').style.display = 'block';
 
@@ -484,6 +546,7 @@
     }
 
     function goBackToSearch() {
+        logDebug('Voltando para busca');
         document.getElementById('confirmStep').style.display = 'none';
         document.getElementById('searchStep').style.display = 'block';
         document.getElementById('guestSelectionResults').style.display = 'none';
@@ -514,6 +577,7 @@
             button.disabled = true;
         }
 
+        logDebug('Enviando confirmações...');
         document.getElementById('rsvpForm').submit();
     }
 
@@ -522,5 +586,9 @@
             e.preventDefault();
         }
     });
+
+    // Debug inicial
+    logDebug('Script RSVP carregado com sucesso');
 </script>
 {% endblock %}
+
