@@ -808,10 +808,10 @@ def healthz():
             "message": f"Application unhealthy or critical component failed: {str(e)}"
         }), 500
 
-# 🔧 ROTA SUPER CORRIGIDA - BUSCA INDIVIDUAL COM MÚLTIPLAS ESTRATÉGIAS
+# 🔧 ROTA FINAL CORRIGIDA - BUSCA COM TOLERÂNCIA A ACENTOS
 @app.route('/search_guest_individual', methods=['POST'])
 def search_guest_individual():
-    """Busca convidados individuais por nome - VERSÃO SUPER MELHORADA"""
+    """Busca convidados individuais por nome - VERSÃO FINAL COM ACENTOS"""
     try:
         # Obter e validar o nome
         name = request.form.get('name', '').strip()
@@ -831,64 +831,69 @@ def search_guest_individual():
                 'success': False
             }), 400
         
-        # Busca MELHORADA - múltiplas estratégias
-        print(f"🔍 Iniciando busca no banco de dados...")
+        # FUNÇÃO PARA NORMALIZAR ACENTOS
+        def normalize_text(text):
+            """Remove acentos e normaliza texto para busca"""
+            import unicodedata
+            # Remove acentos
+            text_normalized = unicodedata.normalize('NFD', text)
+            text_no_accents = ''.join(c for c in text_normalized if unicodedata.category(c) != 'Mn')
+            return text_no_accents.lower()
         
-        # Estratégia 1: Busca exata (case insensitive)
-        guests_exact = Guest.query.filter(
-            Guest.name.ilike(name)
-        ).all()
+        # Normalizar o termo de busca
+        name_normalized = normalize_text(name)
+        print(f"🔍 Termo normalizado: '{name_normalized}'")
         
-        # Estratégia 2: Busca que começa com o termo
-        guests_starts = Guest.query.filter(
-            Guest.name.ilike(f'{name}%')
-        ).all()
+        # Buscar TODOS os convidados para fazer comparação manual
+        print(f"🔍 Buscando todos os convidados no banco...")
+        all_guests = Guest.query.all()
+        print(f"🔍 Total de convidados no banco: {len(all_guests)}")
         
-        # Estratégia 3: Busca que contém o termo
-        guests_contains = Guest.query.filter(
-            Guest.name.ilike(f'%{name}%')
-        ).all()
-        
-        # Estratégia 4: Busca por palavras individuais
-        words = name.split()
-        guests_words = []
-        if len(words) > 1:
-            for word in words:
-                if len(word) >= 2:  # Palavras com pelo menos 2 caracteres
-                    word_guests = Guest.query.filter(
-                        Guest.name.ilike(f'%{word}%')
-                    ).all()
-                    guests_words.extend(word_guests)
-        
-        # Combinar todos os resultados e remover duplicatas
-        all_guests = guests_exact + guests_starts + guests_contains + guests_words
-        unique_guests = []
-        seen_ids = set()
+        # Filtrar manualmente com diferentes estratégias
+        matched_guests = []
         
         for guest in all_guests:
-            if guest.id not in seen_ids:
-                unique_guests.append(guest)
-                seen_ids.add(guest.id)
-        
-        # Ordenar por relevância (exatos primeiro, depois que começam, depois que contêm)
-        def get_relevance_score(guest):
-            guest_name_lower = guest.name.lower()
-            name_lower = name.lower()
+            guest_name_normalized = normalize_text(guest.name)
             
-            if guest_name_lower == name_lower:
-                return 1  # Exato
-            elif guest_name_lower.startswith(name_lower):
-                return 2  # Começa com
-            elif name_lower in guest_name_lower:
-                return 3  # Contém
-            else:
-                return 4  # Palavras individuais
+            # Estratégia 1: Nome exato (sem acentos)
+            if guest_name_normalized == name_normalized:
+                matched_guests.append((guest, 1, 'exato'))
+                continue
+            
+            # Estratégia 2: Nome começa com (sem acentos)  
+            if guest_name_normalized.startswith(name_normalized):
+                matched_guests.append((guest, 2, 'começa'))
+                continue
+                
+            # Estratégia 3: Nome contém (sem acentos)
+            if name_normalized in guest_name_normalized:
+                matched_guests.append((guest, 3, 'contém'))
+                continue
+            
+            # Estratégia 4: Busca por palavras individuais
+            name_words = name_normalized.split()
+            guest_words = guest_name_normalized.split()
+            
+            word_matches = 0
+            for name_word in name_words:
+                if len(name_word) >= 2:  # Palavras com pelo menos 2 caracteres
+                    for guest_word in guest_words:
+                        if name_word in guest_word or guest_word in name_word:
+                            word_matches += 1
+                            break
+            
+            if word_matches > 0:
+                matched_guests.append((guest, 4, f'palavras({word_matches})'))
         
-        unique_guests.sort(key=get_relevance_score)
+        # Ordenar por relevância (menor número = mais relevante)
+        matched_guests.sort(key=lambda x: x[1])
+        
+        # Extrair apenas os objetos Guest
+        unique_guests = [item[0] for item in matched_guests]
         
         print(f"🔍 Encontrados {len(unique_guests)} convidados:")
-        for guest in unique_guests:
-            print(f"  - {guest.name} (ID: {guest.id})")
+        for guest, priority, match_type in matched_guests:
+            print(f"  - {guest.name} (ID: {guest.id}) [prioridade: {priority}, tipo: {match_type}]")
         
         if not unique_guests:
             print("❌ Nenhum convidado encontrado")
@@ -933,65 +938,5 @@ def search_guest_individual():
         
         return jsonify({
             'error': f'Erro interno: {str(e)}',
-            'success': False
-        }), 500
-
-@app.route('/get_guest_group/<int:guest_id>')
-def get_guest_group(guest_id):
-    """Busca o grupo completo de um convidado específico"""
-    try:
-        print(f"🔍 Buscando grupo para convidado ID: {guest_id}")
-        
-        selected_guest = Guest.query.get(guest_id)
-        
-        if not selected_guest:
-            print(f"❌ Convidado {guest_id} não encontrado")
-            return jsonify({
-                'error': 'Convidado não encontrado',
-                'success': False
-            }), 404
-        
-        print(f"✅ Convidado encontrado: {selected_guest.name}")
-        
-        if selected_guest.group_id:
-            # Se tem grupo, buscar todos do grupo
-            group_guests = Guest.query.filter_by(group_id=selected_guest.group_id).all()
-            group_name = selected_guest.group.name if selected_guest.group else None
-            print(f"📋 Convidado pertence ao grupo '{group_name}' com {len(group_guests)} membros")
-        else:
-            # Se não tem grupo, retornar apenas ele
-            group_guests = [selected_guest]
-            group_name = None
-            print(f"👤 Convidado individual (sem grupo)")
-        
-        guests_data = []
-        for g in group_guests:
-            try:
-                guest_data = {
-                    'id': g.id,
-                    'name': g.name,
-                    'phone': g.phone or '',
-                    'rsvp_status': g.rsvp_status or 'pendente'
-                }
-                guests_data.append(guest_data)
-                print(f"  ✅ {g.name} - Status: {g.rsvp_status}")
-            except Exception as e:
-                print(f"  ❌ Erro ao processar {g.name}: {e}")
-                continue
-        
-        return jsonify({
-            'guests': guests_data,
-            'group_name': group_name,
-            'selected_guest_name': selected_guest.name,
-            'success': True
-        })
-        
-    except Exception as e:
-        print(f"❌ ERRO ao buscar grupo: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        
-        return jsonify({
-            'error': f'Erro ao carregar grupo: {str(e)}',
             'success': False
         }), 500
