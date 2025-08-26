@@ -811,132 +811,51 @@ def healthz():
 # 🔧 ROTA FINAL CORRIGIDA - BUSCA COM TOLERÂNCIA A ACENTOS
 @app.route('/search_guest_individual', methods=['POST'])
 def search_guest_individual():
-    """Busca convidados individuais por nome - VERSÃO FINAL COM ACENTOS"""
+    """Busca TODOS os convidados que contenham o termo - VERSÃO SIMPLES"""
     try:
-        # Obter e validar o nome
+        # Obter o nome da busca
         name = request.form.get('name', '').strip()
         
-        # Log para debug
-        print(f"🔍 Recebida busca por: '{name}'")
+        print(f"🔍 Busca por: '{name}'")
         
-        if not name:
+        if not name or len(name) < 3:
             return jsonify({
-                'error': 'Nome é obrigatório', 
-                'success': False
-            }), 400
-            
-        if len(name) < 3:  # Mínimo 3 caracteres
-            return jsonify({
-                'error': 'Digite pelo menos 3 caracteres para buscar', 
+                'error': 'Digite pelo menos 3 caracteres',
                 'success': False
             }), 400
         
-        # FUNÇÃO PARA NORMALIZAR ACENTOS
-        def normalize_text(text):
-            """Remove acentos e normaliza texto para busca"""
-            import unicodedata
-            # Remove acentos
-            text_normalized = unicodedata.normalize('NFD', text)
-            text_no_accents = ''.join(c for c in text_normalized if unicodedata.category(c) != 'Mn')
-            return text_no_accents.lower()
+        # BUSCA SUPER SIMPLES - TODOS os convidados que contenham o termo
+        guests_found = Guest.query.filter(
+            Guest.name.ilike(f'%{name}%')
+        ).order_by(Guest.name).all()
         
-        # Normalizar o termo de busca
-        name_normalized = normalize_text(name)
-        print(f"🔍 Termo normalizado: '{name_normalized}'")
+        print(f"🔍 Encontrados {len(guests_found)} convidados:")
         
-        # Buscar TODOS os convidados para fazer comparação manual
-        print(f"🔍 Buscando todos os convidados no banco...")
-        all_guests = Guest.query.all()
-        print(f"🔍 Total de convidados no banco: {len(all_guests)}")
-        
-        # Filtrar manualmente com diferentes estratégias
-        matched_guests = []
-        
-        for guest in all_guests:
-            guest_name_normalized = normalize_text(guest.name)
+        # Preparar lista de convidados
+        guests_data = []
+        for guest in guests_found:
+            print(f"  - {guest.name} (ID: {guest.id})")
             
-            # Estratégia 1: Nome exato (sem acentos)
-            if guest_name_normalized == name_normalized:
-                matched_guests.append((guest, 1, 'exato'))
-                continue
-            
-            # Estratégia 2: Nome começa com (sem acentos)  
-            if guest_name_normalized.startswith(name_normalized):
-                matched_guests.append((guest, 2, 'começa'))
-                continue
-                
-            # Estratégia 3: Nome contém (sem acentos)
-            if name_normalized in guest_name_normalized:
-                matched_guests.append((guest, 3, 'contém'))
-                continue
-            
-            # Estratégia 4: Busca por palavras individuais
-            name_words = name_normalized.split()
-            guest_words = guest_name_normalized.split()
-            
-            word_matches = 0
-            for name_word in name_words:
-                if len(name_word) >= 2:  # Palavras com pelo menos 2 caracteres
-                    for guest_word in guest_words:
-                        if name_word in guest_word or guest_word in name_word:
-                            word_matches += 1
-                            break
-            
-            if word_matches > 0:
-                matched_guests.append((guest, 4, f'palavras({word_matches})'))
-        
-        # Ordenar por relevância (menor número = mais relevante)
-        matched_guests.sort(key=lambda x: x[1])
-        
-        # Extrair apenas os objetos Guest
-        unique_guests = [item[0] for item in matched_guests]
-        
-        print(f"🔍 Encontrados {len(unique_guests)} convidados:")
-        for guest, priority, match_type in matched_guests:
-            print(f"  - {guest.name} (ID: {guest.id}) [prioridade: {priority}, tipo: {match_type}]")
-        
-        if not unique_guests:
-            print("❌ Nenhum convidado encontrado")
-            return jsonify({
-                'guests': [],
-                'total_found': 0,
-                'message': f'Nenhum convidado encontrado com "{name}"',
-                'success': True
+            guests_data.append({
+                'id': guest.id,
+                'name': guest.name,
+                'phone': guest.phone or '',
+                'rsvp_status': guest.rsvp_status or 'pendente',
+                'group_id': guest.group_id,
+                'group_name': guest.group.name if guest.group else None
             })
         
-        # Preparar dados dos convidados
-        guests_data = []
-        for guest in unique_guests:
-            try:
-                guest_data = {
-                    'id': guest.id,
-                    'name': guest.name,
-                    'phone': guest.phone or '',
-                    'rsvp_status': guest.rsvp_status or 'pendente',
-                    'group_id': guest.group_id,
-                    'group_name': guest.group.name if guest.group else None
-                }
-                guests_data.append(guest_data)
-                print(f"  ✅ Processado: {guest.name}")
-            except Exception as e:
-                print(f"  ❌ Erro ao processar {guest.name}: {e}")
-                continue
-        
-        print(f"✅ Retornando {len(guests_data)} convidados processados")
+        print(f"✅ Retornando {len(guests_data)} convidados")
         
         return jsonify({
             'guests': guests_data,
             'total_found': len(guests_data),
-            'success': True,
-            'search_term': name
+            'success': True
         })
         
     except Exception as e:
-        print(f"❌ ERRO CRÍTICO na busca: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        
+        print(f"❌ ERRO: {str(e)}")
         return jsonify({
-            'error': f'Erro interno: {str(e)}',
+            'error': f'Erro na busca: {str(e)}',
             'success': False
         }), 500
