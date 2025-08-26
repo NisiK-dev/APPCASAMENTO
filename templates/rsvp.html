@@ -16,7 +16,6 @@
         </p>
     </div>
 
-    <!-- Step 1: Search Guest -->
     <div class="card mb-4" id="searchStep">
         <div class="card-header">
             <h5 class="mb-0">
@@ -33,13 +32,11 @@
             </div>
         </div>
         
-        <!-- Loading -->
         <div id="searchLoading" class="text-center p-4" style="display: none;">
             <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
             <p class="mt-2">Procurando...</p>
         </div>
         
-        <!-- Individual Guest Selection -->
         <div id="guestSelectionResults" style="display: none;">
             <div class="card-header border-top">
                 <h6 class="mb-0 text-primary">
@@ -53,7 +50,6 @@
         </div>
     </div>
 
-    <!-- Step 2: Confirm Guests -->
     <div class="card" id="confirmStep" style="display: none;">
         <div class="card-header">
             <h5 class="mb-0">
@@ -88,7 +84,6 @@
         </div>
     </div>
 
-    <!-- Help Section -->
     <div class="text-center mt-5">
         <div class="alert alert-info">
             <i class="fas fa-info-circle me-2"></i>
@@ -259,10 +254,10 @@
             var formData = new FormData();
             formData.append('name', query);
 
-           fetch('/search_guest', {
-  method: 'POST',
-  body: formData
-})
+            fetch('/search_guest_individual', {
+                method: 'POST',
+                body: formData
+            })
             .then(response => response.json())
             .then(data => {
                 document.getElementById('searchLoading').style.display = 'none';
@@ -315,7 +310,7 @@
                     </div>
                     ${groupInfo}
                     <div class="text-center">
-                        <button type="button" class="btn select-guest-btn" onclick="selectSpecificGuest(${guest.id})">
+                        <button type="button" class="btn select-guest-btn" onclick="selectSpecificGuest(event, ${guest.id})">
                             <i class="fas fa-check me-2"></i>
                             Este sou eu
                         </button>
@@ -328,9 +323,10 @@
         document.getElementById('guestSelectionResults').style.display = 'block';
     }
 
-    function selectSpecificGuest(guestId) {
-        // Mostrar loading
-        var button = event.target;
+    // Passar o objeto event como parâmetro da função onclick
+    function selectSpecificGuest(event, guestId) {
+        // Mostrar estado de carregamento
+        var button = (event && event.target) ? event.target : null;
         if (button) {
             button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Carregando...';
             button.disabled = true;
@@ -435,22 +431,22 @@
 
         guestsList.innerHTML = html;
         
-        // Add click handlers for RSVP options
+        // Adicionar manipuladores de clique para as opções de RSVP
         document.querySelectorAll('.rsvp-option').forEach(option => {
             option.addEventListener('click', function() {
                 var guestId = this.dataset.guest;
                 var value = this.dataset.value;
                 var radioInput = document.getElementById((value === 'confirmado' ? 'confirm_' : 'decline_') + guestId);
                 
-                // Remove selected class from all options for this guest
+                // Remover a classe 'selected' de todas as opções para este convidado
                 document.querySelectorAll('.rsvp-option[data-guest="' + guestId + '"]').forEach(opt => {
                     opt.classList.remove('selected');
                 });
                 
-                // Add selected class to clicked option
+                // Adicionar a classe 'selected' à opção clicada
                 this.classList.add('selected');
                 
-                // Check the radio input
+                // Marcar o input de rádio
                 radioInput.checked = true;
             });
         });
@@ -477,7 +473,7 @@
         });
 
         if (!hasSelection) {
-            alert('Por favor, confirme a presença para pelo menos um convidado.');
+            alert('Por favor, selecione "Confirmo Presença" ou "Não Poderei Comparecer" para todos os convidados.');
             return;
         }
 
