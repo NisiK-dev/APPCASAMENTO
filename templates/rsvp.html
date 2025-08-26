@@ -27,8 +27,13 @@
         <div class="card-body">
             <div class="mb-3">
                 <label for="guestSearch" class="form-label">Digite seu nome</label>
-                <input type="text" class="form-control form-control-lg" id="guestSearch" 
-                       placeholder="Ex: João Silva" autocomplete="on" minlength="4">
+                <div class="input-group">
+                    <input type="text" class="form-control form-control-lg" id="guestSearch" 
+                           placeholder="Ex: João Silva" autocomplete="on" minlength="4">
+                    <button class="btn btn-primary btn-lg" type="button" id="btnSearchGuest">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                </div>
                 <div class="form-text">Digite pelo menos 4 caracteres para buscar</div>
             </div>
         </div>
@@ -241,55 +246,44 @@
 {% block scripts %}
 <script>
     var selectedGuests = [];
-    var searchTimeout;
 
-    document.getElementById('guestSearch').addEventListener('input', function () {
-        var query = this.value.trim();
-        clearTimeout(searchTimeout);
-
+    // Clique no botão de busca
+    document.getElementById('btnSearchGuest').addEventListener('click', function () {
+        var query = document.getElementById('guestSearch').value.trim();
         if (query.length < 4) {
-            document.getElementById('guestSelectionResults').style.display = 'none';
+            alert("Digite pelo menos 4 caracteres.");
             return;
         }
 
         document.getElementById('searchLoading').style.display = 'block';
         document.getElementById('guestSelectionResults').style.display = 'none';
 
-        searchTimeout = setTimeout(function () {
-            var formData = new FormData();
-            formData.append('name', query);
+        var formData = new FormData();
+        formData.append('name', query);
 
-            fetch('/search_guest', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('searchLoading').style.display = 'none';
-
-                if (data.guests && data.guests.length > 0) {
-                    displayIndividualGuests(data.guests);
-                } else {
-                    displayNoResults();
-                }
-            })
-            .catch(error => {
-                console.error('Erro na busca:', error);
-                document.getElementById('searchLoading').style.display = 'none';
-                displaySearchError();
-            });
-        }, 500);
+        fetch('/search_guest', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('searchLoading').style.display = 'none';
+            if (data.guests && data.guests.length > 0) {
+                displayIndividualGuests(data.guests);
+            } else {
+                displayNoResults();
+            }
+        })
+        .catch(error => {
+            console.error('Erro na busca:', error);
+            document.getElementById('searchLoading').style.display = 'none';
+            displaySearchError();
+        });
     });
 
     function displayIndividualGuests(guests) {
         var guestsList = document.getElementById('individualGuestsList');
         var html = '';
-
-        if (guests.length === 1) {
-            // Se só tem um resultado, selecionar automaticamente
-            selectSpecificGuest(guests[0].id);
-            return;
-        }
 
         guests.forEach(guest => {
             var statusClass = 'status-pending';
@@ -303,17 +297,13 @@
                 statusText = 'Não Confirmado';
             }
 
-            var groupInfo = guest.group_name ? 
-                `<div class="guest-details"><i class="fas fa-users me-1"></i>Grupo: ${guest.group_name}</div>` : 
-                '<div class="guest-details"><i class="fas fa-user me-1"></i>Convidado individual</div>';
-
             html += `
                 <div class="guest-selection-card">
                     <div class="guest-info">
                         <h5 class="guest-name">${guest.name}</h5>
                         <span class="status-badge ${statusClass}">${statusText}</span>
                     </div>
-                    ${groupInfo}
+                    <div class="guest-details"><i class="fas fa-user me-1"></i>Convidado individual</div>
                     <div class="text-center">
                         <button type="button" class="btn select-guest-btn" onclick="selectSpecificGuest(${guest.id})">
                             <i class="fas fa-check me-2"></i>
@@ -329,13 +319,6 @@
     }
 
     function selectSpecificGuest(guestId) {
-        // Mostrar loading
-        var button = event.target;
-        if (button) {
-            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Carregando...';
-            button.disabled = true;
-        }
-
         fetch(`/get_guest_group/${guestId}`)
             .then(response => response.json())
             .then(data => {
@@ -346,10 +329,6 @@
             .catch(error => {
                 console.error('Erro ao carregar grupo:', error);
                 alert('Erro ao carregar informações. Tente novamente.');
-                if (button) {
-                    button.innerHTML = '<i class="fas fa-check me-2"></i>Este sou eu';
-                    button.disabled = false;
-                }
             });
     }
 
@@ -442,15 +421,11 @@
                 var value = this.dataset.value;
                 var radioInput = document.getElementById((value === 'confirmado' ? 'confirm_' : 'decline_') + guestId);
                 
-                // Remove selected class from all options for this guest
                 document.querySelectorAll('.rsvp-option[data-guest="' + guestId + '"]').forEach(opt => {
                     opt.classList.remove('selected');
                 });
                 
-                // Add selected class to clicked option
                 this.classList.add('selected');
-                
-                // Check the radio input
                 radioInput.checked = true;
             });
         });
@@ -490,9 +465,11 @@
         document.getElementById('rsvpForm').submit();
     }
 
+    // Bloquear Enter no input para não disparar submit
     document.getElementById('guestSearch').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             e.preventDefault();
+            document.getElementById('btnSearchGuest').click();
         }
     });
 </script>
