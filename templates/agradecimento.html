@@ -10,11 +10,12 @@
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 25%, #fd79a8 50%, #e17055 75%, #d63031 100%);
+            background: linear-gradient(135deg, #f5f5f5);
             min-height: 100vh;
             position: relative;
             overflow-x: hidden;
         }
+        
         
         .couple-names {
             font-family: 'Dancing Script', cursive;
@@ -26,7 +27,7 @@
         
         .decorative-border {
             border: 2px solid;
-            border-image: linear-gradient(45deg, #ddd6fe, #c7d2fe, #bfdbfe, #ddd6fe) 1;
+            border-image: linear-gradient(45deg, #f0b7a1 0%,#894b34 100%,#bf6e4e) 1;
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(10px);
@@ -84,9 +85,12 @@
         }
         
         .btn-home {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color:#894b34;
+            border-radius: 25px;
+            border: 2px solid rgb(117, 62, 41);
+            background: linear-gradient(#f5f5f5);
             transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 25px  rgb(117, 62, 41, 0.3);
         }
         
         .btn-home:hover {
@@ -96,7 +100,7 @@
         
         .verse-container {
             background: rgba(255, 255, 255, 0.95);
-            border-left: 4px solid #667eea;
+            border-left: 4px solid rgb(117, 62, 41);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
         
@@ -107,10 +111,12 @@
         }
         
         .decorative-flourish {
-            color: #ddd6fe;
+            color: rgb(117, 62, 41);
             font-size: 2rem;
             margin: 0 1rem;
         }
+        .fas  {color: rgb(117, 62, 41);}
+        .w-32 {color:#894b34;}
     </style>
 </head>
 <body class="flex items-center justify-center p-4">
@@ -135,13 +141,13 @@
                 <h1 class="couple-names text-6xl font-bold mx-4">Kelly & Nísio</h1>
                 <i class="decorative-flourish fas fa-leaf" style="transform: scaleX(-1);"></i>
             </div>
-            <div class="w-32 h-1 bg-gradient-to-r from-purple-300 via-pink-300 to-purple-300 mx-auto rounded-full"></div>
+           <div class="w-32 h-1 mx-auto rounded-full" style="background-color: #894b34;"></div>
         </div>
 
         <!-- Thank You Message -->
         <div class="text-center mb-12">
             <h2 class="text-4xl font-semibold text-gray-800 mb-6">
-                <i class="fas fa-gift text-purple-500 mr-3"></i>
+              <i class="fas fa-gift text-purple-500 mr-3"></i>
                 Muito Obrigado pelo seu Presente!
             </h2>
             
@@ -172,7 +178,7 @@
                     "Cada um contribua segundo propôs no seu coração; não com tristeza, ou por necessidade; 
                     porque Deus ama ao que dá com alegria."
                 </blockquote>
-                <cite class="text-lg font-semibold text-purple-700">
+                <cite class="text-lg font-semibold " style="color: #894b34";>
                     — 2 Coríntios 9:7
                 </cite>
             </div>
