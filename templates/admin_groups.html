@@ -361,10 +361,21 @@ function removeGuestFromGroup(guestId, groupId) {
 }
 
 </script>
-// Detectar quando a modal é fechada e recarregar a página se necessário
-document.getElementById('manageGuestsModal').addEventListener('hidden.bs.modal', function () {
-    if (window.needsPageReload) {
-        window.location.reload();
+{% block scripts %}
+<script>
+    function editGroup(id, name, description) {
+        // ...
     }
-});
+
+    // ...todas as outras funções...
+
+    // Detectar quando a modal é fechada e recarregar a página se necessário
+    document.getElementById('manageGuestsModal').addEventListener('hidden.bs.modal', function () {
+        if (window.needsPageReload) {
+            window.location.reload();
+        }
+    });
+</script>
 {% endblock %}
+
+
