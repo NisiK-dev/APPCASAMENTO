@@ -302,56 +302,70 @@
         });
     }
 
-    function addGuestToGroup(guestId, groupId) {
-        fetch('/admin/add_guest_to_group', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                guest_id: guestId,
-                group_id: groupId
-            })
+   function addGuestToGroup(guestId, groupId) {
+    fetch('/admin/add_guest_to_group', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            guest_id: guestId,
+            group_id: groupId
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Recarregar as listas
-                    manageGroupGuests(groupId, document.getElementById('groupNameTitle').textContent);
-                } else {
-                    alert('Erro ao adicionar convidado ao grupo');
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Recarregar as listas na modal
+                manageGroupGuests(groupId, document.getElementById('groupNameTitle').textContent);
+                
+                // ADICIONE ESTA LINHA: Marcar que precisa recarregar a página principal
+                window.needsPageReload = true;
+            } else {
                 alert('Erro ao adicionar convidado ao grupo');
-            });
-    }
-
-    function removeGuestFromGroup(guestId, groupId) {
-        fetch('/admin/remove_guest_from_group', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                guest_id: guestId,
-                group_id: groupId
-            })
+            }
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Recarregar as listas
-                    manageGroupGuests(groupId, document.getElementById('groupNameTitle').textContent);
-                } else {
-                    alert('Erro ao remover convidado do grupo');
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao adicionar convidado ao grupo');
+        });
+}
+
+function removeGuestFromGroup(guestId, groupId) {
+    fetch('/admin/remove_guest_from_group', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            guest_id: guestId,
+            group_id: groupId
+        })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Recarregar as listas na modal
+                manageGroupGuests(groupId, document.getElementById('groupNameTitle').textContent);
+                
+                // ADICIONE ESTA LINHA: Marcar que precisa recarregar a página principal
+                window.needsPageReload = true;
+            } else {
                 alert('Erro ao remover convidado do grupo');
-            });
-    }
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao remover convidado do grupo');
+        });
+}
+
 </script>
 {% endblock %}
+// Detectar quando a modal é fechada e recarregar a página se necessário
+document.getElementById('manageGuestsModal').addEventListener('hidden.bs.modal', function () {
+    if (window.needsPageReload) {
+        window.location.reload();
+    }
+});
+
