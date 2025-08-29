@@ -150,7 +150,7 @@ def agradecimento():
     return render_template('agradecimento.html')
 
 # 🔧 CORREÇÃO APLICADA: Adicionado  na rota
-@app.route('/agradecimento/')
+@app.route('/agradecimento/<int:guest_id>')
 def agradecimento_personalizado(guest_id):
     """Página de agradecimento personalizada"""
     guest = Guest.query.get_or_404(guest_id)
@@ -276,7 +276,7 @@ def add_guest():
     return redirect(url_for('admin_guests'))
 
 # 🔧 CORREÇÃO APLICADA: Adicionado  na rota
-@app.route('/admin/edit_guest/', methods=['POST'])
+@app.route('/admin/edit_guest/<int:guest_id>', methods=['POST'])
 def edit_guest(guest_id):
     """Editar convidado existente"""
     auth_check = admin_required()
@@ -310,7 +310,7 @@ def edit_guest(guest_id):
     return redirect(url_for('admin_guests'))
 
 # 🔧 CORREÇÃO APLICADA: Adicionado  na rota
-@app.route('/admin/delete_guest/', methods=['POST'])
+@app.route('/admin/delete_guest/<int:guest_id>', methods=['POST'])
 def delete_guest(guest_id):
     """Deletar convidado"""
     auth_check = admin_required()
@@ -382,8 +382,9 @@ def add_group():
     return redirect(url_for('admin_groups'))
 
 # 🔧 CORREÇÃO APLICADA: Adicionado  na rota
-@app.route('/admin/edit_group/', methods=['POST'])
+@app.route('/admin/edit_group/<int:group_id>', methods=['POST'])
 def edit_group(group_id):
+
     """Editar grupo existente"""
     auth_check = admin_required()
     if auth_check:
@@ -412,7 +413,7 @@ def edit_group(group_id):
     return redirect(url_for('admin_groups'))
 
 # 🔧 CORREÇÃO APLICADA: Adicionado  na rota
-@app.route('/admin/delete_group/', methods=['POST'])
+@app.route('/admin/delete_group/<int:group_id>', methods=['POST'])
 def delete_group(group_id):
     """Deletar grupo"""
     auth_check = admin_required()
@@ -495,7 +496,7 @@ def add_gift():
     return redirect(url_for('admin_gifts'))
 
 # 🔧 CORREÇÃO APLICADA: Adicionado  na rota
-@app.route('/admin/edit_gift/', methods=['POST'])
+@app.route('/admin/edit_gift/<int:gift_id>', methods=['POST'])
 def edit_gift(gift_id):
     """Editar presente existente"""
     auth_check = admin_required()
@@ -528,7 +529,7 @@ def edit_gift(gift_id):
     return redirect(url_for('admin_gifts'))
 
 # 🔧 CORREÇÃO APLICADA: Adicionado  na rota
-@app.route('/admin/delete_gift/', methods=['POST'])
+@app.route('/admin/delete_gift/<int:gift_id>', methods=['POST'])
 def delete_gift(gift_id):
     """Deletar presente"""
     auth_check = admin_required()
