@@ -82,7 +82,7 @@ def search_guest():
     return jsonify({"guests": results})
 
 # 🔧 CORREÇÃO APLICADA: Adicionado  na rota
-@app.route('/get_guest_group/')
+@app.route('/get_guest_group/<int:guest_id>')
 def get_guest_group(guest_id):
     """Obter grupo de convidados de um convidado específico"""
     guest = Guest.query.get_or_404(guest_id)
