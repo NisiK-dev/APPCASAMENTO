@@ -361,11 +361,10 @@ function removeGuestFromGroup(guestId, groupId) {
 }
 
 </script>
-{% endblock %}
 // Detectar quando a modal é fechada e recarregar a página se necessário
 document.getElementById('manageGuestsModal').addEventListener('hidden.bs.modal', function () {
     if (window.needsPageReload) {
         window.location.reload();
     }
 });
-
+{% endblock %}
