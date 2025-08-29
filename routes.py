@@ -441,6 +441,90 @@ def delete_group(group_id):
     return redirect(url_for('admin_groups'))
 
 # =========================
+# 🔧 ROTAS PARA GERENCIAMENTO DE GRUPOS - ADICIONAIS
+# =========================
+
+@app.route('/admin/group_guests/<int:group_id>')
+def get_group_guests(group_id):
+    """Obter convidados disponíveis e do grupo específico"""
+    auth_check = admin_required()
+    if auth_check:
+        return jsonify({"error": "Authentication required"}), 401
+    
+    try:
+        # Convidados sem grupo (disponíveis)
+        available_guests = Guest.query.filter_by(group_id=None).all()
+        
+        # Convidados do grupo específico
+        group_guests = Guest.query.filter_by(group_id=group_id).all()
+        
+        return jsonify({
+            "available_guests": [
+                {"id": g.id, "name": g.name, "rsvp_status": g.rsvp_status}
+                for g in available_guests
+            ],
+            "group_guests": [
+                {"id": g.id, "name": g.name, "rsvp_status": g.rsvp_status}
+                for g in group_guests
+            ]
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/admin/add_guest_to_group', methods=['POST'])
+def add_guest_to_group():
+    """Adicionar convidado a um grupo"""
+    auth_check = admin_required()
+    if auth_check:
+        return jsonify({"error": "Authentication required"}), 401
+    
+    try:
+        data = request.get_json()
+        guest_id = data.get('guest_id')
+        group_id = data.get('group_id')
+        
+        guest = Guest.query.get_or_404(guest_id)
+        group = GuestGroup.query.get_or_404(group_id)
+        
+        guest.group_id = group_id
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": f"Convidado {guest.name} adicionado ao grupo {group.name}"
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/admin/remove_guest_from_group', methods=['POST'])
+def remove_guest_from_group():
+    """Remover convidado de um grupo"""
+    auth_check = admin_required()
+    if auth_check:
+        return jsonify({"error": "Authentication required"}), 401
+    
+    try:
+        data = request.get_json()
+        guest_id = data.get('guest_id')
+        
+        guest = Guest.query.get_or_404(guest_id)
+        guest.group_id = None
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": f"Convidado {guest.name} removido do grupo"
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# =========================
 # 🎁 GERENCIAMENTO DE PRESENTES
 # =========================
 
