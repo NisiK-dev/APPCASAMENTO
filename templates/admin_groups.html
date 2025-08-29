@@ -360,15 +360,7 @@ function removeGuestFromGroup(guestId, groupId) {
         });
 }
 
-</script>
-{% block scripts %}
-<script>
-    function editGroup(id, name, description) {
-        // ...
-    }
-
-    // ...todas as outras funções...
-
+ // 🔧 ADICIONE ESTE CÓDIGO NO FINAL, DENTRO DO BLOCO SCRIPTS:
     // Detectar quando a modal é fechada e recarregar a página se necessário
     document.getElementById('manageGuestsModal').addEventListener('hidden.bs.modal', function () {
         if (window.needsPageReload) {
@@ -377,5 +369,4 @@ function removeGuestFromGroup(guestId, groupId) {
     });
 </script>
 {% endblock %}
-
 
